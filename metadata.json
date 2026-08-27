@@ -1,0 +1,7 @@
+{
+  "name": "Louis PodCare Discovery",
+  "description": "Medical & Health Sciences Discovery Dashboard with dark and light themes and seamless screen transitions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
