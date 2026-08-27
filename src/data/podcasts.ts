@@ -1,8 +1,23 @@
 import { PodcastItem } from '../types';
 
+/**
+ * Utility helper to extract YouTube Video ID from standard YouTube URLs or direct IDs
+ */
+export function extractYoutubeId(urlOrId?: string): string {
+  if (!urlOrId) return '30bZ_1Z2e1A';
+  // If already an ID (11 chars without slash)
+  if (/^[a-zA-Z0-9_-]{11}$/.test(urlOrId)) {
+    return urlOrId;
+  }
+  // Try matching standard YouTube URL patterns
+  const regExp = /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/;
+  const match = urlOrId.match(regExp);
+  return match && match[1] ? match[1] : urlOrId;
+}
+
 export const FEATURED_PODCAST: PodcastItem = {
   id: 'featured-ai-surgery',
-  title: 'The Future of AI in Modern Surgery',
+  title: 'The Future of AI in Modern Surgery & Robotics',
   category: 'Medical Tech',
   categorySlug: 'medical-tech',
   institution: 'Johns Hopkins / SLC Medical',
@@ -14,13 +29,15 @@ export const FEATURED_PODCAST: PodcastItem = {
   imageUrl:
     'https://lh3.googleusercontent.com/aida-public/AB6AXuAHYhv6PjmKisaZb3T9tBeGn2d48CC8a-UkZIM887de4ZvZHGB4KMy0VZhFLU79rAK3FKSegu2aeNNDnjD1bUb9cH2TKLgDDJo5wSLz4z4hJw4W1NwBYYGNKdiOB7U3aY9Ai6UUzCh6zi756jWF992fiDOXTfAxqEswJ_oK9-8OTphKpPdqhdf51LmPvE1sBxCjgRD300OmRuEp4cJ_KaHgsaZFrpZiTGlO_xhRqzTCvajTa1DR0tH0',
   imageAlt:
-    'A highly cinematic, wide-angle shot of a glowing holographic brain floating above a sleek, modern surgical operating table. The room is dark, illuminated by the bright, electric blue glow of the hologram and subtle green LED indicators from surrounding medical tech equipment.',
+    'A highly cinematic, wide-angle shot of a glowing holographic brain floating above a sleek, modern surgical operating table.',
+  youtubeId: '30bZ_1Z2e1A',
+  youtubeUrl: 'https://www.youtube.com/watch?v=30bZ_1Z2e1A',
 };
 
 export const PODCAST_CARDS: PodcastItem[] = [
   {
     id: 'genomic-sequencing',
-    title: 'Advancements in Genomic Sequencing',
+    title: 'Advancements in Genomic Sequencing & Diagnostics',
     category: 'Medical Tech',
     categorySlug: 'medical-tech',
     institution: 'Mayo Clinic',
@@ -30,10 +47,13 @@ export const PODCAST_CARDS: PodcastItem[] = [
       'https://lh3.googleusercontent.com/aida-public/AB6AXuCXPAkGM34_aBKxwrrxKO7bgCX5uQvYCcbT06oJ67gZFcf0Ad0zL1tyraNnMH0JJLLZ-x63m-7kNsjZ0af9ucDtcruF6pr1OEwDtArpkT6mrfoCOc3C7QEIJm0NsqiluuC9wi415MtMv62QQE9qOBOBSd0e0eKK5kTajfpe7RuveuFtMA7QPnJGGntLPlO_E83f1ekPcz7vZLa9WwAUjszekr-plCkzqabm5QubOyiD2DZ2EzxEyHkr',
     imageAlt:
       'A macro photography shot of a DNA double helix model illuminated by bright, clean white and subtle deep blue lights.',
+    description: 'Exploring how long-read sequencing technologies are unlocking personalized therapies for rare inherited diseases.',
+    youtubeId: 'YnZe2Gj_R_o',
+    youtubeUrl: 'https://www.youtube.com/watch?v=YnZe2Gj_R_o',
   },
   {
     id: 'microbiome-mental-health',
-    title: 'Microbiome Impact on Mental Health',
+    title: 'Microbiome Impact on Mental Health & Gut-Brain Axis',
     category: 'Nutrition',
     categorySlug: 'nutrition',
     institution: 'Harvard Med',
@@ -43,10 +63,13 @@ export const PODCAST_CARDS: PodcastItem[] = [
       'https://lh3.googleusercontent.com/aida-public/AB6AXuCUzvKnXJPeL7Q8COUrXq20Qnyr6eTq4L1Obi_jJSj1r29zXKDjpLthQ9gwQYQj8p6GQ4MBs4miobA7KGPIrNVz0rItKCMG8Nw2UoGCfHfyaCElLyceG9LY_5oCB3XcuXdq7cOgXZRZX00pt9-TJjGee2BK7gpEQEzKPkSDtN-9fes3W5C96upkLJAHemInAq_vaM-gBwCnQRYM9_U5CbQm-kYVLeGMrRvl_Efcb4lmI77KROwyY4Is',
     imageAlt:
       'A minimalist flat lay of colorful, geometric nutritional supplements and fresh green leafy vegetables on a pristine white marble surface.',
+    description: 'New clinical insights into how the gut microbiota modulates neurochemistry, mood regulation, and cognitive resilience.',
+    youtubeId: 'B9R148h0y_E',
+    youtubeUrl: 'https://www.youtube.com/watch?v=B9R148h0y_E',
   },
   {
     id: 'cognitive-behavioral-2024',
-    title: 'Cognitive Behavioral Interventions in 2024',
+    title: 'Cognitive Behavioral Interventions in Digital Health',
     category: 'Psychology',
     categorySlug: 'psychology',
     institution: 'APA Journal',
@@ -56,10 +79,13 @@ export const PODCAST_CARDS: PodcastItem[] = [
       'https://lh3.googleusercontent.com/aida-public/AB6AXuBQWK89ryeqWTjNZmqkPBP22syw-zgdy0QqYXTAHeAaXV3B8t04pbOHxWcldzTjgsnjXBmh-F4Dqt5sVQdDsxH7L4A-x-pB_4hrDPX0HCQ9GRutzHcCEc7TKy-YGd-jplwrQ38VOyyzq9xyUUFQikcsfMbBilJmBgm1_cgHZz_PQHlBtyNce4q-kEHeGkny6_tCr7EO-OokvYfenIlPWyUDi45vl88sWeyJFnRH0Ld9LlGD-VXoP6vg',
     imageAlt:
       "A close-up shot of a therapist's hands taking notes on a modern tablet with a stylus, while a patient sits comfortably in the background.",
+    description: 'How digital CBT tools and mobile biofeedback empower patients dealing with generalized anxiety disorders.',
+    youtubeId: 'W19Q3g1LDUo',
+    youtubeUrl: 'https://www.youtube.com/watch?v=W19Q3g1LDUo',
   },
   {
     id: 'patient-handoff-protocols',
-    title: 'Optimizing Patient Handoff Protocols',
+    title: 'Optimizing Patient Handoff Protocols in Critical Care',
     category: 'Nursing',
     categorySlug: 'nursing',
     institution: 'Johns Hopkins',
@@ -69,6 +95,9 @@ export const PODCAST_CARDS: PodcastItem[] = [
       'https://lh3.googleusercontent.com/aida-public/AB6AXuBRovgBeCx59I1z68jVtE6P-YBO1DCrCYtA13y7z7NhbdCrDWCNKxIvlWF4kenk-daDrK7h3DttO0__UUyvRRqDMh32rw0boxarDA8uEPCateB6ukg_A9c2nAHfHh_Le_RihIIDyKu18UJEQhOvZ3W1Jv2Ep92mCCzgfdesK_Tm9ZtXpNRcHBNXcYvvgu9sHUwecydDTXiVaHmG-HlP5Wyr9HCebJqlq35XuHLhj-fozOPw1XJmrXv-',
     imageAlt:
       'A dynamic shot of a modern hospital corridor bathed in natural sunlight. A nurse in crisp blue scrubs is looking at a digital chart.',
+    description: 'Standardized communication checklists that prevent diagnostic errors during emergency shift transitions.',
+    youtubeId: 'v4E5oE1fF3M',
+    youtubeUrl: 'https://www.youtube.com/watch?v=v4E5oE1fF3M',
   },
   {
     id: 'immunotherapy-review',
@@ -79,16 +108,18 @@ export const PODCAST_CARDS: PodcastItem[] = [
     institutionIcon: 'science',
     duration: '55:00',
     description:
-      'A comprehensive panel discussion with leading oncologists on the efficacy of recent immunotherapy trials.',
+      'A comprehensive panel discussion with leading oncologists on the efficacy of recent CAR-T and checkpoint inhibitor trials.',
     imageUrl:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuB14NYz1oy7tUkjwU36q-U1nIlqVUcURgJdRRI7njfTXM46g-Rrf9rVUCKXS-t4Praq1ZTX86zmkST_z0F3qde2zUFVvFemLEIVZgSSNZ1PcmCwE7zZj2qY6dmkvKkA3gpa2HgfgMMpQel9JUwtIaz78b4pQwXuT7MAb20o6jdD2w8cB7N_W1O3AlTC_Ekapp7o_px5NAk-at5JHIHaMsw0qp7j-is646grg3b7Tt0DXIaDUGAKtuKK',
     imageAlt:
       'A wide, stunning photograph of a state-of-the-art oncology research center with high-tech centrifuges.',
     span2: true,
+    youtubeId: 'Ub_o06bQ8gE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Ub_o06bQ8gE',
   },
   {
     id: 'arrhythmia-detection',
-    title: 'Wearable Tech in Arrhythmia Detection',
+    title: 'Wearable Tech in Arrhythmia Detection & Prevention',
     category: 'Cardiology',
     categorySlug: 'cardiology',
     institution: 'Cleveland Clinic',
@@ -98,6 +129,9 @@ export const PODCAST_CARDS: PodcastItem[] = [
       'https://lh3.googleusercontent.com/aida-public/AB6AXuBAwpg57QloUdbhWVwdpOhswYuswt6zq-3Ts5eWD5VJV2Ia9y_HC-IJD2jGTbCFSXlamRSUBUFlwLMEpbbPo6dull6wKLIqV2FkdBYfl-l5hYqHniM1LW1qNquWZL9OKQBACVj8i3pD_WTAIFUw7hUyGrI8D0J7ucEJLLqgVORhIKvReqKbZueGjY9Xjlpkk517VnIttQttibrM8QKNxkuBTW8HO4ZpRlc12C1i_TO9lX657aZqBZod',
     imageAlt:
       'An abstract, high-resolution rendering of a human heart constructed from luminous digital nodes and wireframes.',
+    description: 'Continuous smartwatch ECG monitoring and its impact on early atrial fibrillation diagnosis in outpatient care.',
+    youtubeId: 'e8v3m32eMko',
+    youtubeUrl: 'https://www.youtube.com/watch?v=e8v3m32eMko',
   },
 ];
 
@@ -113,6 +147,9 @@ export const MORE_PODCAST_CARDS: PodcastItem[] = [
     imageUrl:
       'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=800&q=80',
     imageAlt: 'Biochemical laboratory analysis of genetic structures',
+    description: 'How in-vivo gene editing is moving from clinical trials into approved first-line therapies for rare metabolic disorders.',
+    youtubeId: 'UKbrwLDnNIY',
+    youtubeUrl: 'https://www.youtube.com/watch?v=UKbrwLDnNIY',
   },
   {
     id: 'neuroplasticity-rehab',
@@ -125,6 +162,9 @@ export const MORE_PODCAST_CARDS: PodcastItem[] = [
     imageUrl:
       'https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&w=800&q=80',
     imageAlt: 'Medical imaging scan depicting neural connectivity',
+    description: 'Combining non-invasive brain stimulation with repetitive task training for motor recovery in stroke survivors.',
+    youtubeId: 'ELpfYCZa87g',
+    youtubeUrl: 'https://www.youtube.com/watch?v=ELpfYCZa87g',
   },
   {
     id: 'telehealth-pediatrics',
@@ -137,6 +177,9 @@ export const MORE_PODCAST_CARDS: PodcastItem[] = [
     imageUrl:
       'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80',
     imageAlt: 'Pediatric specialist reviewing digital diagnostics',
+    description: 'Deploying connected otoscopes, digital stethoscopes, and high-speed telemetry to rural community clinics.',
+    youtubeId: '7R5_b8V3X_Q',
+    youtubeUrl: 'https://www.youtube.com/watch?v=7R5_b8V3X_Q',
   },
 ];
 

@@ -7,11 +7,11 @@ import {
   MORE_PODCAST_CARDS,
   PODCAST_CARDS,
 } from '../data/podcasts';
-import { PodcastItem, TabId, TransitionType } from '../types';
+import { MediaMode, PodcastItem, TabId, TransitionType } from '../types';
 
 interface DiscoveryDashboardDarkProps {
   onNavigate: (to: 'healthmed' | 'dark', transition: TransitionType) => void;
-  onPlayEpisode: (podcast: PodcastItem) => void;
+  onPlayEpisode: (podcast: PodcastItem, mode?: MediaMode) => void;
   bookmarks: Set<string>;
   onToggleBookmark: (id: string) => void;
   activeTab: TabId;
@@ -288,10 +288,12 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                   <article
                     key={card.id}
                     id={`dark-library-card-${card.id}`}
-                    onClick={() => onPlayEpisode(card)}
-                    className="flex flex-col bg-[#060e20] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl border border-[#334155] group cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40"
+                    className="flex flex-col bg-[#060e20] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl border border-[#334155] group transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40"
                   >
-                    <div className="relative w-full aspect-video">
+                    <div
+                      className="relative w-full aspect-video cursor-pointer"
+                      onClick={() => onPlayEpisode(card, 'video')}
+                    >
                       <img
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         data-alt={card.imageAlt}
@@ -304,15 +306,35 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                       <div className="absolute top-2.5 left-2.5 bg-[#060e20]/90 px-2.5 py-1 rounded-md text-[12px] text-[#3b82f6] backdrop-blur-sm border border-[#334155] font-semibold">
                         {card.category}
                       </div>
-                      <div className="absolute inset-0 bg-blue-900/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="material-symbols-outlined text-white/90 drop-shadow text-[44px]">
-                          play_circle
-                        </span>
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onPlayEpisode(card, 'video');
+                          }}
+                          className="px-3.5 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1 shadow-lg shadow-blue-600/40 transform hover:scale-105 transition-all"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">play_arrow</span>
+                          <span>ดูคลิป</span>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onPlayEpisode(card, 'audio');
+                          }}
+                          className="px-3.5 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1 shadow-lg shadow-emerald-600/40 transform hover:scale-105 transition-all"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">headphones</span>
+                          <span>ฟังเสียง</span>
+                        </button>
                       </div>
                     </div>
 
                     <div className="p-5 flex flex-col flex-grow gap-2">
-                      <h3 className="text-[19px] font-bold leading-[26px] text-[#f8fafc] group-hover:text-[#3b82f6] transition-colors line-clamp-2">
+                      <h3
+                        onClick={() => onPlayEpisode(card, 'video')}
+                        className="text-[19px] font-bold leading-[26px] text-[#f8fafc] group-hover:text-[#3b82f6] transition-colors line-clamp-2 cursor-pointer"
+                      >
                         {card.title}
                       </h3>
 
@@ -322,7 +344,25 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                         </p>
                       )}
 
-                      <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#334155]">
+                      {/* Watch Video vs Listen Audio Action Buttons */}
+                      <div className="flex items-center gap-2 mt-2">
+                        <button
+                          onClick={() => onPlayEpisode(card, 'video')}
+                          className="flex-1 py-1.5 px-3 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">movie</span>
+                          <span>ดูคลิป</span>
+                        </button>
+                        <button
+                          onClick={() => onPlayEpisode(card, 'audio')}
+                          className="flex-1 py-1.5 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">headphones</span>
+                          <span>ฟังเสียง</span>
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#334155]">
                         <div className="flex items-center gap-2 text-[#94a3b8] text-[13px] font-medium">
                           <span className="material-symbols-outlined text-[16px]">
                             {card.institutionIcon}
@@ -458,23 +498,35 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                   style={{ backgroundImage: `url('${FEATURED_PODCAST.imageUrl}')` }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-[#060e20] via-[#060e20]/60 to-transparent flex items-end md:items-center p-6 md:p-8">
-                  <button
-                    id="hero-play-button"
-                    aria-label="Play Featured Podcast"
-                    onClick={() => onPlayEpisode(FEATURED_PODCAST)}
-                    className="h-16 w-16 bg-[#3b82f6] text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 hover:bg-blue-500 transition-all duration-200 ring-4 ring-blue-500/30 group-hover:ring-blue-500/60"
-                  >
-                    <span
-                      className="material-symbols-outlined ml-1"
-                      style={{ fontVariationSettings: "'FILL' 1", fontSize: '32px' }}
+                  <div className="flex items-center gap-3">
+                    <button
+                      id="hero-play-video-button"
+                      aria-label="Play Featured Video"
+                      onClick={() => onPlayEpisode(FEATURED_PODCAST, 'video')}
+                      className="h-16 px-6 bg-[#3b82f6] hover:bg-blue-500 text-white rounded-full flex items-center gap-2 shadow-2xl hover:scale-105 transition-all duration-200 ring-4 ring-blue-500/30 font-bold text-sm sm:text-base"
                     >
-                      play_arrow
-                    </span>
-                  </button>
+                      <span
+                        className="material-symbols-outlined"
+                        style={{ fontVariationSettings: "'FILL' 1", fontSize: '28px' }}
+                      >
+                        play_arrow
+                      </span>
+                      <span>ดูคลิป (Video)</span>
+                    </button>
+                    <button
+                      id="hero-play-audio-button"
+                      aria-label="Listen Featured Audio"
+                      onClick={() => onPlayEpisode(FEATURED_PODCAST, 'audio')}
+                      className="h-16 px-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full flex items-center gap-2 shadow-2xl hover:scale-105 transition-all duration-200 ring-4 ring-emerald-500/30 font-bold text-sm sm:text-base"
+                    >
+                      <span className="material-symbols-outlined text-[24px]">headphones</span>
+                      <span>ฟังเสียง (Audio)</span>
+                    </button>
+                  </div>
                 </div>
                 <div className="absolute top-4 left-4 bg-[#0f172a]/90 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[12px] font-semibold text-[#3b82f6] flex items-center gap-1.5 border border-[#334155]">
                   <span className="material-symbols-outlined text-[16px] text-amber-400">star</span>
-                  <span>Featured</span>
+                  <span>Featured YouTube Episode</span>
                 </div>
               </div>
 
@@ -483,7 +535,7 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                 <div className="flex flex-col gap-2">
                   <span className="text-[12px] text-[#34d399] uppercase tracking-widest font-semibold flex items-center gap-1.5">
                     <span className="material-symbols-outlined text-[16px]">podcasts</span>
-                    <span>Podcast of the Week</span>
+                    <span>Podcast & Video of the Week</span>
                   </span>
                   <h1 className="text-[28px] md:text-[32px] leading-[36px] md:leading-[40px] font-bold text-[#f8fafc] tracking-tight">
                     {FEATURED_PODCAST.title}
@@ -570,12 +622,14 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                   <article
                     key={card.id}
                     id={`dark-card-${card.id}`}
-                    onClick={() => onPlayEpisode(card)}
-                    className={`flex flex-col bg-[#060e20] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl border border-[#334155] group cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40 ${
+                    className={`flex flex-col bg-[#060e20] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl border border-[#334155] group transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40 ${
                       card.span2 ? 'lg:col-span-2' : ''
                     }`}
                   >
-                    <div className={`relative w-full ${card.span2 ? 'h-48 md:h-64' : 'aspect-video'}`}>
+                    <div
+                      className={`relative w-full cursor-pointer ${card.span2 ? 'h-48 md:h-64' : 'aspect-video'}`}
+                      onClick={() => onPlayEpisode(card, 'video')}
+                    >
                       <img
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         data-alt={card.imageAlt}
@@ -588,15 +642,35 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                       <div className="absolute top-2.5 left-2.5 bg-[#060e20]/90 px-2.5 py-1 rounded-md text-[12px] text-[#3b82f6] backdrop-blur-sm border border-[#334155] font-semibold">
                         {card.category}
                       </div>
-                      <div className="absolute inset-0 bg-blue-900/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="material-symbols-outlined text-white/90 drop-shadow text-[44px]">
-                          play_circle
-                        </span>
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onPlayEpisode(card, 'video');
+                          }}
+                          className="px-3.5 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1 shadow-lg shadow-blue-600/40 transform hover:scale-105 transition-all"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">play_arrow</span>
+                          <span>ดูคลิป</span>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onPlayEpisode(card, 'audio');
+                          }}
+                          className="px-3.5 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1 shadow-lg shadow-emerald-600/40 transform hover:scale-105 transition-all"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">headphones</span>
+                          <span>ฟังเสียง</span>
+                        </button>
                       </div>
                     </div>
 
                     <div className="p-5 flex flex-col flex-grow gap-2">
-                      <h3 className="text-[20px] font-bold leading-[28px] text-[#f8fafc] group-hover:text-[#3b82f6] transition-colors line-clamp-2">
+                      <h3
+                        onClick={() => onPlayEpisode(card, 'video')}
+                        className="text-[20px] font-bold leading-[28px] text-[#f8fafc] group-hover:text-[#3b82f6] transition-colors line-clamp-2 cursor-pointer"
+                      >
                         {card.title}
                       </h3>
 
@@ -606,7 +680,25 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                         </p>
                       )}
 
-                      <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#334155]">
+                      {/* Dual Action Buttons */}
+                      <div className="flex items-center gap-2 mt-2">
+                        <button
+                          onClick={() => onPlayEpisode(card, 'video')}
+                          className="flex-1 py-1.5 px-3 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">movie</span>
+                          <span>ดูคลิป</span>
+                        </button>
+                        <button
+                          onClick={() => onPlayEpisode(card, 'audio')}
+                          className="flex-1 py-1.5 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">headphones</span>
+                          <span>ฟังเสียง</span>
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#334155]">
                         <div className="flex items-center gap-2 text-[#94a3b8] text-[13px] font-medium">
                           <span className="material-symbols-outlined text-[16px]">
                             {card.institutionIcon}

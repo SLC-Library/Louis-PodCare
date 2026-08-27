@@ -4,6 +4,8 @@ export type TabId = 'Browse' | 'Library' | 'Community';
 
 export type TransitionType = 'push' | 'push_back' | 'slide_up' | 'none';
 
+export type MediaMode = 'video' | 'audio';
+
 export interface PodcastItem {
   id: string;
   title: string;
@@ -18,4 +20,7 @@ export interface PodcastItem {
   imageAlt: string;
   span2?: boolean;
   audioUrl?: string;
+  youtubeId?: string;
+  youtubeUrl?: string;
 }
+

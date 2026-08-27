@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { DiscoveryDashboardDark } from './components/DiscoveryDashboardDark';
 import { DiscoveryDashboardHealthMed } from './components/DiscoveryDashboardHealthMed';
 import { AudioPlayer } from './components/AudioPlayer';
-import { PodcastItem, ScreenId, TabId, TransitionType } from './types';
+import { MediaMode, PodcastItem, ScreenId, TabId, TransitionType } from './types';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('dark');
@@ -12,6 +12,7 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activePodcast, setActivePodcast] = useState<PodcastItem | null>(null);
+  const [activeMediaMode, setActiveMediaMode] = useState<MediaMode>('video');
 
   const [bookmarks, setBookmarks] = useState<Set<string>>(() => {
     try {
@@ -28,6 +29,11 @@ export default function App() {
   const handleNavigate = (to: ScreenId, transition: TransitionType = 'none') => {
     setTransitionType(transition);
     setCurrentScreen(to);
+  };
+
+  const handlePlayEpisode = (podcast: PodcastItem, mode: MediaMode = 'video') => {
+    setActiveMediaMode(mode);
+    setActivePodcast(podcast);
   };
 
   const handleToggleBookmark = (id: string) => {
@@ -74,7 +80,7 @@ export default function App() {
           >
             <DiscoveryDashboardDark
               onNavigate={handleNavigate}
-              onPlayEpisode={(podcast) => setActivePodcast(podcast)}
+              onPlayEpisode={handlePlayEpisode}
               bookmarks={bookmarks}
               onToggleBookmark={handleToggleBookmark}
               activeTab={activeTab}
@@ -96,7 +102,7 @@ export default function App() {
           >
             <DiscoveryDashboardHealthMed
               onNavigate={handleNavigate}
-              onPlayEpisode={(podcast) => setActivePodcast(podcast)}
+              onPlayEpisode={handlePlayEpisode}
               bookmarks={bookmarks}
               onToggleBookmark={handleToggleBookmark}
               activeTab={activeTab}
@@ -110,10 +116,11 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Persistent Audio Player if an episode is selected */}
+      {/* Persistent Media Player (Video / Audio) if an episode is selected */}
       {activePodcast && (
         <AudioPlayer
           podcast={activePodcast}
+          initialMode={activeMediaMode}
           onClose={() => setActivePodcast(null)}
           isDark={currentScreen === 'dark'}
         />
