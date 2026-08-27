@@ -140,6 +140,12 @@ export const MORE_PODCAST_CARDS: PodcastItem[] = [
   },
 ];
 
+export const ALL_PODCASTS: PodcastItem[] = [
+  FEATURED_PODCAST,
+  ...PODCAST_CARDS,
+  ...MORE_PODCAST_CARDS,
+];
+
 export const CATEGORIES = [
   'All',
   'Nutrition',

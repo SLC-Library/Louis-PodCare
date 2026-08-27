@@ -9,9 +9,17 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('dark');
   const [transitionType, setTransitionType] = useState<TransitionType>('push');
   const [activePodcast, setActivePodcast] = useState<PodcastItem | null>(null);
-  const [bookmarks, setBookmarks] = useState<Set<string>>(
-    new Set(['featured-ai-surgery', 'immunotherapy-review'])
-  );
+  const [bookmarks, setBookmarks] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem('louis_podcare_bookmarks');
+      if (saved) {
+        return new Set(JSON.parse(saved));
+      }
+    } catch {
+      // fallback
+    }
+    return new Set(['featured-ai-surgery', 'immunotherapy-review']);
+  });
 
   const handleNavigate = (to: ScreenId, transition: TransitionType) => {
     setTransitionType(transition);
@@ -26,6 +34,11 @@ export default function App() {
         next.delete(id);
       } else {
         next.add(id);
+      }
+      try {
+        localStorage.setItem('louis_podcare_bookmarks', JSON.stringify(Array.from(next)));
+      } catch {
+        // ignore
       }
       return next;
     });
