@@ -1,5 +1,7 @@
 export type ScreenId = 'dark' | 'healthmed';
 
+export type TabId = 'Browse' | 'Library' | 'Community';
+
 export type TransitionType = 'push' | 'push_back' | 'slide_up' | 'none';
 
 export interface PodcastItem {

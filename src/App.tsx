@@ -3,12 +3,16 @@ import { AnimatePresence, motion } from 'motion/react';
 import { DiscoveryDashboardDark } from './components/DiscoveryDashboardDark';
 import { DiscoveryDashboardHealthMed } from './components/DiscoveryDashboardHealthMed';
 import { AudioPlayer } from './components/AudioPlayer';
-import { PodcastItem, ScreenId, TransitionType } from './types';
+import { PodcastItem, ScreenId, TabId, TransitionType } from './types';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('dark');
-  const [transitionType, setTransitionType] = useState<TransitionType>('push');
+  const [transitionType, setTransitionType] = useState<TransitionType>('none');
+  const [activeTab, setActiveTab] = useState<TabId>('Browse');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [activePodcast, setActivePodcast] = useState<PodcastItem | null>(null);
+
   const [bookmarks, setBookmarks] = useState<Set<string>>(() => {
     try {
       const saved = localStorage.getItem('louis_podcare_bookmarks');
@@ -21,10 +25,9 @@ export default function App() {
     return new Set(['featured-ai-surgery', 'immunotherapy-review']);
   });
 
-  const handleNavigate = (to: ScreenId, transition: TransitionType) => {
+  const handleNavigate = (to: ScreenId, transition: TransitionType = 'none') => {
     setTransitionType(transition);
     setCurrentScreen(to);
-    window.scrollTo({ top: 0, behavior: transition === 'none' ? 'instant' : 'smooth' });
   };
 
   const handleToggleBookmark = (id: string) => {
@@ -44,13 +47,13 @@ export default function App() {
     });
   };
 
-  // Clean fade transition between Dark and Light mode
+  // Clean, gentle fade transition between Dark and Light mode
   const getVariants = () => {
     return {
       initial: { opacity: 0 },
       animate: { opacity: 1 },
       exit: { opacity: 0 },
-      transition: { duration: 0.18, ease: 'easeInOut' },
+      transition: { duration: 0.16, ease: 'easeInOut' },
     };
   };
 
@@ -58,7 +61,7 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[#0f172a]">
-      {/* Interactive Screen Container with Smooth Framer/Motion Transitions */}
+      {/* Interactive Screen Container with Smooth Transitions */}
       <AnimatePresence mode="wait" initial={false}>
         {currentScreen === 'dark' ? (
           <motion.div
@@ -74,6 +77,12 @@ export default function App() {
               onPlayEpisode={(podcast) => setActivePodcast(podcast)}
               bookmarks={bookmarks}
               onToggleBookmark={handleToggleBookmark}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              searchQuery={searchQuery}
+              onSearchQueryChange={setSearchQuery}
             />
           </motion.div>
         ) : (
@@ -90,6 +99,12 @@ export default function App() {
               onPlayEpisode={(podcast) => setActivePodcast(podcast)}
               bookmarks={bookmarks}
               onToggleBookmark={handleToggleBookmark}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              searchQuery={searchQuery}
+              onSearchQueryChange={setSearchQuery}
             />
           </motion.div>
         )}

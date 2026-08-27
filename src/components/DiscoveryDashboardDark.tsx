@@ -1,18 +1,25 @@
 import React, { useState } from 'react';
 import {
+  ALL_PODCASTS,
   CATEGORIES,
   FEATURED_PODCAST,
   LOGO_DARK,
   MORE_PODCAST_CARDS,
   PODCAST_CARDS,
 } from '../data/podcasts';
-import { PodcastItem, TransitionType } from '../types';
+import { PodcastItem, TabId, TransitionType } from '../types';
 
 interface DiscoveryDashboardDarkProps {
   onNavigate: (to: 'healthmed' | 'dark', transition: TransitionType) => void;
   onPlayEpisode: (podcast: PodcastItem) => void;
   bookmarks: Set<string>;
   onToggleBookmark: (id: string) => void;
+  activeTab: TabId;
+  onTabChange: (tab: TabId) => void;
+  selectedCategory: string;
+  onCategoryChange: (cat: string) => void;
+  searchQuery: string;
+  onSearchQueryChange: (query: string) => void;
 }
 
 export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
@@ -20,13 +27,31 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
   onPlayEpisode,
   bookmarks,
   onToggleBookmark,
+  activeTab,
+  onTabChange,
+  selectedCategory,
+  onCategoryChange,
+  searchQuery,
+  onSearchQueryChange,
 }) => {
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
   const [showMore, setShowMore] = useState(false);
-  const [activeTab, setActiveTab] = useState<'Browse' | 'Library' | 'Community'>('Browse');
 
   const allCards = showMore ? [...PODCAST_CARDS, ...MORE_PODCAST_CARDS] : PODCAST_CARDS;
+
+  // Bookmarked items list
+  const bookmarkedItems = ALL_PODCASTS.filter((item) => bookmarks.has(item.id));
+
+  // Filter bookmarked items
+  const filteredBookmarks = bookmarkedItems.filter((item) => {
+    const matchesCategory =
+      selectedCategory === 'All' ||
+      item.category.toLowerCase() === selectedCategory.toLowerCase();
+    const matchesSearch =
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.institution.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesCategory && matchesSearch;
+  });
 
   const filteredCards = allCards.filter((card) => {
     const matchesCategory =
@@ -48,7 +73,7 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
           <div
             id="dark-brand-logo-container"
             className="flex items-center gap-2 cursor-pointer group"
-            onClick={() => onNavigate('dark', 'none')}
+            onClick={() => onTabChange('Browse')}
             title="Louis PodCare Discovery"
           >
             <img
@@ -74,36 +99,51 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
               href="#browse"
               onClick={(e) => {
                 e.preventDefault();
-                setActiveTab('Browse');
+                onTabChange('Browse');
               }}
             >
               Browse
             </a>
             <a
               id="dark-nav-library"
-              className="h-full flex items-center text-[#cbd5e1] hover:text-[#3b82f6] transition-colors font-semibold text-[14px] px-1 border-b-2 border-transparent"
+              aria-current={activeTab === 'Library' ? 'page' : undefined}
+              className={`h-full flex items-center border-b-2 font-semibold text-[14px] px-1 transition-all ${
+                activeTab === 'Library'
+                  ? 'text-[#3b82f6] border-[#3b82f6]'
+                  : 'text-[#cbd5e1] border-transparent hover:text-[#3b82f6]'
+              }`}
               href="#library"
               onClick={(e) => {
                 e.preventDefault();
-                onNavigate('healthmed', 'push');
+                onTabChange('Library');
               }}
             >
               Library
+              {bookmarkedItems.length > 0 && (
+                <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[11px] bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30">
+                  {bookmarkedItems.length}
+                </span>
+              )}
             </a>
             <a
               id="dark-nav-community"
-              className="h-full flex items-center text-[#cbd5e1] hover:text-[#3b82f6] transition-colors font-semibold text-[14px] px-1 border-b-2 border-transparent"
+              aria-current={activeTab === 'Community' ? 'page' : undefined}
+              className={`h-full flex items-center border-b-2 font-semibold text-[14px] px-1 transition-all ${
+                activeTab === 'Community'
+                  ? 'text-[#3b82f6] border-[#3b82f6]'
+                  : 'text-[#cbd5e1] border-transparent hover:text-[#3b82f6]'
+              }`}
               href="#community"
               onClick={(e) => {
                 e.preventDefault();
-                onNavigate('healthmed', 'push');
+                onTabChange('Community');
               }}
             >
               Community
             </a>
           </div>
 
-          {/* Search & Theme Indicator */}
+          {/* Search & Theme Toggle */}
           <div className="flex items-center gap-3">
             <div className="relative hidden sm:block">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8] text-[20px]">
@@ -112,14 +152,14 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
               <input
                 id="dark-search-input"
                 className="pl-10 pr-4 h-10 bg-[#131b2e] border border-[#334155] rounded-full text-[14px] text-[#f8fafc] placeholder:text-[#64748b] focus:ring-2 focus:ring-[#3b82f6] focus:border-transparent w-60 lg:w-72 transition-all outline-none"
-                placeholder="Search insights..."
+                placeholder={activeTab === 'Library' ? "Search saved library..." : "Search insights..."}
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => onSearchQueryChange(e.target.value)}
               />
               {searchQuery && (
                 <button
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => onSearchQueryChange('')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
                 >
                   <span className="material-symbols-outlined text-[16px]">close</span>
@@ -145,231 +185,481 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
 
       {/* Main Content */}
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 py-8 flex flex-col gap-8 pb-24">
-        {/* Hero Section: Featured Podcast */}
-        <section
-          id="dark-hero-section"
-          className="Hero Section relative w-full rounded-2xl overflow-hidden shadow-2xl bg-[#060e20] border border-[#334155] flex flex-col md:flex-row group transition-all duration-300 hover:border-blue-500/50"
-        >
-          {/* Thumbnail Side */}
-          <div className="w-full md:w-3/5 h-64 md:h-[420px] relative overflow-hidden">
-            <div
-              className="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-              data-alt={FEATURED_PODCAST.imageAlt}
-              style={{ backgroundImage: `url('${FEATURED_PODCAST.imageUrl}')` }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-[#060e20] via-[#060e20]/60 to-transparent flex items-end md:items-center p-6 md:p-8">
-              {/* Play button that triggers slide_up navigation to HealthMed according to spec */}
-              <button
-                id="hero-play-button"
-                aria-label="Play Featured Podcast"
-                onClick={() => {
-                  onPlayEpisode(FEATURED_PODCAST);
-                  onNavigate('healthmed', 'slide_up');
-                }}
-                className="h-16 w-16 bg-primary bg-[#3b82f6] text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 hover:bg-blue-500 transition-all duration-200 ring-4 ring-blue-500/30 group-hover:ring-blue-500/60"
-              >
-                <span
-                  className="material-symbols-outlined ml-1"
-                  style={{ fontVariationSettings: "'FILL' 1", fontSize: '32px' }}
-                >
-                  play_arrow
-                </span>
-              </button>
-            </div>
-            <div className="absolute top-4 left-4 bg-[#0f172a]/90 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[12px] font-semibold text-[#3b82f6] flex items-center gap-1.5 border border-[#334155]">
-              <span className="material-symbols-outlined text-[16px] text-amber-400">star</span>
-              <span>Featured</span>
-            </div>
-          </div>
-
-          {/* Content Side */}
-          <div className="w-full md:w-2/5 p-6 md:p-8 flex flex-col justify-center gap-4 bg-[#060e20]">
-            <div className="flex flex-col gap-2">
-              <span className="text-[12px] text-[#34d399] uppercase tracking-widest font-semibold flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px]">podcasts</span>
-                <span>Podcast of the Week</span>
-              </span>
-              <h1 className="text-[28px] md:text-[32px] leading-[36px] md:leading-[40px] font-bold text-[#f8fafc] tracking-tight">
-                {FEATURED_PODCAST.title}
-              </h1>
-            </div>
-
-            <p className="text-[15px] leading-[24px] text-[#cbd5e1] line-clamp-3">
-              {FEATURED_PODCAST.description}
-            </p>
-
-            <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#334155]">
-              <div className="flex items-center gap-4 text-[#94a3b8] text-[13px] font-medium">
-                <div className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[16px]">schedule</span>
-                  <span>{FEATURED_PODCAST.duration}</span>
+        {/* ================= LIBRARY VIEW (DARK) ================= */}
+        {activeTab === 'Library' && (
+          <div id="dark-library-view" className="flex flex-col gap-6">
+            {/* Library Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#060e20] p-6 md:p-8 rounded-2xl border border-[#334155] shadow-lg">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="material-symbols-outlined text-blue-400 text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+                    bookmark
+                  </span>
+                  <h1 className="text-[26px] md:text-[30px] font-bold text-[#f8fafc] tracking-tight">
+                    Your Library
+                  </h1>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 ml-2">
+                    {bookmarkedItems.length} Saved {bookmarkedItems.length === 1 ? 'Episode' : 'Episodes'}
+                  </span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[16px]">today</span>
-                  <span>{FEATURED_PODCAST.date}</span>
-                </div>
+                <p className="text-[15px] text-[#cbd5e1]">
+                  รายการวิดีโอและพอดแคสต์ทางการแพทย์ที่คุณได้กด Bookmark บันทึกไว้เพื่อศึกษาและรับชมย้อนหลัง
+                </p>
               </div>
-              <button
-                id="hero-bookmark-btn"
-                aria-label="Bookmark featured episode"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleBookmark(FEATURED_PODCAST.id);
-                }}
-                className={`p-2 rounded-full transition-colors ${
-                  bookmarks.has(FEATURED_PODCAST.id)
-                    ? 'text-blue-400 bg-blue-500/10'
-                    : 'text-[#cbd5e1] hover:text-[#3b82f6] hover:bg-[#1e293b]'
-                }`}
-              >
-                <span
-                  className="material-symbols-outlined"
-                  style={{
-                    fontVariationSettings: bookmarks.has(FEATURED_PODCAST.id)
-                      ? "'FILL' 1"
-                      : "'FILL' 0",
-                  }}
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => onTabChange('Browse')}
+                  className="px-4 py-2 rounded-full border border-blue-500 text-blue-400 hover:bg-blue-500/10 font-medium text-[13px] flex items-center gap-1.5 transition-colors"
                 >
-                  {bookmarks.has(FEATURED_PODCAST.id) ? 'bookmark' : 'bookmark_add'}
-                </span>
-              </button>
+                  <span className="material-symbols-outlined text-[18px]">explore</span>
+                  <span>Explore More</span>
+                </button>
+              </div>
             </div>
+
+            {/* Filter Chips for Library */}
+            {bookmarkedItems.length > 0 && (
+              <section
+                id="dark-library-filter-chips"
+                aria-label="Library category filters"
+                className="w-full flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none snap-x"
+              >
+                {CATEGORIES.map((cat) => {
+                  const countInCat =
+                    cat === 'All'
+                      ? bookmarkedItems.length
+                      : bookmarkedItems.filter((i) => i.category.toLowerCase() === cat.toLowerCase()).length;
+                  if (cat !== 'All' && countInCat === 0) return null;
+                  const isActive = selectedCategory === cat;
+                  return (
+                    <button
+                      key={cat}
+                      id={`dark-library-filter-${cat.toLowerCase().replace(/\s+/g, '-')}`}
+                      onClick={() => onCategoryChange(cat)}
+                      className={`snap-start flex-shrink-0 px-4 py-1.5 rounded-full text-[13px] font-medium transition-all ${
+                        isActive
+                          ? 'bg-[#3b82f6] text-white shadow-md shadow-blue-500/20 font-semibold'
+                          : 'bg-[#1e293b] hover:bg-[#334155] text-[#cbd5e1] hover:text-[#3b82f6] border border-[#334155]'
+                      }`}
+                    >
+                      {cat} ({countInCat})
+                    </button>
+                  );
+                })}
+              </section>
+            )}
+
+            {/* Empty State */}
+            {bookmarkedItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center text-center p-12 bg-[#060e20] rounded-2xl border border-[#334155] shadow-lg my-4">
+                <div className="w-16 h-16 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center mb-4">
+                  <span className="material-symbols-outlined text-3xl">bookmark_border</span>
+                </div>
+                <h3 className="text-xl font-bold text-slate-200 mb-2">ยังไม่มีรายการที่บันทึกไว้</h3>
+                <p className="text-slate-400 max-w-md mb-6 text-sm">
+                  คุณสามารถกดที่ไอคอน Bookmark บนวิดีโอหรือพอดแคสต์ที่น่าสนใจในหน้าค้นพบ เพื่อบันทึกมาไว้ดูในคลังความรู้ส่วนตัวของคุณ
+                </p>
+                <button
+                  onClick={() => onTabChange('Browse')}
+                  className="px-6 py-2.5 rounded-full bg-blue-600 text-white font-medium text-sm hover:bg-blue-500 transition-all shadow-md shadow-blue-600/30 flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-[18px]">explore</span>
+                  <span>ค้นหาวิดีโอและพอดแคสต์</span>
+                </button>
+              </div>
+            ) : filteredBookmarks.length === 0 ? (
+              <div className="text-center p-12 bg-[#060e20] rounded-2xl border border-[#334155]">
+                <p className="text-slate-300 font-medium">ไม่พบรายการที่ตรงกับการค้นหา "{searchQuery}"</p>
+                <button
+                  onClick={() => {
+                    onSearchQueryChange('');
+                    onCategoryChange('All');
+                  }}
+                  className="mt-3 text-sm text-blue-400 underline font-medium"
+                >
+                  ล้างตัวกรองการค้นหา
+                </button>
+              </div>
+            ) : (
+              /* Bookmarked Grid (Dark) */
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredBookmarks.map((card) => (
+                  <article
+                    key={card.id}
+                    id={`dark-library-card-${card.id}`}
+                    onClick={() => onPlayEpisode(card)}
+                    className="flex flex-col bg-[#060e20] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl border border-[#334155] group cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40"
+                  >
+                    <div className="relative w-full aspect-video">
+                      <img
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        data-alt={card.imageAlt}
+                        src={card.imageUrl}
+                        alt={card.title}
+                      />
+                      <div className="absolute bottom-2.5 right-2.5 bg-black/80 text-white px-2.5 py-1 rounded-md text-[12px] font-medium backdrop-blur-sm">
+                        {card.duration}
+                      </div>
+                      <div className="absolute top-2.5 left-2.5 bg-[#060e20]/90 px-2.5 py-1 rounded-md text-[12px] text-[#3b82f6] backdrop-blur-sm border border-[#334155] font-semibold">
+                        {card.category}
+                      </div>
+                      <div className="absolute inset-0 bg-blue-900/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="material-symbols-outlined text-white/90 drop-shadow text-[44px]">
+                          play_circle
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-5 flex flex-col flex-grow gap-2">
+                      <h3 className="text-[19px] font-bold leading-[26px] text-[#f8fafc] group-hover:text-[#3b82f6] transition-colors line-clamp-2">
+                        {card.title}
+                      </h3>
+
+                      {card.description && (
+                        <p className="text-[14px] text-[#cbd5e1] line-clamp-2 mt-1">
+                          {card.description}
+                        </p>
+                      )}
+
+                      <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#334155]">
+                        <div className="flex items-center gap-2 text-[#94a3b8] text-[13px] font-medium">
+                          <span className="material-symbols-outlined text-[16px]">
+                            {card.institutionIcon}
+                          </span>
+                          <span>{card.institution}</span>
+                        </div>
+                        <button
+                          aria-label={`Remove ${card.title} from library`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleBookmark(card.id);
+                          }}
+                          className="p-1.5 rounded-full transition-colors text-blue-400 bg-blue-500/10 hover:bg-red-500/20 hover:text-red-400"
+                          title="Remove from saved library"
+                        >
+                          <span
+                            className="material-symbols-outlined"
+                            style={{ fontVariationSettings: "'FILL' 1" }}
+                          >
+                            bookmark
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
-        </section>
+        )}
 
-        {/* Filter Chips */}
-        <section
-          id="dark-filter-chips"
-          aria-label="Category filters"
-          className="w-full flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-none snap-x"
-        >
-          {CATEGORIES.map((cat) => {
-            const isActive = selectedCategory === cat;
-            return (
-              <button
-                key={cat}
-                id={`filter-${cat.toLowerCase().replace(/\s+/g, '-')}`}
-                onClick={() => setSelectedCategory(cat)}
-                className={`snap-start flex-shrink-0 px-5 py-2 rounded-full text-[14px] font-medium transition-all ${
-                  isActive
-                    ? 'bg-[#3b82f6] text-white shadow-md shadow-blue-500/20 font-semibold'
-                    : 'bg-[#1e293b] hover:bg-[#334155] text-[#cbd5e1] hover:text-[#3b82f6] border border-[#334155]'
-                }`}
-              >
-                {cat}
-              </button>
-            );
-          })}
-        </section>
+        {/* ================= COMMUNITY VIEW (DARK) ================= */}
+        {activeTab === 'Community' && (
+          <div id="dark-community-view" className="flex flex-col gap-6">
+            <div className="bg-[#060e20] p-6 md:p-8 rounded-2xl border border-[#334155] shadow-lg">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="material-symbols-outlined text-emerald-400 text-2xl">
+                  forum
+                </span>
+                <h1 className="text-[26px] md:text-[30px] font-bold text-[#f8fafc] tracking-tight">
+                  Medical & Clinical Community
+                </h1>
+              </div>
+              <p className="text-[15px] text-[#cbd5e1]">
+                Peer-to-peer discussions, clinical case questions, and multidisciplinary insights from verified practitioners.
+              </p>
+            </div>
 
-        {/* Content Grid */}
-        <section
-          id="dark-content-grid"
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {filteredCards.map((card) => {
-            const isGenomic = card.id === 'genomic-sequencing';
-            const isBookmarked = bookmarks.has(card.id);
-
-            return (
-              <article
-                key={card.id}
-                id={`card-${card.id}`}
-                onClick={() => {
-                  if (isGenomic) {
-                    // Specific navigation transition defined in spec
-                    onNavigate('healthmed', 'push');
-                  } else {
-                    onPlayEpisode(card);
-                  }
-                }}
-                className={`flex flex-col bg-[#060e20] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl border border-[#334155] group cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40 ${
-                  card.span2 ? 'lg:col-span-2' : ''
-                }`}
-              >
-                <div className={`relative w-full ${card.span2 ? 'h-48 md:h-64' : 'aspect-video'}`}>
-                  <img
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    data-alt={card.imageAlt}
-                    src={card.imageUrl}
-                    alt={card.title}
-                  />
-                  <div className="absolute bottom-2.5 right-2.5 bg-black/80 text-white px-2.5 py-1 rounded-md text-[12px] font-medium backdrop-blur-sm">
-                    {card.duration}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-2 flex flex-col gap-4">
+                <div className="bg-[#060e20] p-5 rounded-2xl border border-[#334155] shadow-md">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-blue-400 uppercase bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-full">
+                      Genomics Discussion
+                    </span>
+                    <span className="text-xs text-slate-400">2 hours ago</span>
                   </div>
-                  <div className="absolute top-2.5 left-2.5 bg-[#060e20]/90 px-2.5 py-1 rounded-md text-[12px] text-[#3b82f6] backdrop-blur-sm border border-[#334155] font-semibold">
-                    {card.category}
-                  </div>
-                  <div className="absolute inset-0 bg-blue-900/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="material-symbols-outlined text-white/90 drop-shadow text-[44px]">
-                      play_circle
+                  <h3 className="font-bold text-lg text-slate-100 mb-2">
+                    Clinical applications of long-read sequencing in neonatal cardiac diagnostics?
+                  </h3>
+                  <p className="text-sm text-slate-300 mb-4">
+                    Looking for recent peer-reviewed feedback on integrating rapid whole-genome sequencing workflows in NICU settings with turnaround under 24 hours.
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-slate-400 border-t border-slate-700 pt-3">
+                    <span className="font-medium text-slate-200">Dr. Melissa Vance • Mayo Clinic</span>
+                    <span className="flex items-center gap-1 font-semibold text-blue-400">
+                      <span className="material-symbols-outlined text-sm">chat_bubble</span> 18 Replies
                     </span>
                   </div>
                 </div>
 
-                <div className="p-5 flex flex-col flex-grow gap-2">
-                  <h3 className="text-[20px] font-bold leading-[28px] text-[#f8fafc] group-hover:text-[#3b82f6] transition-colors line-clamp-2">
-                    {card.title}
+                <div className="bg-[#060e20] p-5 rounded-2xl border border-[#334155] shadow-md">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-emerald-400 uppercase bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
+                      Oncology & Immunology
+                    </span>
+                    <span className="text-xs text-slate-400">5 hours ago</span>
+                  </div>
+                  <h3 className="font-bold text-lg text-slate-100 mb-2">
+                    CAR-T cell persistence and secondary immune biomarker monitoring
                   </h3>
-
-                  {card.description && (
-                    <p className="text-[14px] text-[#cbd5e1] line-clamp-2 mt-1">
-                      {card.description}
-                    </p>
-                  )}
-
-                  <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#334155]">
-                    <div className="flex items-center gap-2 text-[#94a3b8] text-[13px] font-medium">
-                      <span className="material-symbols-outlined text-[16px]">
-                        {card.institutionIcon}
-                      </span>
-                      <span>{card.institution}</span>
-                    </div>
-                    <button
-                      aria-label={`Bookmark ${card.title}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleBookmark(card.id);
-                      }}
-                      className={`p-1.5 rounded-full transition-colors ${
-                        isBookmarked
-                          ? 'text-blue-400 bg-blue-500/10'
-                          : 'text-[#94a3b8] hover:text-[#3b82f6] hover:bg-[#1e293b]'
-                      }`}
-                    >
-                      <span
-                        className="material-symbols-outlined"
-                        style={{
-                          fontVariationSettings: isBookmarked ? "'FILL' 1" : "'FILL' 0",
-                        }}
-                      >
-                        {isBookmarked ? 'bookmark' : 'bookmark_add'}
-                      </span>
-                    </button>
+                  <p className="text-sm text-slate-300 mb-4">
+                    Sharing preliminary observational data regarding wearable biometric monitors detecting early neurotoxicity signs in lymphoma patients.
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-slate-400 border-t border-slate-700 pt-3">
+                    <span className="font-medium text-slate-200">Prof. Ethan Hayes • Johns Hopkins</span>
+                    <span className="flex items-center gap-1 font-semibold text-blue-400">
+                      <span className="material-symbols-outlined text-sm">chat_bubble</span> 24 Replies
+                    </span>
                   </div>
                 </div>
-              </article>
-            );
-          })}
-        </section>
+              </div>
 
-        {/* Load More Button */}
-        <div className="flex justify-center mt-4">
-          <button
-            id="dark-load-more-btn"
-            onClick={() => setShowMore((prev) => !prev)}
-            className="px-8 py-3 rounded-full border border-[#3b82f6] text-[#3b82f6] font-semibold text-[14px] hover:bg-[#3b82f6] hover:text-white transition-all duration-300 flex items-center gap-2 shadow-lg shadow-blue-500/10 hover:shadow-blue-500/25"
-          >
-            <span>{showMore ? 'Show Fewer Insights' : 'Load More Insights'}</span>
-            <span
-              className={`material-symbols-outlined text-[18px] transition-transform ${
-                showMore ? 'rotate-180' : ''
-              }`}
+              <div className="flex flex-col gap-4">
+                <div className="bg-[#060e20] p-5 rounded-2xl border border-[#334155] shadow-md">
+                  <h4 className="font-bold text-slate-100 mb-3 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-amber-400 text-lg">trending_up</span>
+                    Trending Medical Topics
+                  </h4>
+                  <ul className="flex flex-col gap-2 text-sm text-slate-300">
+                    <li className="p-2 rounded-lg bg-slate-800/60 hover:bg-blue-900/30 cursor-pointer transition-colors flex justify-between">
+                      <span>#GenomicTherapeutics</span>
+                      <span className="text-xs text-slate-400">142 posts</span>
+                    </li>
+                    <li className="p-2 rounded-lg bg-slate-800/60 hover:bg-blue-900/30 cursor-pointer transition-colors flex justify-between">
+                      <span>#RoboticSurgeryAI</span>
+                      <span className="text-xs text-slate-400">98 posts</span>
+                    </li>
+                    <li className="p-2 rounded-lg bg-slate-800/60 hover:bg-blue-900/30 cursor-pointer transition-colors flex justify-between">
+                      <span>#GutBrainAxis</span>
+                      <span className="text-xs text-slate-400">86 posts</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ================= BROWSE VIEW (DARK) ================= */}
+        {activeTab === 'Browse' && (
+          <>
+            {/* Hero Section: Featured Podcast */}
+            <section
+              id="dark-hero-section"
+              className="Hero Section relative w-full rounded-2xl overflow-hidden shadow-2xl bg-[#060e20] border border-[#334155] flex flex-col md:flex-row group transition-all duration-300 hover:border-blue-500/50"
             >
-              expand_more
-            </span>
-          </button>
-        </div>
+              {/* Thumbnail Side */}
+              <div className="w-full md:w-3/5 h-64 md:h-[420px] relative overflow-hidden">
+                <div
+                  className="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                  data-alt={FEATURED_PODCAST.imageAlt}
+                  style={{ backgroundImage: `url('${FEATURED_PODCAST.imageUrl}')` }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-[#060e20] via-[#060e20]/60 to-transparent flex items-end md:items-center p-6 md:p-8">
+                  <button
+                    id="hero-play-button"
+                    aria-label="Play Featured Podcast"
+                    onClick={() => onPlayEpisode(FEATURED_PODCAST)}
+                    className="h-16 w-16 bg-[#3b82f6] text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 hover:bg-blue-500 transition-all duration-200 ring-4 ring-blue-500/30 group-hover:ring-blue-500/60"
+                  >
+                    <span
+                      className="material-symbols-outlined ml-1"
+                      style={{ fontVariationSettings: "'FILL' 1", fontSize: '32px' }}
+                    >
+                      play_arrow
+                    </span>
+                  </button>
+                </div>
+                <div className="absolute top-4 left-4 bg-[#0f172a]/90 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[12px] font-semibold text-[#3b82f6] flex items-center gap-1.5 border border-[#334155]">
+                  <span className="material-symbols-outlined text-[16px] text-amber-400">star</span>
+                  <span>Featured</span>
+                </div>
+              </div>
+
+              {/* Content Side */}
+              <div className="w-full md:w-2/5 p-6 md:p-8 flex flex-col justify-center gap-4 bg-[#060e20]">
+                <div className="flex flex-col gap-2">
+                  <span className="text-[12px] text-[#34d399] uppercase tracking-widest font-semibold flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[16px]">podcasts</span>
+                    <span>Podcast of the Week</span>
+                  </span>
+                  <h1 className="text-[28px] md:text-[32px] leading-[36px] md:leading-[40px] font-bold text-[#f8fafc] tracking-tight">
+                    {FEATURED_PODCAST.title}
+                  </h1>
+                </div>
+
+                <p className="text-[15px] leading-[24px] text-[#cbd5e1] line-clamp-3">
+                  {FEATURED_PODCAST.description}
+                </p>
+
+                <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#334155]">
+                  <div className="flex items-center gap-4 text-[#94a3b8] text-[13px] font-medium">
+                    <div className="flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[16px]">schedule</span>
+                      <span>{FEATURED_PODCAST.duration}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[16px]">today</span>
+                      <span>{FEATURED_PODCAST.date}</span>
+                    </div>
+                  </div>
+                  <button
+                    id="hero-bookmark-btn"
+                    aria-label="Bookmark featured episode"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleBookmark(FEATURED_PODCAST.id);
+                    }}
+                    className={`p-2 rounded-full transition-colors ${
+                      bookmarks.has(FEATURED_PODCAST.id)
+                        ? 'text-blue-400 bg-blue-500/10'
+                        : 'text-[#cbd5e1] hover:text-[#3b82f6] hover:bg-[#1e293b]'
+                    }`}
+                  >
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        fontVariationSettings: bookmarks.has(FEATURED_PODCAST.id)
+                          ? "'FILL' 1"
+                          : "'FILL' 0",
+                      }}
+                    >
+                      {bookmarks.has(FEATURED_PODCAST.id) ? 'bookmark' : 'bookmark_add'}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            {/* Filter Chips */}
+            <section
+              id="dark-filter-chips"
+              aria-label="Category filters"
+              className="w-full flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-none snap-x"
+            >
+              {CATEGORIES.map((cat) => {
+                const isActive = selectedCategory === cat;
+                return (
+                  <button
+                    key={cat}
+                    id={`dark-filter-${cat.toLowerCase().replace(/\s+/g, '-')}`}
+                    onClick={() => onCategoryChange(cat)}
+                    className={`snap-start flex-shrink-0 px-5 py-2 rounded-full text-[14px] font-medium transition-all ${
+                      isActive
+                        ? 'bg-[#3b82f6] text-white shadow-md shadow-blue-500/20 font-semibold'
+                        : 'bg-[#1e293b] hover:bg-[#334155] text-[#cbd5e1] hover:text-[#3b82f6] border border-[#334155]'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </section>
+
+            {/* Content Grid */}
+            <section
+              id="dark-content-grid"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {filteredCards.map((card) => {
+                const isBookmarked = bookmarks.has(card.id);
+
+                return (
+                  <article
+                    key={card.id}
+                    id={`dark-card-${card.id}`}
+                    onClick={() => onPlayEpisode(card)}
+                    className={`flex flex-col bg-[#060e20] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl border border-[#334155] group cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40 ${
+                      card.span2 ? 'lg:col-span-2' : ''
+                    }`}
+                  >
+                    <div className={`relative w-full ${card.span2 ? 'h-48 md:h-64' : 'aspect-video'}`}>
+                      <img
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        data-alt={card.imageAlt}
+                        src={card.imageUrl}
+                        alt={card.title}
+                      />
+                      <div className="absolute bottom-2.5 right-2.5 bg-black/80 text-white px-2.5 py-1 rounded-md text-[12px] font-medium backdrop-blur-sm">
+                        {card.duration}
+                      </div>
+                      <div className="absolute top-2.5 left-2.5 bg-[#060e20]/90 px-2.5 py-1 rounded-md text-[12px] text-[#3b82f6] backdrop-blur-sm border border-[#334155] font-semibold">
+                        {card.category}
+                      </div>
+                      <div className="absolute inset-0 bg-blue-900/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="material-symbols-outlined text-white/90 drop-shadow text-[44px]">
+                          play_circle
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-5 flex flex-col flex-grow gap-2">
+                      <h3 className="text-[20px] font-bold leading-[28px] text-[#f8fafc] group-hover:text-[#3b82f6] transition-colors line-clamp-2">
+                        {card.title}
+                      </h3>
+
+                      {card.description && (
+                        <p className="text-[14px] text-[#cbd5e1] line-clamp-2 mt-1">
+                          {card.description}
+                        </p>
+                      )}
+
+                      <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#334155]">
+                        <div className="flex items-center gap-2 text-[#94a3b8] text-[13px] font-medium">
+                          <span className="material-symbols-outlined text-[16px]">
+                            {card.institutionIcon}
+                          </span>
+                          <span>{card.institution}</span>
+                        </div>
+                        <button
+                          aria-label={`Bookmark ${card.title}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleBookmark(card.id);
+                          }}
+                          className={`p-1.5 rounded-full transition-colors ${
+                            isBookmarked
+                              ? 'text-blue-400 bg-blue-500/10'
+                              : 'text-[#94a3b8] hover:text-[#3b82f6] hover:bg-[#1e293b]'
+                          }`}
+                        >
+                          <span
+                            className="material-symbols-outlined"
+                            style={{
+                              fontVariationSettings: isBookmarked ? "'FILL' 1" : "'FILL' 0",
+                            }}
+                          >
+                            {isBookmarked ? 'bookmark' : 'bookmark_add'}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </section>
+
+            {/* Load More Button */}
+            <div className="flex justify-center mt-4">
+              <button
+                id="dark-load-more-btn"
+                onClick={() => setShowMore((prev) => !prev)}
+                className="px-8 py-3 rounded-full border border-[#3b82f6] text-[#3b82f6] font-semibold text-[14px] hover:bg-[#3b82f6] hover:text-white transition-all duration-300 flex items-center gap-2 shadow-lg shadow-blue-500/10 hover:shadow-blue-500/25"
+              >
+                <span>{showMore ? 'Show Fewer Insights' : 'Load More Insights'}</span>
+                <span
+                  className={`material-symbols-outlined text-[18px] transition-transform ${
+                    showMore ? 'rotate-180' : ''
+                  }`}
+                >
+                  expand_more
+                </span>
+              </button>
+            </div>
+          </>
+        )}
       </main>
     </div>
   );

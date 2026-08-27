@@ -7,14 +7,19 @@ import {
   MORE_PODCAST_CARDS,
   PODCAST_CARDS,
 } from '../data/podcasts';
-import { PodcastItem, TransitionType } from '../types';
+import { PodcastItem, TabId, TransitionType } from '../types';
 
 interface DiscoveryDashboardHealthMedProps {
   onNavigate: (to: 'healthmed' | 'dark', transition: TransitionType) => void;
   onPlayEpisode: (podcast: PodcastItem) => void;
   bookmarks: Set<string>;
   onToggleBookmark: (id: string) => void;
-  initialTab?: 'Browse' | 'Library' | 'Community';
+  activeTab: TabId;
+  onTabChange: (tab: TabId) => void;
+  selectedCategory: string;
+  onCategoryChange: (cat: string) => void;
+  searchQuery: string;
+  onSearchQueryChange: (query: string) => void;
 }
 
 export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedProps> = ({
@@ -22,12 +27,14 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
   onPlayEpisode,
   bookmarks,
   onToggleBookmark,
-  initialTab = 'Library',
+  activeTab,
+  onTabChange,
+  selectedCategory,
+  onCategoryChange,
+  searchQuery,
+  onSearchQueryChange,
 }) => {
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
   const [showMore, setShowMore] = useState(false);
-  const [activeTab, setActiveTab] = useState<'Browse' | 'Library' | 'Community'>(initialTab);
 
   const allCards = showMore ? [...PODCAST_CARDS, ...MORE_PODCAST_CARDS] : PODCAST_CARDS;
 
@@ -69,12 +76,12 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
         className="sticky top-0 z-40 bg-white border-b border-[#c3c6d7]/60 shadow-sm w-full backdrop-blur-md bg-opacity-95"
       >
         <div className="flex justify-between items-center w-full px-6 max-w-[1280px] mx-auto h-16">
-          {/* Brand - Parent of img[@alt='Louis PodCare Logo'] */}
+          {/* Brand */}
           <div
             id="healthmed-brand-logo-container"
             className="flex items-center gap-2 cursor-pointer group"
-            onClick={() => onNavigate('dark', 'none')}
-            title="Click to return to Dark Mode (none transition)"
+            onClick={() => onTabChange('Browse')}
+            title="Louis PodCare Discovery"
           >
             <img
               alt="Louis PodCare Logo"
@@ -88,14 +95,18 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
 
           {/* Navigation Links (Centered) */}
           <div id="healthmed-nav-links" className="hidden md:flex items-center gap-8 h-full">
-            {/* Browse link -> Navigates to Dark Mode with push_back transition */}
             <a
               id="healthmed-nav-browse"
-              className="h-full flex items-center text-[#434655] hover:text-[#004ac6] transition-colors font-semibold text-[14px] px-1 border-b-2 border-transparent hover:border-[#004ac6]"
+              aria-current={activeTab === 'Browse' ? 'page' : undefined}
+              className={`h-full flex items-center border-b-2 font-semibold text-[14px] px-1 transition-all ${
+                activeTab === 'Browse'
+                  ? 'text-[#004ac6] border-[#004ac6]'
+                  : 'text-[#434655] border-transparent hover:text-[#004ac6]'
+              }`}
               href="#browse"
               onClick={(e) => {
                 e.preventDefault();
-                onNavigate('dark', 'push_back');
+                onTabChange('Browse');
               }}
             >
               Browse
@@ -111,7 +122,7 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
               href="#library"
               onClick={(e) => {
                 e.preventDefault();
-                setActiveTab('Library');
+                onTabChange('Library');
               }}
             >
               Library
@@ -132,14 +143,14 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
               href="#community"
               onClick={(e) => {
                 e.preventDefault();
-                setActiveTab('Community');
+                onTabChange('Community');
               }}
             >
               Community
             </a>
           </div>
 
-          {/* Search & Theme Indicator */}
+          {/* Search & Theme Toggle */}
           <div className="flex items-center gap-3">
             <div className="relative hidden sm:block">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#737686] text-[20px]">
@@ -151,11 +162,11 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
                 placeholder={activeTab === 'Library' ? "Search saved library..." : "Search insights..."}
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => onSearchQueryChange(e.target.value)}
               />
               {searchQuery && (
                 <button
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => onSearchQueryChange('')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800"
                 >
                   <span className="material-symbols-outlined text-[16px]">close</span>
@@ -205,9 +216,7 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
 
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => {
-                    onNavigate('dark', 'push_back');
-                  }}
+                  onClick={() => onTabChange('Browse')}
                   className="px-4 py-2 rounded-full border border-[#004ac6] text-[#004ac6] hover:bg-blue-50 font-medium text-[13px] flex items-center gap-1.5 transition-colors"
                 >
                   <span className="material-symbols-outlined text-[18px]">explore</span>
@@ -234,7 +243,7 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
                     <button
                       key={cat}
                       id={`library-filter-${cat.toLowerCase().replace(/\s+/g, '-')}`}
-                      onClick={() => setSelectedCategory(cat)}
+                      onClick={() => onCategoryChange(cat)}
                       className={`snap-start flex-shrink-0 px-4 py-1.5 rounded-full text-[13px] font-medium transition-all ${
                         isActive
                           ? 'bg-[#004ac6] text-white shadow-sm font-semibold'
@@ -259,7 +268,7 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
                   คุณสามารถกดที่ไอคอน Bookmark บนวิดีโอหรือพอดแคสต์ที่น่าสนใจในหน้าค้นพบ เพื่อบันทึกมาไว้ดูในคลังความรู้ส่วนตัวของคุณ
                 </p>
                 <button
-                  onClick={() => onNavigate('dark', 'push_back')}
+                  onClick={() => onTabChange('Browse')}
                   className="px-6 py-2.5 rounded-full bg-[#004ac6] text-white font-medium text-sm hover:bg-blue-700 transition-all shadow-md shadow-blue-600/20 flex items-center gap-2"
                 >
                   <span className="material-symbols-outlined text-[18px]">explore</span>
@@ -271,8 +280,8 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
                 <p className="text-slate-600 font-medium">ไม่พบรายการที่ตรงกับการค้นหา "{searchQuery}"</p>
                 <button
                   onClick={() => {
-                    setSearchQuery('');
-                    setSelectedCategory('All');
+                    onSearchQueryChange('');
+                    onCategoryChange('All');
                   }}
                   className="mt-3 text-sm text-blue-600 underline font-medium"
                 >
@@ -543,7 +552,7 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
                   <button
                     key={cat}
                     id={`healthmed-filter-${cat.toLowerCase().replace(/\s+/g, '-')}`}
-                    onClick={() => setSelectedCategory(cat)}
+                    onClick={() => onCategoryChange(cat)}
                     className={`snap-start flex-shrink-0 px-5 py-2 rounded-full text-[14px] font-medium transition-all ${
                       isActive
                         ? 'bg-[#004ac6] text-white shadow-sm font-semibold'
@@ -662,4 +671,3 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
     </div>
   );
 };
-
