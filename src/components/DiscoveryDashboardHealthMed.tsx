@@ -163,15 +163,17 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
               )}
             </div>
 
-            {/* Switch to Dark Mode indicator */}
+            {/* Toggle to Dark Mode */}
             <button
               id="healthmed-dark-mode-btn"
-              onClick={() => onNavigate('dark', 'push_back')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium border border-slate-300 transition-colors"
-              title="Return to Dark Mode (push_back)"
+              onClick={() => onNavigate('dark', 'none')}
+              className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 flex items-center justify-center border border-slate-300 transition-all hover:scale-105 active:scale-95 shadow-sm"
+              title="Switch to Dark Mode"
+              aria-label="Switch to Dark Mode"
             >
-              <span className="material-symbols-outlined text-[16px] text-blue-600">dark_mode</span>
-              <span className="hidden sm:inline">Dark View</span>
+              <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                dark_mode
+              </span>
             </button>
           </div>
         </div>

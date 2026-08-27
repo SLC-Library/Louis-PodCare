@@ -44,39 +44,14 @@ export default function App() {
     });
   };
 
-  // Define transition animation variants based on transitionType
+  // Clean fade transition between Dark and Light mode
   const getVariants = () => {
-    switch (transitionType) {
-      case 'push':
-        return {
-          initial: { x: '100%', opacity: 1 },
-          animate: { x: 0, opacity: 1 },
-          exit: { x: '-30%', opacity: 0.7 },
-          transition: { duration: 0.36, ease: [0.32, 0.72, 0, 1] },
-        };
-      case 'push_back':
-        return {
-          initial: { x: '-100%', opacity: 1 },
-          animate: { x: 0, opacity: 1 },
-          exit: { x: '100%', opacity: 0.7 },
-          transition: { duration: 0.36, ease: [0.32, 0.72, 0, 1] },
-        };
-      case 'slide_up':
-        return {
-          initial: { y: '100%', opacity: 1 },
-          animate: { y: 0, opacity: 1 },
-          exit: { y: '-15%', opacity: 0.8 },
-          transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] },
-        };
-      case 'none':
-      default:
-        return {
-          initial: { opacity: 1 },
-          animate: { opacity: 1 },
-          exit: { opacity: 1 },
-          transition: { duration: 0 },
-        };
-    }
+    return {
+      initial: { opacity: 0 },
+      animate: { opacity: 1 },
+      exit: { opacity: 0 },
+      transition: { duration: 0.18, ease: 'easeInOut' },
+    };
   };
 
   const currentVariant = getVariants();

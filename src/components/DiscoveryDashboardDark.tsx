@@ -127,15 +127,17 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
               )}
             </div>
 
-            {/* Quick Switch to HealthMed */}
+            {/* Toggle to Light Mode */}
             <button
               id="dark-mode-toggle-btn"
-              onClick={() => onNavigate('healthmed', 'push')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1e293b] hover:bg-[#334155] text-slate-300 hover:text-white text-xs font-medium border border-slate-700 transition-colors"
-              title="Switch to HealthMed (Clinical Clarity)"
+              onClick={() => onNavigate('healthmed', 'none')}
+              className="w-10 h-10 rounded-full bg-[#1e293b] hover:bg-[#334155] text-amber-400 hover:text-amber-300 flex items-center justify-center border border-slate-700 transition-all hover:scale-105 active:scale-95 shadow-sm"
+              title="Switch to Light Mode"
+              aria-label="Switch to Light Mode"
             >
-              <span className="material-symbols-outlined text-[16px] text-emerald-400">light_mode</span>
-              <span className="hidden sm:inline">HealthMed</span>
+              <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                light_mode
+              </span>
             </button>
           </div>
         </div>
