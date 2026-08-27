@@ -491,23 +491,40 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
               className="Hero Section relative w-full rounded-2xl overflow-hidden shadow-xl bg-white border border-slate-200 flex flex-col md:flex-row group transition-all duration-300 hover:border-blue-400"
             >
               {/* Thumbnail Side */}
-              <div className="w-full md:w-3/5 h-64 md:h-[420px] relative overflow-hidden">
+              <div
+                className="w-full md:w-3/5 h-64 md:h-[420px] relative overflow-hidden cursor-pointer"
+                onClick={() => onPlayEpisode(FEATURED_PODCAST, 'video')}
+              >
                 <div
                   className="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
                   data-alt={FEATURED_PODCAST.imageAlt}
                   style={{ backgroundImage: `url('${FEATURED_PODCAST.imageUrl}')` }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-slate-950 via-slate-900/60 to-transparent flex items-end md:items-center p-6 md:p-8">
-                  <div className="flex items-center gap-3">
+
+                {/* Gentle Default Gradient & Subtle Play Hint when not hovered */}
+                <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-slate-950/80 via-transparent to-transparent flex items-center justify-center pointer-events-none group-hover:opacity-0 transition-opacity duration-300">
+                  <div className="w-16 h-16 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center text-white/80 shadow-lg">
+                    <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+                      play_arrow
+                    </span>
+                  </div>
+                </div>
+
+                {/* Hover Overlay: Shows Video vs Audio Selection */}
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                  <div
+                    className="flex flex-wrap items-center justify-center gap-3 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <button
                       id="healthmed-hero-play-video-button"
                       aria-label="Play Featured Video"
                       onClick={() => onPlayEpisode(FEATURED_PODCAST, 'video')}
-                      className="h-16 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center gap-2 shadow-2xl hover:scale-105 transition-all duration-200 ring-4 ring-blue-500/30 font-bold text-sm sm:text-base"
+                      className="h-14 sm:h-16 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center gap-2.5 shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 ring-4 ring-blue-500/30 font-bold text-sm sm:text-base"
                     >
                       <span
                         className="material-symbols-outlined"
-                        style={{ fontVariationSettings: "'FILL' 1", fontSize: '28px' }}
+                        style={{ fontVariationSettings: "'FILL' 1", fontSize: '26px' }}
                       >
                         play_arrow
                       </span>
@@ -517,14 +534,15 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
                       id="healthmed-hero-play-audio-button"
                       aria-label="Listen Featured Audio"
                       onClick={() => onPlayEpisode(FEATURED_PODCAST, 'audio')}
-                      className="h-16 px-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full flex items-center gap-2 shadow-2xl hover:scale-105 transition-all duration-200 ring-4 ring-emerald-500/30 font-bold text-sm sm:text-base"
+                      className="h-14 sm:h-16 px-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full flex items-center gap-2.5 shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 ring-4 ring-emerald-500/30 font-bold text-sm sm:text-base"
                     >
                       <span className="material-symbols-outlined text-[24px]">headphones</span>
                       <span>ฟังเสียง (Audio)</span>
                     </button>
                   </div>
                 </div>
-                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[12px] font-semibold text-blue-700 flex items-center gap-1.5 border border-slate-200 shadow-sm">
+
+                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[12px] font-semibold text-blue-700 flex items-center gap-1.5 border border-slate-200 shadow-sm z-10">
                   <span className="material-symbols-outlined text-[16px] text-amber-500">star</span>
                   <span>Featured YouTube Episode</span>
                 </div>
