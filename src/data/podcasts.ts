@@ -76,18 +76,12 @@ export function createPodcast(item: PodcastItem): PodcastItem {
 // ==========================================
 // 🌟 1. PODCAST OF THE WEEK (คลิปเด่นประจำสัปดาห์)
 // ==========================================
-export const FEATURED_PODCAST: PodcastItem = createPodcast({
-  id: 'featured-ai-surgery',
-  title: 'The Future of AI in Modern Surgery & Robotics',
+export const FEATURED_PODCAST = createPodcast({
+  youtubeUrl: 'https://www.youtube.com/watch?v=fts2xb0vd_c',
+  title: 'เข้าใจ 3 ฮอร์โมนความสุข ก่อนจะเผลอติดกับดักความสุขแบบปลอม ๆ | On the way with Chom EP.37',
   category: 'Medical Tech',
-  institution: 'Johns Hopkins / SLC Medical',
-  duration: '45 mins',
-  date: 'Oct 12, 2023',
-  description:
-    'Dr. Sarah Chen discusses how machine learning algorithms are revolutionizing robotic-assisted surgeries, reducing recovery times, and predicting postoperative complications with unprecedented accuracy.',
-  imageUrl:
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuAHYhv6PjmKisaZb3T9tBeGn2d48CC8a-UkZIM887de4ZvZHGB4KMy0VZhFLU79rAK3FKSegu2aeNNDnjD1bUb9cH2TKLgDDJo5wSLz4z4hJw4W1NwBYYGNKdiOB7U3aY9Ai6UUzCh6zi756jWF992fiDOXTfAxqEswJ_oK9-8OTphKpPdqhdf51LmPvE1sBxCjgRD300OmRuEp4cJ_KaHgsaZFrpZiTGlO_xhRqzTCvajTa1DR0tH0',
-  youtubeId: '30bZ_1Z2e1A',
+  channel: 'SLC Medical',
+  description: 'มาทำความเข้าใจกับ “พีระมิดแห่งความสุข” โดย “หมอกลาง นพ.ณัฐณกัณฑ์ พิชยะวงศ์ภัค” (ว. 44236) หรือ “พี่กลาง หอสมุดแห่งชาติ” ที่หลาย ๆ คนรู้จัก',
 });
 
 // ==========================================
