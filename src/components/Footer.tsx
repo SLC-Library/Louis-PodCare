@@ -1,5 +1,5 @@
 import React from 'react';
-import { SlcLibraryLogo } from './SlcLibraryLogo';
+import { LOGO_DARK, LOGO_LIGHT } from '../data/podcasts';
 
 interface FooterProps {
   theme: 'dark' | 'light';
@@ -20,9 +20,13 @@ export const Footer: React.FC<FooterProps> = ({ theme }) => {
       <div className="max-w-[1280px] mx-auto px-6 py-10 flex flex-col lg:flex-row items-center lg:items-start justify-between gap-8 text-center lg:text-left">
         {/* Left: SLC Library Branding & Credits */}
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 max-w-2xl">
-          {/* Logo container matching natural aspect ratio */}
-          <div className="bg-white rounded-xl p-2.5 shadow-sm border border-slate-200/90 flex items-center justify-center shrink-0">
-            <SlcLibraryLogo className="h-10 sm:h-12 w-auto" />
+          {/* Logo matching the top-left navbar logo style and standard size */}
+          <div className="relative shrink-0">
+            <img
+              alt="SLC Library & Louis PodCare Logo"
+              className="h-12 w-12 sm:h-14 sm:w-14 object-contain rounded-full ring-2 ring-blue-500/30 shadow-md bg-white p-0.5 transition-transform hover:scale-105"
+              src={isDark ? LOGO_DARK : LOGO_LIGHT}
+            />
           </div>
 
           <div className="flex flex-col gap-1 text-center sm:text-left">
