@@ -79,8 +79,8 @@ export function createPodcast(item: PodcastItem): PodcastItem {
 export const FEATURED_PODCAST = createPodcast({
   youtubeUrl: 'https://www.youtube.com/watch?v=fts2xb0vd_c',
   title: 'เข้าใจ 3 ฮอร์โมนความสุข ก่อนจะเผลอติดกับดักความสุขแบบปลอม ๆ | On the way with Chom EP.37',
-  category: 'Medical Tech',
-  channel: 'SLC Medical',
+  category: 'Psychology',
+  channel: 'LifeDot',
   description: 'มาทำความเข้าใจกับ “พีระมิดแห่งความสุข” โดย “หมอกลาง นพ.ณัฐณกัณฑ์ พิชยะวงศ์ภัค” (ว. 44236) หรือ “พี่กลาง หอสมุดแห่งชาติ” ที่หลาย ๆ คนรู้จัก',
   duration: '35:53',
 });
