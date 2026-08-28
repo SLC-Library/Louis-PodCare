@@ -371,7 +371,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                   }`}
                 >
                   <span className="material-symbols-outlined text-[18px]">movie</span>
-                  <span>🎥 ดูคลิป YouTube (Video)</span>
+                  <span>ดูคลิป YouTube (Video)</span>
                 </button>
                 <button
                   id="modal-mode-audio-btn"
@@ -383,7 +383,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                   }`}
                 >
                   <span className="material-symbols-outlined text-[18px]">headphones</span>
-                  <span>🎧 ฟังเสียง (Audio Podcast)</span>
+                  <span>ฟังเสียง (Audio Podcast)</span>
                 </button>
               </div>
 
