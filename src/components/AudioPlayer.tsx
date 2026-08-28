@@ -19,19 +19,39 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [isPlaying, setIsPlaying] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
-  const [volume, setVolume] = useState<number>(85);
-  const [isMuted, setIsMuted] = useState(false);
   const [showFullModal, setShowFullModal] = useState(false);
   const [isPip, setIsPip] = useState(false);
+
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Sync mode with initialMode if it changes when selecting a new item
   useEffect(() => {
     if (initialMode) {
       setMode(initialMode);
+      // Auto open modal on initial start if video mode was requested
+      if (initialMode === 'video') {
+        setShowFullModal(true);
+      }
     }
   }, [initialMode, podcast?.id]);
 
   const youtubeId = podcast ? extractYoutubeId(podcast.youtubeId || podcast.youtubeUrl) : '';
+  const isDirectAudio = !youtubeId && !!podcast?.audioUrl;
+
+  // Helper to send postMessage commands to YouTube IFrame
+  const sendYouTubeCommand = (func: string, args: any[] = []) => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({
+          event: 'command',
+          func: func,
+          args: args,
+        }),
+        '*'
+      );
+    }
+  };
 
   // Parse duration if possible (e.g. "45 mins" -> 2700, "12:30" -> 750)
   const calculateDurationSeconds = (durStr?: string): number => {
@@ -59,9 +79,10 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   useEffect(() => {
     setDynamicDuration(calculateDurationSeconds(podcast?.duration));
     setCurrentTime(0);
+    setIsPlaying(true);
   }, [podcast?.id, podcast?.duration]);
 
-  // Listen to YouTube Player events via window postMessage to get real YouTube duration
+  // Listen to YouTube Player events via window postMessage to get real YouTube duration and time
   useEffect(() => {
     const handleYouTubeMessage = (event: MessageEvent) => {
       try {
@@ -77,11 +98,12 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             if (data.info.playerState !== undefined) {
               if (data.info.playerState === 1) setIsPlaying(true);
               if (data.info.playerState === 2) setIsPlaying(false);
+              if (data.info.playerState === 0) setIsPlaying(false);
             }
           }
         }
       } catch {
-        // Non-JSON or third-party message
+        // Non-JSON or external message
       }
     };
 
@@ -91,16 +113,59 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
   const durationSeconds = dynamicDuration || initialDuration;
 
-  // Audio timer simulation for audio mode
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isPlaying && mode === 'audio') {
-      interval = setInterval(() => {
-        setCurrentTime((prev) => (prev < durationSeconds ? prev + 1 : 0));
-      }, 1000 / playbackSpeed);
+  // Handle Play/Pause
+  const handleTogglePlay = () => {
+    const nextState = !isPlaying;
+    setIsPlaying(nextState);
+
+    if (youtubeId) {
+      sendYouTubeCommand(nextState ? 'playVideo' : 'pauseVideo');
+    } else if (audioRef.current) {
+      if (nextState) {
+        audioRef.current.play().catch(() => {});
+      } else {
+        audioRef.current.pause();
+      }
     }
-    return () => clearInterval(interval);
-  }, [isPlaying, playbackSpeed, durationSeconds, mode]);
+  };
+
+  // Handle Seek
+  const handleSeek = (newSeconds: number) => {
+    const clamped = Math.max(0, Math.min(durationSeconds, newSeconds));
+    setCurrentTime(clamped);
+
+    if (youtubeId) {
+      sendYouTubeCommand('seekTo', [clamped, true]);
+    } else if (audioRef.current) {
+      audioRef.current.currentTime = clamped;
+    }
+  };
+
+  // Handle Playback Speed
+  const handleSetSpeed = (speed: number) => {
+    setPlaybackSpeed(speed);
+    if (youtubeId) {
+      sendYouTubeCommand('setPlaybackRate', [speed]);
+    } else if (audioRef.current) {
+      audioRef.current.playbackRate = speed;
+    }
+  };
+
+  // Initialize YouTube Iframe listening event on load
+  const handleIframeLoad = () => {
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({ event: 'listening' }),
+        '*'
+      );
+      if (isPlaying) {
+        sendYouTubeCommand('playVideo');
+      }
+      if (playbackSpeed !== 1) {
+        sendYouTubeCommand('setPlaybackRate', [playbackSpeed]);
+      }
+    }
+  };
 
   if (!podcast) return null;
 
@@ -114,25 +179,73 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
   return (
     <>
+      {/* ================= BACKGROUND / DIRECT AUDIO ELEMENT (IF MP3) ================= */}
+      {isDirectAudio && podcast.audioUrl && (
+        <audio
+          ref={audioRef}
+          src={podcast.audioUrl}
+          autoPlay
+          onTimeUpdate={(e) => setCurrentTime(Math.round(e.currentTarget.currentTime))}
+          onLoadedMetadata={(e) => setDynamicDuration(Math.round(e.currentTarget.duration))}
+          onEnded={() => setIsPlaying(false)}
+        />
+      )}
+
+      {/* ================= PERSISTENT YOUTUBE IFRAME =================
+          This iframe remains in DOM so audio never stops playing when in Audio Mode.
+          When in Video Modal or PiP, it sits visibly in its frame.
+          When in Audio Mode, it sits invisibly in the background. */}
+      {youtubeId && (
+        <div
+          id="youtube-player-container"
+          className={
+            showFullModal && mode === 'video'
+              ? 'hidden' // The visible modal will display the active video viewport
+              : isPip && mode === 'video'
+              ? 'hidden'
+              : 'fixed -bottom-96 -right-96 w-1 h-1 opacity-0 pointer-events-none overflow-hidden z-[-1]'
+          }
+        >
+          {/* Background Audio Host when not in visible video mode */}
+          {!(showFullModal && mode === 'video') && !(isPip && mode === 'video') && (
+            <iframe
+              ref={iframeRef}
+              id="youtube-player-audio-stream"
+              title={podcast.title}
+              src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&enablejsapi=1&origin=${encodeURIComponent(
+                typeof window !== 'undefined' ? window.location.origin : ''
+              )}&widgetid=1`}
+              onLoad={handleIframeLoad}
+              className="w-full h-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            />
+          )}
+        </div>
+      )}
+
       {/* ================= FLOATING MINI BOTTOM BAR / PiP PLAYER ================= */}
       <div
         id="media-floating-player"
         className={`fixed z-50 transition-all duration-300 ${
-          isPip
+          isPip && mode === 'video'
             ? 'bottom-4 right-4 w-96 rounded-2xl shadow-2xl overflow-hidden border'
             : 'bottom-4 left-4 right-4 max-w-4xl mx-auto rounded-2xl shadow-2xl backdrop-blur-xl border'
         } ${
           isDark
             ? 'bg-[#060e20]/95 border-blue-500/30 text-[#f8fafc]'
             : 'bg-white/95 border-slate-200 text-slate-900 shadow-blue-500/10'
-        } ${isPip ? 'p-0' : 'p-3 sm:p-4'}`}
+        } ${isPip && mode === 'video' ? 'p-0' : 'p-3 sm:p-4'}`}
       >
         {isPip && mode === 'video' ? (
           /* Mini PiP Video View */
           <div className="relative aspect-video w-full bg-black">
             <iframe
+              ref={iframeRef}
               title={podcast.title}
-              src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&enablejsapi=1`}
+              src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&enablejsapi=1&origin=${encodeURIComponent(
+                typeof window !== 'undefined' ? window.location.origin : ''
+              )}&widgetid=1`}
+              onLoad={handleIframeLoad}
               className="w-full h-full border-0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -188,7 +301,13 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     <span className="text-[11px] font-bold text-blue-500 uppercase tracking-wider truncate">
                       {podcast.institution}
                     </span>
-                    <span className="text-[10px] px-1.5 py-0.2 rounded-full font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
+                        mode === 'video'
+                          ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                          : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      }`}
+                    >
                       {mode === 'video' ? 'VIDEO' : 'AUDIO'}
                     </span>
                   </div>
@@ -224,7 +343,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                       ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
-                  title="ฟังเสียงพอดแคสต์ (Audio Only)"
+                  title="ฟังเสียงพอดแคสต์ (Audio Stream)"
                 >
                   <span className="material-symbols-outlined text-[16px]">headphones</span>
                   <span>ฟังเสียง (Audio)</span>
@@ -233,71 +352,56 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
               {/* Controls */}
               <div className="flex items-center gap-1.5 sm:gap-3">
-                {mode === 'audio' ? (
-                  <>
-                    <button
-                      onClick={() => setCurrentTime((t) => Math.max(0, t - 15))}
-                      className="hidden sm:flex p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
-                      title="ย้อนกลับ 15 วินาที"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">replay_15</span>
-                    </button>
+                {/* Audio controls (Play/Pause, Skip, Speed) */}
+                <button
+                  onClick={() => handleSeek(currentTime - 15)}
+                  className="hidden sm:flex p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                  title="ย้อนกลับ 15 วินาที"
+                >
+                  <span className="material-symbols-outlined text-[20px]">replay_15</span>
+                </button>
 
-                    <button
-                      onClick={() => setIsPlaying(!isPlaying)}
-                      className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-105"
-                      title={isPlaying ? 'หยุดชั่วคราว' : 'เล่นต่อ'}
-                    >
-                      <span
-                        className="material-symbols-outlined text-[22px]"
-                        style={{ fontVariationSettings: "'FILL' 1" }}
-                      >
-                        {isPlaying ? 'pause' : 'play_arrow'}
-                      </span>
-                    </button>
-
-                    <button
-                      onClick={() => setCurrentTime((t) => Math.min(durationSeconds, t + 15))}
-                      className="hidden sm:flex p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
-                      title="ข้ามไปข้างหน้า 15 วินาที"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">forward_15</span>
-                    </button>
-
-                    {/* Speed toggle */}
-                    <button
-                      onClick={() =>
-                        setPlaybackSpeed((s) =>
-                          s === 1 ? 1.25 : s === 1.25 ? 1.5 : s === 1.5 ? 2 : 1
-                        )
-                      }
-                      className="hidden sm:inline-block text-xs font-bold px-2 py-1 rounded-md bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
-                      title="ความเร็วในการเล่น"
-                    >
-                      {playbackSpeed}x
-                    </button>
-                  </>
-                ) : (
-                  /* Video Quick Controls */
-                  <button
-                    onClick={() => setShowFullModal(true)}
-                    className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center gap-1.5 shadow-md shadow-blue-500/20"
+                <button
+                  onClick={handleTogglePlay}
+                  className={`w-10 h-10 rounded-full text-white flex items-center justify-center shadow-lg transition-transform hover:scale-105 ${
+                    mode === 'audio' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-blue-600 hover:bg-blue-500'
+                  }`}
+                  title={isPlaying ? 'หยุดชั่วคราว' : 'เล่นต่อ'}
+                >
+                  <span
+                    className="material-symbols-outlined text-[22px]"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
                   >
-                    <span className="material-symbols-outlined text-[16px]">fullscreen</span>
-                    <span className="hidden sm:inline">เปิดจอใหญ่</span>
-                  </button>
-                )}
+                    {isPlaying ? 'pause' : 'play_arrow'}
+                  </span>
+                </button>
 
-                {/* PiP Button (for video) */}
-                {mode === 'video' && (
-                  <button
-                    onClick={() => setIsPip(true)}
-                    className="hidden sm:flex p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
-                    title="เล่นจอเล็ก (Picture-in-Picture)"
-                  >
-                    <span className="material-symbols-outlined text-[20px]">picture_in_picture_alt</span>
-                  </button>
-                )}
+                <button
+                  onClick={() => handleSeek(currentTime + 15)}
+                  className="hidden sm:flex p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                  title="ข้ามไปข้างหน้า 15 วินาที"
+                >
+                  <span className="material-symbols-outlined text-[20px]">forward_15</span>
+                </button>
+
+                {/* Speed toggle */}
+                <button
+                  onClick={() => {
+                    const next =
+                      playbackSpeed === 1
+                        ? 1.25
+                        : playbackSpeed === 1.25
+                        ? 1.5
+                        : playbackSpeed === 1.5
+                        ? 2
+                        : 1;
+                    handleSetSpeed(next);
+                  }}
+                  className="hidden sm:inline-block text-xs font-bold px-2 py-1 rounded-md bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
+                  title="ความเร็วในการเล่น"
+                >
+                  {playbackSpeed}x
+                </button>
 
                 {/* Expand Modal */}
                 <button
@@ -319,25 +423,25 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
               </div>
             </div>
 
-            {/* Audio Mode Progress & Waveform */}
-            {mode === 'audio' && (
-              <div className="w-full flex items-center gap-3 pt-1">
-                <span className="text-[11px] text-slate-400 font-mono">
-                  {formatTime(currentTime)}
-                </span>
-                <input
-                  type="range"
-                  min="0"
-                  max={durationSeconds}
-                  value={currentTime}
-                  onChange={(e) => setCurrentTime(Number(e.target.value))}
-                  className="w-full h-1.5 bg-slate-700/60 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                />
-                <span className="text-[11px] text-slate-400 font-mono">
-                  {formatTime(durationSeconds)}
-                </span>
-              </div>
-            )}
+            {/* Audio Mode Progress & Timeline */}
+            <div className="w-full flex items-center gap-3 pt-1">
+              <span className="text-[11px] text-slate-400 font-mono">
+                {formatTime(currentTime)}
+              </span>
+              <input
+                type="range"
+                min="0"
+                max={durationSeconds}
+                value={currentTime}
+                onChange={(e) => handleSeek(Number(e.target.value))}
+                className={`w-full h-1.5 bg-slate-700/60 rounded-lg appearance-none cursor-pointer ${
+                  mode === 'audio' ? 'accent-emerald-500' : 'accent-blue-500'
+                }`}
+              />
+              <span className="text-[11px] text-slate-400 font-mono">
+                {formatTime(durationSeconds)}
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -415,8 +519,12 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
               <div className="flex flex-col gap-4">
                 <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl border border-slate-800">
                   <iframe
+                    ref={iframeRef}
                     title={podcast.title}
-                    src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1`}
+                    src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1&origin=${encodeURIComponent(
+                      typeof window !== 'undefined' ? window.location.origin : ''
+                    )}&widgetid=1`}
+                    onLoad={handleIframeLoad}
                     className="w-full h-full border-0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
@@ -430,7 +538,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     </span>
                     <span className="text-xs text-slate-400 flex items-center gap-1 font-mono">
                       <span className="material-symbols-outlined text-[14px]">schedule</span>
-                      {podcast.duration}
+                      {formatTime(currentTime)} / {formatTime(durationSeconds)}
                     </span>
                   </div>
 
@@ -515,8 +623,8 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     onClick={(e) => {
                       const rect = e.currentTarget.getBoundingClientRect();
                       const clickX = e.clientX - rect.left;
-                      const ratio = clickX / rect.width;
-                      setCurrentTime(Math.floor(ratio * durationSeconds));
+                      const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+                      handleSeek(Math.floor(ratio * durationSeconds));
                     }}
                   >
                     <div
@@ -533,7 +641,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     {[0.75, 1, 1.25, 1.5, 2].map((spd) => (
                       <button
                         key={spd}
-                        onClick={() => setPlaybackSpeed(spd)}
+                        onClick={() => handleSetSpeed(spd)}
                         className={`text-xs px-2.5 py-1 rounded-lg font-semibold transition-all ${
                           playbackSpeed === spd
                             ? 'bg-emerald-600 text-white shadow-md'
@@ -548,16 +656,17 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                   {/* Play / Skip Buttons */}
                   <div className="flex items-center gap-4">
                     <button
-                      onClick={() => setCurrentTime((t) => Math.max(0, t - 15))}
+                      onClick={() => handleSeek(currentTime - 15)}
                       className="p-3 rounded-full hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
-                      title="Replay 15s"
+                      title="ย้อนกลับ 15 วินาที"
                     >
                       <span className="material-symbols-outlined text-2xl">replay_15</span>
                     </button>
 
                     <button
-                      onClick={() => setIsPlaying(!isPlaying)}
+                      onClick={handleTogglePlay}
                       className="w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center shadow-xl shadow-emerald-500/25 hover:scale-105 transition-all"
+                      title={isPlaying ? 'หยุดชั่วคราว' : 'เล่นต่อ'}
                     >
                       <span
                         className="material-symbols-outlined text-3xl"
@@ -568,9 +677,9 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     </button>
 
                     <button
-                      onClick={() => setCurrentTime((t) => Math.min(durationSeconds, t + 15))}
+                      onClick={() => handleSeek(currentTime + 15)}
                       className="p-3 rounded-full hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
-                      title="Forward 15s"
+                      title="ข้ามไปข้างหน้า 15 วินาที"
                     >
                       <span className="material-symbols-outlined text-2xl">forward_15</span>
                     </button>
