@@ -46,22 +46,11 @@ export const Footer: React.FC<FooterProps> = ({ theme }) => {
               งานวิทยบริการและวารสารวิชาการ
             </p>
 
-            <div className="text-xs flex flex-wrap items-center justify-center sm:justify-start gap-2.5 sm:gap-4 pt-1">
+            <div className="text-xs flex items-center justify-center sm:justify-start gap-2 pt-1">
               <span className="flex items-center gap-1.5">
                 <span>📍</span>
                 <span>วิทยาลัยเซนต์หลุยส์ สาทรใต้ กรุงเทพฯ</span>
               </span>
-              <span className="hidden sm:inline text-slate-500">•</span>
-              <a
-                href="https://library.slc.ac.th"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-blue-500 hover:text-blue-400 font-semibold transition-colors"
-              >
-                <span>🌐</span>
-                <span className="underline decoration-blue-500/40 underline-offset-2">library.slc.ac.th</span>
-                <span className="material-symbols-outlined text-[13px]">open_in_new</span>
-              </a>
             </div>
           </div>
         </div>
