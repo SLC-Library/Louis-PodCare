@@ -25,18 +25,20 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const youtubeId = podcast ? extractYoutubeId(podcast.youtubeId || podcast.youtubeUrl) : '';
+  const isDirectAudio = !youtubeId && !!podcast?.audioUrl;
+
   // Sync mode with initialMode if it changes when selecting a new item
   useEffect(() => {
-    if (initialMode) {
+    if (!youtubeId) {
+      setMode('audio');
+    } else if (initialMode) {
       setMode(initialMode);
       if (initialMode === 'video') {
         setShowFullModal(true);
       }
     }
-  }, [initialMode, podcast?.id]);
-
-  const youtubeId = podcast ? extractYoutubeId(podcast.youtubeId || podcast.youtubeUrl) : '';
-  const isDirectAudio = !youtubeId && !!podcast?.audioUrl;
+  }, [initialMode, podcast?.id, youtubeId]);
 
   // Helper to send postMessage commands to YouTube IFrame
   const sendYouTubeCommand = (func: string, args: any[] = []) => {
@@ -285,38 +287,47 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
               {/* Mode Switcher Buttons */}
               <div className="hidden sm:flex items-center p-1 rounded-xl bg-[#0f172a]/80 border border-slate-700/60 shadow-inner gap-1">
-                <button
-                  id="toggle-video-mode-btn"
-                  onClick={() => {
-                    setMode('video');
-                    setShowFullModal(true);
-                  }}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                    mode === 'video'
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                  title="ดูคลิปวิดีโอจาก YouTube"
-                >
-                  <span className="material-symbols-outlined text-[16px]">play_circle</span>
-                  <span>ดูคลิป (Video)</span>
-                </button>
-                <button
-                  id="toggle-audio-mode-btn"
-                  onClick={() => {
-                    setMode('audio');
-                    setShowFullModal(true);
-                  }}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                    mode === 'audio'
-                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                  title="ฟังเสียงพอดแคสต์ (Audio Stream)"
-                >
-                  <span className="material-symbols-outlined text-[16px]">headphones</span>
-                  <span>ฟังเสียง (Audio)</span>
-                </button>
+                {youtubeId ? (
+                  <>
+                    <button
+                      id="toggle-video-mode-btn"
+                      onClick={() => {
+                        setMode('video');
+                        setShowFullModal(true);
+                      }}
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                        mode === 'video'
+                          ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                      title="ดูคลิปวิดีโอจาก YouTube"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">play_circle</span>
+                      <span>ดูคลิป (Video)</span>
+                    </button>
+                    <button
+                      id="toggle-audio-mode-btn"
+                      onClick={() => {
+                        setMode('audio');
+                        setShowFullModal(true);
+                      }}
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                        mode === 'audio'
+                          ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                      title="ฟังเสียงพอดแคสต์ (Audio Stream)"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">headphones</span>
+                      <span>ฟังเสียง (Audio)</span>
+                    </button>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-emerald-400 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                    <span className="material-symbols-outlined text-[16px]">graphic_eq</span>
+                    <span>Spotify / Audio Only</span>
+                  </div>
+                )}
               </div>
 
               {/* Controls */}
@@ -434,44 +445,67 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             <div className="flex flex-wrap justify-between items-center gap-3 mb-5 border-b border-slate-700/50 pb-4">
               {/* Dual Mode Selector Pill */}
               <div className="flex items-center bg-[#0f172a] p-1 rounded-2xl border border-slate-700">
-                <button
-                  id="modal-mode-video-btn"
-                  onClick={() => setMode('video')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-                    mode === 'video'
-                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 ring-1 ring-blue-400'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[18px]">movie</span>
-                  <span>ดูคลิป YouTube (Video)</span>
-                </button>
-                <button
-                  id="modal-mode-audio-btn"
-                  onClick={() => setMode('audio')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-                    mode === 'audio'
-                      ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 ring-1 ring-emerald-400'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[18px]">headphones</span>
-                  <span>ฟังเสียง (Audio Podcast)</span>
-                </button>
+                {youtubeId ? (
+                  <>
+                    <button
+                      id="modal-mode-video-btn"
+                      onClick={() => setMode('video')}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                        mode === 'video'
+                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 ring-1 ring-blue-400'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">movie</span>
+                      <span>ดูคลิป YouTube (Video)</span>
+                    </button>
+                    <button
+                      id="modal-mode-audio-btn"
+                      onClick={() => setMode('audio')}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                        mode === 'audio'
+                          ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 ring-1 ring-emerald-400'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">headphones</span>
+                      <span>ฟังเสียง (Audio Podcast)</span>
+                    </button>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 ring-1 ring-emerald-400">
+                    <span className="material-symbols-outlined text-[18px]">graphic_eq</span>
+                    <span>Spotify Audio Podcast (ไม่มีโฆษณาคั่น)</span>
+                  </div>
+                )}
               </div>
 
               {/* Right Action Icons */}
               <div className="flex items-center gap-2">
-                <a
-                  href={podcast.youtubeUrl || `https://www.youtube.com/watch?v=${youtubeId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1.5 rounded-lg bg-red-600/15 hover:bg-red-600/25 text-red-400 border border-red-500/30 text-xs font-semibold flex items-center gap-1 transition-colors"
-                  title="Open in YouTube"
-                >
-                  <span className="material-symbols-outlined text-[16px]">open_in_new</span>
-                  <span>YouTube</span>
-                </a>
+                {podcast.spotifyUrl && (
+                  <a
+                    href={podcast.spotifyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/40 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
+                    title="Open in Spotify"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">podcasts</span>
+                    <span>Spotify</span>
+                  </a>
+                )}
+                {youtubeId && (
+                  <a
+                    href={podcast.youtubeUrl || `https://www.youtube.com/watch?v=${youtubeId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-lg bg-red-600/15 hover:bg-red-600/25 text-red-400 border border-red-500/30 text-xs font-semibold flex items-center gap-1 transition-colors"
+                    title="Open in YouTube"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                    <span>YouTube</span>
+                  </a>
+                )}
                 <button
                   onClick={() => setShowFullModal(false)}
                   className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"

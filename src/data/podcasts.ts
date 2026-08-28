@@ -4,7 +4,7 @@ import { PodcastItem } from '../types';
  * Utility helper to extract YouTube Video ID from standard YouTube URLs or direct IDs
  */
 export function extractYoutubeId(urlOrId?: string): string {
-  if (!urlOrId) return '30bZ_1Z2e1A';
+  if (!urlOrId) return '';
   const trimmed = urlOrId.trim();
   // If already an ID (11 chars without slash)
   if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
@@ -90,6 +90,18 @@ export const FEATURED_PODCAST = createPodcast({
 // 📋 2. รายการวิดีโอ/พอดแคสต์ทั่วไป (ชุดหลัก)
 // ==========================================
 export const PODCAST_CARDS: PodcastItem[] = [
+  createPodcast({
+    id: 'spotify-longevity-sleep-health',
+    title: 'เจาะลึกศาสตร์แห่งการนอนหลับ & ชะลอวัยระดับเซลล์ (Sleep Science & Longevity) | Spotify Health',
+    category: 'Nutrition & Diet',
+    channel: 'Spotify Health & Wellness',
+    description: 'พอดแคสต์ระบบเสียงคมชัด (Spotify Audio Podcast) ว่าด้วยกลไก Circadian Rhythm การหลั่งเมลาโทนิน และโภชนาการฟื้นฟูเซลล์สมองขณะหลับ ฟังลื่นไหล ไม่มีโฆษณาวิดีโอคั่น',
+    duration: '28:40',
+    date: 'MAR 2026',
+    imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80',
+    audioUrl: 'https://actions.google.com/sounds/v1/ambiences/rain_heavy.ogg',
+    spotifyUrl: 'https://open.spotify.com/genre/wellness',
+  }),
   createPodcast({
     youtubeUrl: 'https://www.youtube.com/watch?v=7geqNRcIpEI&t=713s',
     title: 'งดแป้ง งดน้ำตาล อาจทำให้สุขภาพพัง! เป็นมะเร็ง โรคไต ห้ามกินอะไรบ้าง I Doctor’s Talk EP.33',
