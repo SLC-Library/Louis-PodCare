@@ -100,15 +100,13 @@ export const PODCAST_CARDS: PodcastItem[] = [
     date: 'AUG 14, 2025',
   }),
   createPodcast({
-    id: 'microbiome-mental-health',
-    title: 'Microbiome Impact on Mental Health & Gut-Brain Axis',
+    youtubeUrl: 'https://www.youtube.com/watch?v=PlJLsNmxyxY&t=4663s',
+    title: 'หมอโอ๊ค Lifestyle Medicine 6 กฎสุขภาพดี | Health is the New Wealth EP.8',
     category: 'Nutrition & Diet',
-    institution: 'Harvard Med',
-    duration: '18:45',
-    imageUrl:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCUzvKnXJPeL7Q8COUrXq20Qnyr6eTq4L1Obi_jJSj1r29zXKDjpLthQ9gwQYQj8p6GQ4MBs4miobA7KGPIrNVz0rItKCMG8Nw2UoGCfHfyaCElLyceG9LY_5oCB3XcuXdq7cOgXZRZX00pt9-TJjGee2BK7gpEQEzKPkSDtN-9fes3W5C96upkLJAHemInAq_vaM-gBwCnQRYM9_U5CbQm-kYVLeGMrRvl_Efcb4lmI77KROwyY4Is',
-    description: 'New clinical insights into how the gut microbiota modulates neurochemistry, mood regulation, and cognitive resilience.',
-    youtubeId: 'B9R148h0y_E',
+    channel: 'THE SECRET SAUCE',
+    description: 'Health is the New Wealth เอพิโสดนี้ ชวนหมอโอ๊ค-สมิทธิ์ อารยะสกุล มาอัปเดตเทรนด์การแพทย์เพื่อสุขภาพฉบับล่าสุดที่ส่งตรงจากฮาร์วาร์ด ‘Lifestyle Medicine’ 6 กฎการเปลี่ยนพฤติกรรม สร้างวิถีชีวิตใหม่ที่จะเปลี่ยนชีวิตให้ดีขึ้นตลอดกาล',
+    duration: '1:31:59',
+    date: 'JUN 9, 2024',
   }),
   createPodcast({
     id: 'cognitive-behavioral-2024',
