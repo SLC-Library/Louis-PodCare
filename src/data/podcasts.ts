@@ -91,20 +91,18 @@ export const FEATURED_PODCAST = createPodcast({
 // ==========================================
 export const PODCAST_CARDS: PodcastItem[] = [
   createPodcast({
-    id: 'genomic-sequencing',
-    title: 'Advancements in Genomic Sequencing & Diagnostics',
-    category: 'Medical Tech',
-    institution: 'Mayo Clinic',
-    duration: '12:30',
-    imageUrl:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCXPAkGM34_aBKxwrrxKO7bgCX5uQvYCcbT06oJ67gZFcf0Ad0zL1tyraNnMH0JJLLZ-x63m-7kNsjZ0af9ucDtcruF6pr1OEwDtArpkT6mrfoCOc3C7QEIJm0NsqiluuC9wi415MtMv62QQE9qOBOBSd0e0eKK5kTajfpe7RuveuFtMA7QPnJGGntLPlO_E83f1ekPcz7vZLa9WwAUjszekr-plCkzqabm5QubOyiD2DZ2EzxEyHkr',
-    description: 'Exploring how long-read sequencing technologies are unlocking personalized therapies for rare inherited diseases.',
-    youtubeId: 'YnZe2Gj_R_o',
+    youtubeUrl: 'https://www.youtube.com/watch?v=7geqNRcIpEI&t=713s',
+    title: 'งดแป้ง งดน้ำตาล อาจทำให้สุขภาพพัง! เป็นมะเร็ง โรคไต ห้ามกินอะไรบ้าง I Doctor’s Talk EP.33',
+    category: 'Nutrition & Diet',
+    channel: 'Zerosick',
+    description: 'Doctor’s Talk คือ Podcast ที่หมอและผู้เชี่ยวชาญทางด้านสุขภาพจะมาพูดคุยประเด็นสุขภาพต่างๆ ใน EP นี้ หมอจิมมี่ นพ. สุทธิพจน์ ภัทรมงคลกาล (ว.55103) และ พญ.วีรนุช โรจน์ยินดีเลิศ (ว.34250) อายุรแพทย์ชำนาญการด้านโภชนศาสตร์คลินิก จะมาให้ความรู้เกี่ยวกับความเชื่อที่หลายคนเข้าใจผิด กินคลีน กินน้ำมันมะพร้าว งดแป้ง งดน้ำตาล สุขภาพอาจพังไม่รู้ตัว เพราะจริงๆ แล้ว น้ำตาลดีต่อสุขภาพ ถ้าอยากแข็งแรง ไม่เสี่ยงมะเร็งต้องกินอะไร หรือถ้าเป็นมะเร็ง โรคไต ห้ามกินอะไรบ้าง EP นี้ ห้ามพลาด!',
+    duration: '47:37',
+    date: 'AUG 14, 2025',
   }),
   createPodcast({
     id: 'microbiome-mental-health',
     title: 'Microbiome Impact on Mental Health & Gut-Brain Axis',
-    category: 'Nutrition',
+    category: 'Nutrition & Diet',
     institution: 'Harvard Med',
     duration: '18:45',
     imageUrl:
@@ -210,7 +208,7 @@ export const ALL_PODCASTS: PodcastItem[] = [
 // ==========================================
 export const CATEGORIES = [
   'All',
-  'Nutrition',
+  'Nutrition & Diet',
   'Psychology',
   'Medical Tech',
   'Nursing',
