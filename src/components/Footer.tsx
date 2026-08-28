@@ -20,15 +20,9 @@ export const Footer: React.FC<FooterProps> = ({ theme }) => {
       <div className="max-w-[1280px] mx-auto px-6 py-10 flex flex-col lg:flex-row items-center lg:items-start justify-between gap-8 text-center lg:text-left">
         {/* Left: SLC Library Branding & Credits */}
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 max-w-2xl">
-          {/* Official SLC Library Logo (Natural size & crisp proportions) */}
-          <div
-            className={`px-3 py-2 rounded-xl flex items-center justify-center shrink-0 shadow-xs border transition-all ${
-              isDark
-                ? 'bg-white border-slate-200/90'
-                : 'bg-white border-slate-200 shadow-xs'
-            }`}
-          >
-            <SlcLibraryLogo theme="original" className="h-9 sm:h-10 w-auto" />
+          {/* Logo container matching natural aspect ratio */}
+          <div className="bg-white rounded-xl p-2.5 shadow-sm border border-slate-200/90 flex items-center justify-center shrink-0">
+            <SlcLibraryLogo className="h-10 sm:h-12 w-auto" />
           </div>
 
           <div className="flex flex-col gap-1 text-center sm:text-left">
@@ -88,7 +82,7 @@ export const Footer: React.FC<FooterProps> = ({ theme }) => {
               href="https://www.slc.ac.th"
               target="_blank"
               rel="noopener noreferrer"
-              className={`px-3 py-2 rounded-xl border text-xs font-medium transition-all ${
+              className={`px-3.5 py-2 rounded-xl border text-xs font-medium transition-all ${
                 isDark
                   ? 'border-slate-800 bg-[#0a1226] text-slate-300 hover:text-white hover:border-slate-700'
                   : 'border-slate-300 bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-100'
