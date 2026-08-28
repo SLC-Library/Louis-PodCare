@@ -597,7 +597,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                   <div
                     className={`${
                       youtubeId && showAudioAdScreen ? 'md:col-span-5' : 'md:col-span-12'
-                    } relative h-48 sm:h-56 rounded-2xl overflow-hidden shadow-2xl border border-slate-800 flex items-center justify-center`}
+                    } relative h-48 sm:h-56 rounded-2xl overflow-hidden shadow-2xl border border-slate-800 flex items-center justify-center transition-all duration-300`}
                   >
                     <img
                       src={podcast.imageUrl}
@@ -639,9 +639,15 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     </div>
                   </div>
 
-                  {/* Interactive YouTube Frame (Allows clicking Skip Ad, Controls, Subtitles directly!) */}
-                  {youtubeId && showAudioAdScreen && (
-                    <div className="md:col-span-7 flex flex-col gap-1.5">
+                  {/* Interactive YouTube Frame (Kept mounted even when hidden so audio never stops!) */}
+                  {youtubeId && (
+                    <div
+                      className={
+                        showAudioAdScreen
+                          ? 'md:col-span-7 flex flex-col gap-1.5 transition-all duration-300'
+                          : 'fixed -bottom-96 -right-96 w-1 h-1 opacity-0 pointer-events-none overflow-hidden'
+                      }
+                    >
                       <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl border border-slate-700/80">
                         <iframe
                           ref={iframeRef}
@@ -655,12 +661,14 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                           allowFullScreen
                         />
                       </div>
-                      <div className="flex items-center justify-between text-[11px] text-slate-400 px-1">
-                        <span className="flex items-center gap-1 text-emerald-400">
-                          <span className="material-symbols-outlined text-[13px]">touch_app</span>
-                          <span>แตะที่หน้าจอยูทูปนี้เพื่อกดปุ่ม <strong>"ข้ามโฆษณา / Skip"</strong> ได้โดยตรง</span>
-                        </span>
-                      </div>
+                      {showAudioAdScreen && (
+                        <div className="flex items-center justify-between text-[11px] text-slate-400 px-1">
+                          <span className="flex items-center gap-1 text-emerald-400 font-medium">
+                            <span className="material-symbols-outlined text-[14px]">touch_app</span>
+                            <span>แตะที่หน้าจอยูทูปนี้เพื่อกดปุ่ม <strong>"ข้ามโฆษณา / Skip Ad"</strong> ได้โดยตรง</span>
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
