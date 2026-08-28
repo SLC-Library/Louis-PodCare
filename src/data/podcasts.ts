@@ -109,15 +109,13 @@ export const PODCAST_CARDS: PodcastItem[] = [
     date: 'JUN 9, 2024',
   }),
   createPodcast({
-    id: 'cognitive-behavioral-2024',
-    title: 'Cognitive Behavioral Interventions in Digital Health',
+    youtubeUrl: 'https://www.youtube.com/watch?v=zlbDZPwpgBA',
+    title: '8 วิธีดูแลใจให้สดใส ผ่านเรื่องราวใจร้าย ความคิดลบๆไปได้ไวขึ้น 💗 | Peanut Butter',
     category: 'Psychology',
-    institution: 'APA Journal',
-    duration: '32:10',
-    imageUrl:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuBQWK89ryeqWTjNZmqkPBP22syw-zgdy0QqYXTAHeAaXV3B8t04pbOHxWcldzTjgsnjXBmh-F4Dqt5sVQdDsxH7L4A-x-pB_4hrDPX0HCQ9GRutzHcCEc7TKy-YGd-jplwrQ38VOyyzq9xyUUFQikcsfMbBilJmBgm1_cgHZz_PQHlBtyNce4q-kEHeGkny6_tCr7EO-OokvYfenIlPWyUDi45vl88sWeyJFnRH0Ld9LlGD-VXoP6vg',
-    description: 'How digital CBT tools and mobile biofeedback empower patients dealing with generalized anxiety disorders.',
-    youtubeId: 'W19Q3g1LDUo',
+    channel: 'Peanut Butter',
+    description: 'Mental Health กับการที่เราต้องเจอ 1 วัน 1000 Situation 😂 ทั้งใจดีหรือใจร้ายหลากหลายเรื่องราวผสมกันไป เลยอยากมาออกกำลังทางใจเพื่อลดแรงปะทะค่ะ (ส่วนเราก็ไม่ได้เป็นคนใจ Tough ขนาดนั้น เป็นผู้หญิงใจบอบบางเหมือนกัน) จะฝึกไปด้วยกันนี้แหล่ะฮึบๆๆ',
+    duration: '16:53',
+    date: 'OCT 26, 2024',
   }),
   createPodcast({
     id: 'patient-handoff-protocols',
