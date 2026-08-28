@@ -26,4 +26,18 @@ export interface PodcastItem {
   spotifyUrl?: string;
 }
 
+export interface ArticleItem {
+  id: string;
+  title: string;
+  category: string;
+  department: string;
+  date: string;
+  readTime: string;
+  summary: string;
+  imageUrl: string;
+  url: string;
+  featured?: boolean;
+  tags?: string[];
+}
+
 

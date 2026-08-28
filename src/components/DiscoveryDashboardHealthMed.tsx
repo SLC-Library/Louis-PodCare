@@ -8,6 +8,7 @@ import {
   PODCAST_CARDS,
 } from '../data/podcasts';
 import { MediaMode, PodcastItem, TabId, TransitionType } from '../types';
+import { SaintLouisCommunityHub } from './SaintLouisCommunityHub';
 
 interface DiscoveryDashboardHealthMedProps {
   onNavigate: (to: 'healthmed' | 'dark', transition: TransitionType) => void;
@@ -394,92 +395,12 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
           </div>
         )}
 
-        {/* ================= COMMUNITY VIEW (LIGHT) ================= */}
+        {/* ================= COMMUNITY & SAINT LOUIS ARTICLES VIEW (LIGHT) ================= */}
         {activeTab === 'Community' && (
-          <div id="healthmed-community-view" className="flex flex-col gap-6">
-            <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="material-symbols-outlined text-emerald-600 text-2xl">
-                  forum
-                </span>
-                <h1 className="text-[26px] md:text-[30px] font-bold text-slate-900 tracking-tight">
-                  Medical & Clinical Community
-                </h1>
-              </div>
-              <p className="text-[15px] text-slate-600">
-                Peer-to-peer discussions, clinical case questions, and multidisciplinary insights from verified practitioners.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-2 flex flex-col gap-4">
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold text-blue-700 uppercase bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full">
-                      Genomics Discussion
-                    </span>
-                    <span className="text-xs text-slate-400">2 hours ago</span>
-                  </div>
-                  <h3 className="font-bold text-lg text-slate-900 mb-2">
-                    Clinical applications of long-read sequencing in neonatal cardiac diagnostics?
-                  </h3>
-                  <p className="text-sm text-slate-600 mb-4">
-                    Looking for recent peer-reviewed feedback on integrating rapid whole-genome sequencing workflows in NICU settings with turnaround under 24 hours.
-                  </p>
-                  <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-3">
-                    <span className="font-medium text-slate-800">Dr. Melissa Vance • Mayo Clinic</span>
-                    <span className="flex items-center gap-1 font-semibold text-blue-600">
-                      <span className="material-symbols-outlined text-sm">chat_bubble</span> 18 Replies
-                    </span>
-                  </div>
-                </div>
-
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold text-emerald-700 uppercase bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
-                      Oncology & Immunology
-                    </span>
-                    <span className="text-xs text-slate-400">5 hours ago</span>
-                  </div>
-                  <h3 className="font-bold text-lg text-slate-900 mb-2">
-                    CAR-T cell persistence and secondary immune biomarker monitoring
-                  </h3>
-                  <p className="text-sm text-slate-600 mb-4">
-                    Sharing preliminary observational data regarding wearable biometric monitors detecting early neurotoxicity signs in lymphoma patients.
-                  </p>
-                  <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-3">
-                    <span className="font-medium text-slate-800">Prof. Ethan Hayes • Johns Hopkins</span>
-                    <span className="flex items-center gap-1 font-semibold text-blue-600">
-                      <span className="material-symbols-outlined text-sm">chat_bubble</span> 24 Replies
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-4">
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                  <h4 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-amber-500 text-lg">trending_up</span>
-                    Trending Medical Topics
-                  </h4>
-                  <ul className="flex flex-col gap-2 text-sm text-slate-700">
-                    <li className="p-2 rounded-lg bg-slate-50 hover:bg-blue-50 cursor-pointer transition-colors flex justify-between">
-                      <span className="font-medium">#GenomicTherapeutics</span>
-                      <span className="text-xs text-slate-500">142 posts</span>
-                    </li>
-                    <li className="p-2 rounded-lg bg-slate-50 hover:bg-blue-50 cursor-pointer transition-colors flex justify-between">
-                      <span className="font-medium">#RoboticSurgeryAI</span>
-                      <span className="text-xs text-slate-500">98 posts</span>
-                    </li>
-                    <li className="p-2 rounded-lg bg-slate-50 hover:bg-blue-50 cursor-pointer transition-colors flex justify-between">
-                      <span className="font-medium">#GutBrainAxis</span>
-                      <span className="text-xs text-slate-500">86 posts</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
+          <SaintLouisCommunityHub
+            theme="light"
+            onExplorePodcasts={() => onTabChange('Browse')}
+          />
         )}
 
         {/* ================= BROWSE VIEW (LIGHT) ================= */}
