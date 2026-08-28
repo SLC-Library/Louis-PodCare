@@ -9,6 +9,7 @@ import {
 } from '../data/podcasts';
 import { MediaMode, PodcastItem, TabId, TransitionType } from '../types';
 import { SaintLouisCommunityHub } from './SaintLouisCommunityHub';
+import { Footer } from './Footer';
 
 interface DiscoveryDashboardDarkProps {
   onNavigate: (to: 'healthmed' | 'dark', transition: TransitionType) => void;
@@ -73,18 +74,28 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
           {/* Brand */}
           <div
             id="dark-brand-logo-container"
-            className="flex items-center gap-2 cursor-pointer group"
+            className="flex items-center gap-3 cursor-pointer group"
             onClick={() => onTabChange('Browse')}
-            title="Louis PodCare Discovery"
+            title="Louis PodCare Discovery • โดย SLC Library วิทยาลัยเซนต์หลุยส์"
           >
             <img
               alt="Louis PodCare Logo"
               className="h-10 w-10 object-contain rounded-full ring-2 ring-blue-500/20 group-hover:ring-blue-500/60 transition-all"
               src={LOGO_DARK}
             />
-            <span className="text-[24px] leading-[32px] font-bold text-[#3b82f6] hidden sm:block tracking-tight group-hover:text-blue-400 transition-colors">
-              Louis PodCare
-            </span>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="text-[20px] sm:text-[22px] leading-tight font-bold text-[#3b82f6] tracking-tight group-hover:text-blue-400 transition-colors">
+                  Louis PodCare
+                </span>
+                <span className="hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/30">
+                  SLC Library
+                </span>
+              </div>
+              <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium hidden sm:block">
+                โดย ห้องสมุด วิทยาลัยเซนต์หลุยส์
+              </span>
+            </div>
           </div>
 
           {/* Navigation Links (Centered) */}
@@ -692,6 +703,9 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
           </>
         )}
       </main>
+
+      {/* SLC Library & Saint Louis College Footer */}
+      <Footer theme="dark" />
     </div>
   );
 };

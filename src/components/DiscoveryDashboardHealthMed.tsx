@@ -9,6 +9,7 @@ import {
 } from '../data/podcasts';
 import { MediaMode, PodcastItem, TabId, TransitionType } from '../types';
 import { SaintLouisCommunityHub } from './SaintLouisCommunityHub';
+import { Footer } from './Footer';
 
 interface DiscoveryDashboardHealthMedProps {
   onNavigate: (to: 'healthmed' | 'dark', transition: TransitionType) => void;
@@ -73,18 +74,28 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
           {/* Brand */}
           <div
             id="healthmed-brand-logo-container"
-            className="flex items-center gap-2 cursor-pointer group"
+            className="flex items-center gap-3 cursor-pointer group"
             onClick={() => onTabChange('Browse')}
-            title="Louis PodCare Discovery"
+            title="Louis PodCare Discovery • โดย SLC Library วิทยาลัยเซนต์หลุยส์"
           >
             <img
               alt="Louis PodCare Logo"
               className="h-10 w-10 object-contain rounded-full ring-2 ring-blue-600/20 group-hover:ring-blue-600/50 transition-all"
               src={LOGO_LIGHT}
             />
-            <span className="text-[24px] leading-[32px] font-bold text-blue-600 hidden sm:block tracking-tight group-hover:text-blue-700 transition-colors">
-              Louis PodCare
-            </span>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="text-[20px] sm:text-[22px] leading-tight font-bold text-blue-600 tracking-tight group-hover:text-blue-700 transition-colors">
+                  Louis PodCare
+                </span>
+                <span className="hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700 border border-blue-200">
+                  SLC Library
+                </span>
+              </div>
+              <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium hidden sm:block">
+                โดย ห้องสมุด วิทยาลัยเซนต์หลุยส์
+              </span>
+            </div>
           </div>
 
           {/* Navigation Links */}
@@ -692,6 +703,9 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
           </>
         )}
       </main>
+
+      {/* SLC Library & Saint Louis College Footer */}
+      <Footer theme="light" />
     </div>
   );
 };

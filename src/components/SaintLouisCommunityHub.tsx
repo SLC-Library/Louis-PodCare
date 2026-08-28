@@ -85,7 +85,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
 
         <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
           <div className="flex flex-col gap-2.5 flex-1 max-w-3xl">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-blue-500/20 text-blue-300 border border-blue-400/30">
                 <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>
                   local_hospital
@@ -93,6 +93,10 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
               </span>
               <span className="text-xs md:text-sm font-semibold tracking-wider text-blue-200 uppercase">
                 Saint Louis Hospital • Knowledge & Community Hub
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-[11px] font-medium text-blue-200">
+                <span className="material-symbols-outlined text-[13px] text-amber-300">local_library</span>
+                รวบรวมและจัดทำโดย SLC Library
               </span>
             </div>
 
