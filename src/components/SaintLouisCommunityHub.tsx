@@ -4,6 +4,7 @@ import {
 } from '../data/articles';
 import { ArticleItem } from '../types';
 import { fetchSaintLouisArticles, FetchArticlesResult } from '../services/saintLouisApi';
+import { SlcLibraryLogo } from './SlcLibraryLogo';
 
 interface SaintLouisCommunityHubProps {
   theme: 'dark' | 'light';
@@ -94,9 +95,11 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
               <span className="text-xs md:text-sm font-semibold tracking-wider text-blue-200 uppercase">
                 Saint Louis Hospital • Knowledge & Community Hub
               </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-[11px] font-medium text-blue-200">
-                <span className="material-symbols-outlined text-[13px] text-amber-300">local_library</span>
-                รวบรวมและจัดทำโดย SLC Library
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-[11px] font-medium text-white transition-all shadow-xs backdrop-blur-xs">
+                <div className="bg-white rounded-md px-1.5 py-0.5 flex items-center justify-center">
+                  <SlcLibraryLogo size="sm" variant="horizontal" theme="light" className="h-4" />
+                </div>
+                <span>รวบรวมและจัดทำโดย SLC Library</span>
               </span>
             </div>
 

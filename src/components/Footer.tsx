@@ -1,4 +1,5 @@
 import React from 'react';
+import { SlcLibraryLogo } from './SlcLibraryLogo';
 
 interface FooterProps {
   theme: 'dark' | 'light';
@@ -18,16 +19,14 @@ export const Footer: React.FC<FooterProps> = ({ theme }) => {
     >
       <div className="max-w-[1280px] mx-auto px-6 py-10 flex flex-col md:flex-row items-center md:items-start justify-between gap-8 text-center md:text-left">
         {/* Left: SLC Library Branding & Responsibility */}
-        <div className="flex flex-col gap-2 max-w-xl">
-          <div className="flex items-center justify-center md:justify-start gap-2.5">
-            <span
-              className={`p-2 rounded-xl flex items-center justify-center ${
-                isDark ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-blue-100 text-blue-700'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[22px]">local_library</span>
-            </span>
-            <div className="text-left">
+        <div className="flex flex-col gap-3 max-w-xl">
+          <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
+            {/* Logo Graphic */}
+            <div className="p-2 rounded-2xl bg-white shadow-xs border border-slate-200 flex items-center justify-center">
+              <SlcLibraryLogo size="sm" variant="horizontal" theme="light" className="h-9" />
+            </div>
+
+            <div className="text-center sm:text-left">
               <div
                 className={`font-bold text-sm sm:text-base ${
                   isDark ? 'text-white' : 'text-slate-900'
