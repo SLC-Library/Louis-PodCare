@@ -100,7 +100,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
               บทความ สาระสุขภาพ และข่าวสารโรงพยาบาล
             </h1>
 
-            <p className="text-sm md:text-base text-blue-100/90 leading-relaxed">
+            <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed whitespace-normal xl:whitespace-nowrap">
               เชื่อมโยงข้อมูลล่าสุดแบบอัตโนมัติจากเว็บไซต์โรงพยาบาลเซนต์หลุยส์ (saintlouis.or.th) เพื่อให้คุณได้รับสาระความรู้ทางการแพทย์ที่ถูกต้องและทันต่อเหตุการณ์
             </p>
 
