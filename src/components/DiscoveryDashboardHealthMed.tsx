@@ -303,8 +303,8 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
                       <div className="absolute bottom-2.5 right-2.5 bg-black/75 text-white px-2.5 py-1 rounded-md text-[12px] font-medium backdrop-blur-sm">
                         {card.duration}
                       </div>
-                      <div className="absolute top-2.5 left-2.5 bg-white/90 px-2.5 py-1 rounded-md text-[12px] text-blue-700 backdrop-blur-sm border border-slate-200 font-semibold">
-                        {card.category}
+                      <div className="absolute top-2.5 left-2.5 bg-white/95 px-2.5 py-1 rounded-md text-[12px] text-blue-700 backdrop-blur-sm border border-slate-200 font-semibold shadow-xs max-w-[70%] truncate">
+                        {card.institution || card.channel}
                       </div>
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
@@ -363,11 +363,11 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
                       </div>
 
                       <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-100">
-                        <div className="flex items-center gap-2 text-slate-500 text-[13px] font-medium">
-                          <span className="material-symbols-outlined text-[16px]">
+                        <div className="flex items-center gap-2 text-slate-600 text-[13px] font-medium">
+                          <span className="material-symbols-outlined text-[16px] text-blue-600">
                             {card.institutionIcon}
                           </span>
-                          <span>{card.institution}</span>
+                          <span className="text-slate-700 font-medium">{card.category}</span>
                         </div>
                         <button
                           aria-label={`Remove ${card.title} from library`}
@@ -657,8 +657,8 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
                       <div className="absolute bottom-2.5 right-2.5 bg-black/75 text-white px-2.5 py-1 rounded-md text-[12px] font-medium backdrop-blur-sm">
                         {card.duration}
                       </div>
-                      <div className="absolute top-2.5 left-2.5 bg-white/90 px-2.5 py-1 rounded-md text-[12px] text-blue-700 backdrop-blur-sm border border-slate-200 font-semibold">
-                        {card.category}
+                      <div className="absolute top-2.5 left-2.5 bg-white/95 px-2.5 py-1 rounded-md text-[12px] text-blue-700 backdrop-blur-sm border border-slate-200 font-semibold shadow-xs max-w-[70%] truncate">
+                        {card.institution || card.channel}
                       </div>
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
@@ -717,11 +717,11 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
                       </div>
 
                       <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-100">
-                        <div className="flex items-center gap-2 text-slate-500 text-[13px] font-medium">
-                          <span className="material-symbols-outlined text-[16px]">
+                        <div className="flex items-center gap-2 text-slate-600 text-[13px] font-medium">
+                          <span className="material-symbols-outlined text-[16px] text-blue-600">
                             {card.institutionIcon}
                           </span>
-                          <span>{card.institution}</span>
+                          <span className="text-slate-700 font-medium">{card.category}</span>
                         </div>
                         <button
                           aria-label={`Bookmark ${card.title}`}

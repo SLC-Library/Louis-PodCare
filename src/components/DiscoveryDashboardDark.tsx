@@ -303,8 +303,8 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                       <div className="absolute bottom-2.5 right-2.5 bg-black/80 text-white px-2.5 py-1 rounded-md text-[12px] font-medium backdrop-blur-sm">
                         {card.duration}
                       </div>
-                      <div className="absolute top-2.5 left-2.5 bg-[#060e20]/90 px-2.5 py-1 rounded-md text-[12px] text-[#3b82f6] backdrop-blur-sm border border-[#334155] font-semibold">
-                        {card.category}
+                      <div className="absolute top-2.5 left-2.5 bg-[#060e20]/90 px-2.5 py-1 rounded-md text-[12px] text-[#93c5fd] backdrop-blur-sm border border-[#334155] font-semibold max-w-[70%] truncate">
+                        {card.institution || card.channel}
                       </div>
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
@@ -364,10 +364,10 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
 
                       <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#334155]">
                         <div className="flex items-center gap-2 text-[#94a3b8] text-[13px] font-medium">
-                          <span className="material-symbols-outlined text-[16px]">
+                          <span className="material-symbols-outlined text-[16px] text-blue-400">
                             {card.institutionIcon}
                           </span>
-                          <span>{card.institution}</span>
+                          <span className="text-slate-300 font-medium">{card.category}</span>
                         </div>
                         <button
                           aria-label={`Remove ${card.title} from library`}
@@ -657,8 +657,8 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                       <div className="absolute bottom-2.5 right-2.5 bg-black/80 text-white px-2.5 py-1 rounded-md text-[12px] font-medium backdrop-blur-sm">
                         {card.duration}
                       </div>
-                      <div className="absolute top-2.5 left-2.5 bg-[#060e20]/90 px-2.5 py-1 rounded-md text-[12px] text-[#3b82f6] backdrop-blur-sm border border-[#334155] font-semibold">
-                        {card.category}
+                      <div className="absolute top-2.5 left-2.5 bg-[#060e20]/90 px-2.5 py-1 rounded-md text-[12px] text-[#93c5fd] backdrop-blur-sm border border-[#334155] font-semibold max-w-[70%] truncate">
+                        {card.institution || card.channel}
                       </div>
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
@@ -718,10 +718,10 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
 
                       <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#334155]">
                         <div className="flex items-center gap-2 text-[#94a3b8] text-[13px] font-medium">
-                          <span className="material-symbols-outlined text-[16px]">
+                          <span className="material-symbols-outlined text-[16px] text-blue-400">
                             {card.institutionIcon}
                           </span>
-                          <span>{card.institution}</span>
+                          <span className="text-slate-300 font-medium">{card.category}</span>
                         </div>
                         <button
                           aria-label={`Bookmark ${card.title}`}

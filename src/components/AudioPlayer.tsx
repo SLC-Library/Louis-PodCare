@@ -36,19 +36,60 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   // Parse duration if possible (e.g. "45 mins" -> 2700, "12:30" -> 750)
   const calculateDurationSeconds = (durStr?: string): number => {
     if (!durStr) return 1800;
-    if (durStr.includes('min')) {
-      const mins = parseInt(durStr, 10);
+    if (durStr.includes('min') || durStr.includes('นาที')) {
+      const mins = parseInt(durStr.replace(/[^0-9]/g, ''), 10);
       return isNaN(mins) ? 1800 : mins * 60;
     }
     if (durStr.includes(':')) {
-      const parts = durStr.split(':').map((p) => parseInt(p, 10));
+      const parts = durStr.split(':').map((p) => parseInt(p.trim(), 10));
       if (parts.length === 2) return (parts[0] || 0) * 60 + (parts[1] || 0);
       if (parts.length === 3) return (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+    }
+    const parsedNum = parseInt(durStr, 10);
+    if (!isNaN(parsedNum)) {
+      return parsedNum > 100 ? parsedNum : parsedNum * 60;
     }
     return 1800;
   };
 
-  const durationSeconds = calculateDurationSeconds(podcast?.duration);
+  const initialDuration = calculateDurationSeconds(podcast?.duration);
+  const [dynamicDuration, setDynamicDuration] = useState<number>(initialDuration);
+
+  // Sync duration when podcast changes
+  useEffect(() => {
+    setDynamicDuration(calculateDurationSeconds(podcast?.duration));
+    setCurrentTime(0);
+  }, [podcast?.id, podcast?.duration]);
+
+  // Listen to YouTube Player events via window postMessage to get real YouTube duration
+  useEffect(() => {
+    const handleYouTubeMessage = (event: MessageEvent) => {
+      try {
+        if (typeof event.data === 'string') {
+          const data = JSON.parse(event.data);
+          if (data.event === 'infoDelivery' && data.info) {
+            if (data.info.duration && typeof data.info.duration === 'number' && data.info.duration > 0) {
+              setDynamicDuration(Math.round(data.info.duration));
+            }
+            if (data.info.currentTime && typeof data.info.currentTime === 'number') {
+              setCurrentTime(Math.round(data.info.currentTime));
+            }
+            if (data.info.playerState !== undefined) {
+              if (data.info.playerState === 1) setIsPlaying(true);
+              if (data.info.playerState === 2) setIsPlaying(false);
+            }
+          }
+        }
+      } catch {
+        // Non-JSON or third-party message
+      }
+    };
+
+    window.addEventListener('message', handleYouTubeMessage);
+    return () => window.removeEventListener('message', handleYouTubeMessage);
+  }, []);
+
+  const durationSeconds = dynamicDuration || initialDuration;
 
   // Audio timer simulation for audio mode
   useEffect(() => {
@@ -293,7 +334,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                   className="w-full h-1.5 bg-slate-700/60 rounded-lg appearance-none cursor-pointer accent-blue-500"
                 />
                 <span className="text-[11px] text-slate-400 font-mono">
-                  {podcast.duration}
+                  {formatTime(durationSeconds)}
                 </span>
               </div>
             )}
@@ -467,7 +508,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
                   <div className="flex justify-between text-xs text-slate-400 font-mono mb-2">
                     <span>{formatTime(currentTime)}</span>
-                    <span>{podcast.duration}</span>
+                    <span>{formatTime(durationSeconds)}</span>
                   </div>
                   <div
                     className="w-full h-2.5 bg-slate-700/50 rounded-full overflow-hidden cursor-pointer relative"

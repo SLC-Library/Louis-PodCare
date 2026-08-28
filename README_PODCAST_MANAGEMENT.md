@@ -1,13 +1,32 @@
-# ⚡ คู่มือการจัดการวิดีโอแบบง่ายที่สุด (Quick & Minimal Guide)
+# ⚡ คู่มือการจัดการวิดีโอและเวลา (Quick & Minimal Guide)
 ### สำหรับ Louis PodCare Discovery
 
-ตอนนี้คุณสามารถเพิ่มคลิปใหม่ได้ง่ายมาก โดยใส่เฉพาะข้อมูลจำเป็น เช่น **`youtubeUrl` (หรือ `youtubeId`)**, **`title`**, **`category`**, **`channel` (หรือ `institution`)** แล้วระบบจะจัดการข้อมูลส่วนที่เหลือให้อัตโนมัติ!
-
-📍 **ไฟล์แก้ไขข้อมูล:** `/src/data/podcasts.ts`
+📍 **ไฟล์แก้ไขข้อมูลหลัก:** `/src/data/podcasts.ts`
 
 ---
 
-## 🚀 ตัวอย่างการเพิ่มคลิปแบบสั้นที่สุด (ใส่เพียง 4-5 บรรทัด)
+## ⏱️ วิธีแก้ไขเวลา (Duration) ให้ตรงกับคลิปจริง
+
+หากคลิปของคุณมีความยาว 35 นาที (หรือความยาวเท่าใดก็ตาม) ให้ระบุฟิลด์ `duration` ใน `createPodcast` ได้ทันที เช่น:
+
+```typescript
+createPodcast({
+  youtubeUrl: 'https://www.youtube.com/watch?v=UKbrwLDnNIY',
+  title: 'CRISPR Therapeutics in Rare Pediatric Conditions',
+  category: 'Research',
+  channel: 'Stanford Health Care',
+  duration: '35:00', // 👈 ใส่เวลาได้ทุกรูปแบบ เช่น '35:00', '35 mins', '35 นาที'
+})
+```
+
+> **รูปแบบเวลาที่รองรับ:**
+> * `duration: '35:00'` (นาที:วินาที)
+> * `duration: '35 mins'` หรือ `duration: '35 นาที'`
+> * `duration: '1:15:00'` (ชั่วโมง:นาที:วินาที)
+
+---
+
+## 🚀 ตัวอย่างการใส่ข้อมูลคลิปใหม่ (ใส่เฉพาะสิ่งสำคัญ)
 
 ```typescript
 createPodcast({
@@ -15,22 +34,22 @@ createPodcast({
   title: 'Future of Robotic Surgery',
   category: 'Medical Tech',
   channel: 'SLC Hospital',
+  duration: '35:00', // 👈 ระบุความยาวจริง
   description: 'คำอธิบายสรุปสั้น ๆ (ไม่ใส่ก็ได้)',
 })
 ```
 
 ---
 
-## 🤖 ข้อมูลที่ระบบคำนวณและดึงให้อัตโนมัติ (Auto-Filled)
+## 🤖 ข้อมูลที่ระบบจัดการให้อัตโนมัติ (Auto-Filled)
 
-| ข้อมูล | วิธีที่ระบบจัดการให้อัตโนมัติ |
+| ข้อมูล | การทำงานอัตโนมัติของระบบ |
 | :--- | :--- |
-| 🖼️ **`imageUrl` (รูปปก)** | **ไม่ต้องใส่!** ระบบจะดึงรูป Thumbnail ความละเอียดสูงจาก YouTube ให้ทันที (`https://img.youtube.com/vi/<ID>/hqdefault.jpg`) |
-| ⏱️ **`duration` (เวลา/ความยาว)** | หากไม่ได้ระบุ ระบบจะใส่ค่ามาตรฐาน และเมื่อเปิดเล่นผ่านโหมด Video หรือ Audio ตัวเล่นจะซิงค์เวลาจริงของคลิปให้อัตโนมัติ |
-| 📅 **`date` (วันที่)** | หากไม่ได้ระบุ ระบบจะแสดงเป็น `"Latest"` หรือ `"Recent"` ให้อัตโนมัติ |
-| 🔑 **`id` (รหัสคลิป)** | **ไม่ต้องใส่!** ระบบจะสร้าง `id` จาก `youtubeId` หรือจากชื่อเรื่องให้อัตโนมัติ เช่น `yt-dQw4w9WgXcQ` |
-| 🩺 **`institutionIcon` (ไอคอน)** | **ไม่ต้องใส่!** ระบบจะเลือกไอคอน Material Symbol ให้ตรงตามหมวดหมู่โดยอัตโนมัติ (เช่น Cardiology -> ❤️, Nutrition -> 🥗, Psychology -> 🧠, Nursing -> 🛡️) |
-| 🏷️ **`categorySlug`** | **ไม่ต้องใส่!** ระบบแปลงจากชื่อหมวดหมู่อัตโนมัติ |
+| 🖼️ **`imageUrl` (รูปปก)** | ดึงภาพหน้าปกคมชัดจาก YouTube ให้อัตโนมัติ (`https://img.youtube.com/vi/<ID>/hqdefault.jpg`) |
+| ⏱️ **Real-Time Duration Sync** | เมื่อผู้ใช้กดเปิดดูคลิป เครื่องเล่น YouTube จะตรวจจับเวลาจริงจากตัวเล่นแบบเรียลไทม์ให้อัตโนมัติ |
+| 📅 **`date` (วันที่)** | หากไม่ได้ระบุ จะแสดงเป็น `"Latest"` หรือ `"Recent"` ให้อัตโนมัติ |
+| 🔑 **`id` (รหัสคลิป)** | สร้างรหัสจาก YouTube ID ให้อัตโนมัติ เช่น `yt-dQw4w9WgXcQ` |
+| 🩺 **`institutionIcon` (ไอคอน)** | เลือกไอคอน Material Symbol ให้ตรงตามหมวดหมู่โดยอัตโนมัติ (Cardiology -> ❤️, Nutrition -> 🥗, Psychology -> 🧠) |
 
 ---
 
@@ -44,6 +63,7 @@ export const FEATURED_PODCAST: PodcastItem = createPodcast({
   title: 'The Future of AI in Modern Surgery & Robotics',
   category: 'Medical Tech',
   channel: 'Johns Hopkins / SLC Medical',
+  duration: '45 mins', // 👈 ความยาวของคลิปประจำสัปดาห์
   description: 'Dr. Sarah Chen discusses how machine learning algorithms...',
 });
 ```
@@ -57,12 +77,12 @@ export const FEATURED_PODCAST: PodcastItem = createPodcast({
 ### ➕ เพิ่มคลิป:
 ```typescript
 export const PODCAST_CARDS: PodcastItem[] = [
-  // ก๊อปปี้บล็อกนี้ไปวางเพิ่ม:
   createPodcast({
     youtubeUrl: 'https://www.youtube.com/watch?v=รหัสคลิป',
     title: 'ชื่อหัวข้อคลิป',
-    category: 'Cardiology', // ตรงกับ CATEGORIES
-    channel: 'Mayo Clinic',  // หรือใส่ institution ก็ได้
+    category: 'Cardiology',
+    channel: 'Mayo Clinic',
+    duration: '35:00', // 👈 ใส่เวลาของคลิปนี้
   }),
   
   // รายการเดิม...
@@ -88,4 +108,3 @@ export const CATEGORIES = [
   'Cardiology',
 ];
 ```
-เพิ่มหรือเปลี่ยนชื่อหมวดหมู่ที่ต้องการได้เลยครับ!
