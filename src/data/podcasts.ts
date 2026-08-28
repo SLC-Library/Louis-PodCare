@@ -82,6 +82,7 @@ export const FEATURED_PODCAST = createPodcast({
   category: 'Medical Tech',
   channel: 'SLC Medical',
   description: 'มาทำความเข้าใจกับ “พีระมิดแห่งความสุข” โดย “หมอกลาง นพ.ณัฐณกัณฑ์ พิชยะวงศ์ภัค” (ว. 44236) หรือ “พี่กลาง หอสมุดแห่งชาติ” ที่หลาย ๆ คนรู้จัก',
+  duration: '35:53',
 });
 
 // ==========================================
