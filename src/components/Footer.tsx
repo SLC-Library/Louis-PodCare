@@ -17,15 +17,21 @@ export const Footer: React.FC<FooterProps> = ({ theme }) => {
           : 'bg-slate-50 border-slate-200 text-slate-600'
       }`}
     >
-      <div className="max-w-[1280px] mx-auto px-6 py-12 flex flex-col md:flex-row items-center md:items-start justify-between gap-8 text-center md:text-left">
+      <div className="max-w-[1280px] mx-auto px-6 py-10 flex flex-col lg:flex-row items-center lg:items-start justify-between gap-8 text-center lg:text-left">
         {/* Left: SLC Library Branding & Credits */}
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 max-w-2xl">
-          {/* Official SLC Library Logo Box */}
-          <div className="w-28 h-28 sm:w-32 sm:h-28 rounded-2xl bg-white shadow-sm border border-slate-200/80 p-3 flex items-center justify-center shrink-0">
-            <SlcLibraryLogo className="w-full h-auto" />
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 max-w-2xl">
+          {/* Official SLC Library Logo (Natural size & crisp proportions) */}
+          <div
+            className={`px-3 py-2 rounded-xl flex items-center justify-center shrink-0 shadow-xs border transition-all ${
+              isDark
+                ? 'bg-white border-slate-200/90'
+                : 'bg-white border-slate-200 shadow-xs'
+            }`}
+          >
+            <SlcLibraryLogo theme="original" className="h-9 sm:h-10 w-auto" />
           </div>
 
-          <div className="flex flex-col gap-1.5 text-center sm:text-left">
+          <div className="flex flex-col gap-1 text-center sm:text-left">
             <div className="text-[11px] font-bold tracking-wider text-blue-500 uppercase">
               จัดทำและรวบรวมข้อมูลโดย
             </div>
@@ -42,7 +48,7 @@ export const Footer: React.FC<FooterProps> = ({ theme }) => {
               งานวิทยบริการและวารสารวิชาการ
             </p>
 
-            <div className="text-xs flex flex-wrap items-center justify-center sm:justify-start gap-2.5 sm:gap-4 pt-1.5">
+            <div className="text-xs flex flex-wrap items-center justify-center sm:justify-start gap-2.5 sm:gap-4 pt-1">
               <span className="flex items-center gap-1.5">
                 <span>📍</span>
                 <span>วิทยาลัยเซนต์หลุยส์ สาทรใต้ กรุงเทพฯ</span>
@@ -63,8 +69,8 @@ export const Footer: React.FC<FooterProps> = ({ theme }) => {
         </div>
 
         {/* Right: Quick Links & Affiliation */}
-        <div className="flex flex-col sm:flex-row items-center md:items-end justify-center gap-4 sm:gap-6 text-xs">
-          <div className="flex flex-col items-center md:items-end gap-1">
+        <div className="flex flex-col sm:flex-row items-center lg:items-end justify-center gap-4 sm:gap-6 text-xs">
+          <div className="flex flex-col items-center lg:items-end gap-1">
             <span
               className={`font-semibold ${
                 isDark ? 'text-slate-300' : 'text-slate-700'

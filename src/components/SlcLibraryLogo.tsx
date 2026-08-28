@@ -2,124 +2,128 @@ import React from 'react';
 
 interface SlcLibraryLogoProps {
   className?: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-  variant?: 'square' | 'horizontal' | 'badge';
-  theme?: 'dark' | 'light';
+  theme?: 'dark' | 'light' | 'original';
+  height?: number | string;
 }
 
 export const SlcLibraryLogo: React.FC<SlcLibraryLogoProps> = ({
   className = '',
-  size = 'md',
-  variant = 'horizontal',
-  theme = 'light',
+  theme = 'original',
 }) => {
+  // If dark adaptive, we use white/light text for the navy parts so it pops on dark backgrounds,
+  // while preserving the signature Orange (S), Cyan/Blue (L), and Pink (C).
   const isDark = theme === 'dark';
-  const navyColor = '#082142';
+  const navyColor = isDark ? '#F1F5F9' : '#0B2545';
+  const libraryColor = isDark ? '#E2E8F0' : '#0B2545';
 
-  // Crisp, high-precision SVG matching the official SLC Library Logo
   return (
     <svg
-      viewBox="0 0 460 210"
-      className={`w-auto h-full max-h-full shrink-0 select-none ${className}`}
+      viewBox="0 0 380 155"
+      className={`w-auto select-none ${className}`}
+      style={{ overflow: 'visible' }}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      aria-label="SLC Library Logo"
     >
-      <g transform="translate(10, 5)">
-        {/* === Left Side: Open Book & Cross with Flame === */}
-        
-        {/* Book Left Open Pages (layered book effect) */}
-        <g stroke={navyColor} strokeLinecap="round" strokeLinejoin="round" fill="none">
-          {/* Main Book Outline */}
-          <path
-            d="M 28 80 C 65 62, 105 66, 134 88 L 134 162 C 105 138, 65 136, 28 152 L 28 80 Z"
-            strokeWidth="9"
-          />
-          {/* Book Inner Page Arch */}
-          <path
-            d="M 38 95 C 70 82, 102 84, 126 100 L 126 150 C 102 135, 70 134, 38 144"
-            strokeWidth="5"
-          />
-          {/* Bottom Page Flipping Layer */}
-          <path
-            d="M 28 152 C 60 140, 95 140, 130 156"
-            strokeWidth="6"
-          />
-          <path
-            d="M 32 160 C 62 148, 95 148, 128 164"
-            strokeWidth="5"
-          />
-        </g>
-
-        {/* Cross on Book Spine */}
-        <rect x="122" y="56" width="19" height="106" rx="2" fill={navyColor} />
-        <rect x="88" y="88" width="86" height="19" rx="2" fill={navyColor} />
-
-        {/* Flame atop Cross */}
-        {/* Outer Flame (Navy) */}
+      {/* === Left Side: Book, Cross & Flame === */}
+      <g>
+        {/* Open Book Outline */}
         <path
-          d="M 131.5 24 C 117 38, 117 50, 131.5 56 C 146 50, 146 38, 131.5 24 Z"
+          d="M 12 60 C 44 42, 80 46, 106 66 L 106 138 C 80 118, 44 116, 12 132 Z"
+          stroke={navyColor}
+          strokeWidth="8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        {/* Inner Page Line */}
+        <path
+          d="M 22 75 C 50 62, 78 65, 98 80 L 98 126 C 78 114, 50 112, 22 122"
+          stroke={navyColor}
+          strokeWidth="4.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        {/* Bottom Page Flipping Accent */}
+        <path
+          d="M 14 132 C 42 120, 74 121, 102 135"
+          stroke={navyColor}
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+
+        {/* Cross Vertical Beam */}
+        <rect x="96" y="38" width="16" height="98" rx="2" fill={navyColor} />
+        {/* Cross Horizontal Beam */}
+        <rect x="68" y="66" width="72" height="16" rx="2" fill={navyColor} />
+
+        {/* Flame on top of Cross */}
+        {/* Outer Flame */}
+        <path
+          d="M 104 8 C 91 21, 91 32, 104 38 C 117 32, 117 21, 104 8 Z"
           fill={navyColor}
         />
         {/* Inner Flame (Sky Blue) */}
         <path
-          d="M 131.5 32 C 123 41, 123 49, 131.5 53 C 140 49, 140 41, 131.5 32 Z"
-          fill="#4FA3E3"
+          d="M 104 16 C 96 24, 96 31, 104 35 C 112 31, 112 24, 104 16 Z"
+          fill="#38BDF8"
         />
 
-        {/* Right Spine Underline */}
+        {/* Right page base accent */}
         <path
-          d="M 141 156 C 152 153, 165 153, 175 156"
+          d="M 112 132 C 122 129, 134 129, 144 132"
           stroke={navyColor}
-          strokeWidth="6"
+          strokeWidth="5"
           strokeLinecap="round"
         />
+      </g>
 
-        {/* === Right Side: S L C Typography === */}
-        {/* S - Golden Orange/Yellow */}
+      {/* === Right Side: SLC LIBRARY Typography === */}
+      <g transform="translate(150, 0)">
+        {/* Letter 'S' - Golden Yellow / Amber */}
         <text
-          x="184"
-          y="126"
-          fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
-          fontSize="92"
+          x="0"
+          y="98"
+          fontFamily="'Arial Black', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+          fontSize="76"
           fontWeight="900"
           fill="#F5A623"
         >
           S
         </text>
 
-        {/* L - Sky Blue */}
+        {/* Letter 'L' - Sky Blue */}
         <text
-          x="248"
-          y="126"
-          fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
-          fontSize="92"
+          x="54"
+          y="98"
+          fontFamily="'Arial Black', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+          fontSize="76"
           fontWeight="900"
-          fill="#54A0FF"
+          fill="#4FA3E3"
         >
           L
         </text>
 
-        {/* C - Soft Pink */}
+        {/* Letter 'C' - Vibrant Pastel Pink */}
         <text
-          x="308"
-          y="126"
-          fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
-          fontSize="92"
+          x="105"
+          y="98"
+          fontFamily="'Arial Black', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+          fontSize="76"
           fontWeight="900"
-          fill="#F783AC"
+          fill="#F770A3"
         >
           C
         </text>
 
-        {/* LIBRARY - Navy Bold Tracked */}
+        {/* 'LIBRARY' Subtitle */}
         <text
-          x="185"
-          y="166"
-          fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
-          fontSize="36"
+          x="2"
+          y="134"
+          fontFamily="'Arial Black', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+          fontSize="30"
           fontWeight="900"
-          fill={navyColor}
-          letterSpacing="4.5"
+          fill={libraryColor}
+          letterSpacing="4"
         >
           LIBRARY
         </text>
