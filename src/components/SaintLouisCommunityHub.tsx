@@ -83,8 +83,8 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="flex flex-col gap-2.5 max-w-2xl">
+        <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+          <div className="flex flex-col gap-2.5 flex-1 max-w-3xl">
             <div className="flex items-center gap-2.5">
               <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-blue-500/20 text-blue-300 border border-blue-400/30">
                 <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -96,7 +96,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
               </span>
             </div>
 
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-white leading-tight">
+            <h1 className="text-xl sm:text-2xl md:text-[26px] lg:text-[28px] font-bold tracking-tight text-white leading-tight whitespace-normal md:whitespace-nowrap">
               บทความ สาระสุขภาพ และข่าวสารโรงพยาบาล
             </h1>
 
