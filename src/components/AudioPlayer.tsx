@@ -21,8 +21,6 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
   const [showFullModal, setShowFullModal] = useState(false);
   const [isPip, setIsPip] = useState(false);
-  // Toggle to show interactive YouTube mini-screen in audio mode to allow clicking "Skip Ad"
-  const [showAudioAdScreen, setShowAudioAdScreen] = useState(true);
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -83,7 +81,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     setIsPlaying(true);
   }, [podcast?.id, podcast?.duration]);
 
-  // Listen to YouTube Player events via window postMessage to get real YouTube duration and time
+  // Listen to YouTube Player events via window postMessage
   useEffect(() => {
     const handleYouTubeMessage = (event: MessageEvent) => {
       try {
@@ -97,6 +95,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
               setCurrentTime(Math.round(data.info.currentTime));
             }
             if (data.info.playerState !== undefined) {
+              // 1 = PLAYING, 2 = PAUSED, 0 = ENDED, 3 = BUFFERING, -1 = UNSTARTED
               if (data.info.playerState === 1) setIsPlaying(true);
               if (data.info.playerState === 2) setIsPlaying(false);
               if (data.info.playerState === 0) setIsPlaying(false);
@@ -104,7 +103,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           }
         }
       } catch {
-        // Non-JSON or external message
+        // Non-JSON or foreign postMessage
       }
     };
 
@@ -178,6 +177,14 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
   const progressPercent = Math.min(100, (currentTime / durationSeconds) * 100);
 
+  // Origin for YouTube postMessage API
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const youtubeEmbedSrc = youtubeId
+    ? `https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&enablejsapi=1&playsinline=1&rel=0&modestbranding=1&origin=${encodeURIComponent(
+        origin
+      )}&widgetid=1`
+    : '';
+
   return (
     <>
       {/* ================= BACKGROUND / DIRECT AUDIO ELEMENT (IF MP3) ================= */}
@@ -190,27 +197,6 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           onLoadedMetadata={(e) => setDynamicDuration(Math.round(e.currentTarget.duration))}
           onEnded={() => setIsPlaying(false)}
         />
-      )}
-
-      {/* ================= PERSISTENT YOUTUBE IFRAME FOR BACKGROUND PLAYBACK =================
-          When not displayed in Modal Video, PiP, or Audio Ad-Screen, it keeps audio alive */}
-      {youtubeId && !showFullModal && !isPip && (
-        <div
-          id="youtube-player-bg-stream"
-          className="fixed -bottom-96 -right-96 w-1 h-1 opacity-0 pointer-events-none overflow-hidden z-[-1]"
-        >
-          <iframe
-            ref={iframeRef}
-            id="youtube-player-stream-element"
-            title={podcast.title}
-            src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&enablejsapi=1&origin=${encodeURIComponent(
-              typeof window !== 'undefined' ? window.location.origin : ''
-            )}&widgetid=1`}
-            onLoad={handleIframeLoad}
-            className="w-full h-full border-0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          />
-        </div>
       )}
 
       {/* ================= FLOATING MINI BOTTOM BAR / PiP PLAYER ================= */}
@@ -229,18 +215,8 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
         {isPip && mode === 'video' ? (
           /* Mini PiP Video View */
           <div className="relative aspect-video w-full bg-black">
-            <iframe
-              ref={iframeRef}
-              title={podcast.title}
-              src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&enablejsapi=1&origin=${encodeURIComponent(
-                typeof window !== 'undefined' ? window.location.origin : ''
-              )}&widgetid=1`}
-              onLoad={handleIframeLoad}
-              className="w-full h-full border-0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-            <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/70 backdrop-blur-md rounded-lg p-1">
+            {/* The single iframe is rendered inside the modal/PiP view container */}
+            <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/70 backdrop-blur-md rounded-lg p-1 z-10">
               <button
                 onClick={() => setIsPip(false)}
                 className="p-1 text-white/80 hover:text-white rounded hover:bg-white/20"
@@ -327,7 +303,10 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 </button>
                 <button
                   id="toggle-audio-mode-btn"
-                  onClick={() => setMode('audio')}
+                  onClick={() => {
+                    setMode('audio');
+                    setShowFullModal(true);
+                  }}
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                     mode === 'audio'
                       ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
@@ -342,21 +321,6 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
               {/* Controls */}
               <div className="flex items-center gap-1.5 sm:gap-2">
-                {/* Skip YouTube Ad Quick Button */}
-                {youtubeId && mode === 'audio' && (
-                  <button
-                    onClick={() => {
-                      setMode('video');
-                      setShowFullModal(true);
-                    }}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition-all animate-pulse"
-                    title="แตะเพื่อเปิดหน้าจอ YouTube และกดข้ามโฆษณา (Skip Ad)"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">skip_next</span>
-                    <span className="hidden md:inline">ข้ามโฆษณา</span>
-                  </button>
-                )}
-
                 {/* Audio controls (Play/Pause, Skip, Speed) */}
                 <button
                   onClick={() => handleSeek(currentTime - 15)}
@@ -459,7 +423,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           onClick={() => setShowFullModal(false)}
         >
           <div
-            className={`w-full max-w-3xl rounded-3xl p-5 sm:p-7 shadow-2xl border transition-all ${
+            className={`w-full max-w-4xl rounded-3xl p-5 sm:p-7 shadow-2xl border transition-all ${
               isDark
                 ? 'bg-[#060e20] border-slate-800 text-white'
                 : 'bg-white border-slate-200 text-slate-900'
@@ -523,17 +487,17 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
               /* ================= VIDEO MODE ================= */
               <div className="flex flex-col gap-4">
                 <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl border border-slate-800">
-                  <iframe
-                    ref={iframeRef}
-                    title={podcast.title}
-                    src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1&origin=${encodeURIComponent(
-                      typeof window !== 'undefined' ? window.location.origin : ''
-                    )}&widgetid=1`}
-                    onLoad={handleIframeLoad}
-                    className="w-full h-full border-0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  />
+                  {youtubeId && (
+                    <iframe
+                      ref={iframeRef}
+                      title={podcast.title}
+                      src={youtubeEmbedSrc}
+                      onLoad={handleIframeLoad}
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    />
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-2 mt-2">
@@ -561,54 +525,37 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             ) : (
               /* ================= AUDIO PODCAST MODE ================= */
               <div className="flex flex-col gap-4">
-                {/* Notice & Direct Skip Ad Assist Bar for YouTube */}
+                {/* Helpful Banner for YouTube Ads / Skip Ad Assistance */}
                 {youtubeId && (
-                  <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 sm:px-4 rounded-xl bg-gradient-to-r from-amber-500/15 via-emerald-500/10 to-transparent border border-amber-500/30 text-xs">
-                    <div className="flex items-center gap-2 text-amber-300">
-                      <span className="material-symbols-outlined text-[18px]">info</span>
-                      <span>
-                        หากมีโฆษณา YouTube คั่น: สามารถกดปุ่ม <strong>"ข้ามโฆษณา (Skip Ad)"</strong> ได้ที่หน้าจอยูทูปด้านล่าง
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setShowAudioAdScreen(!showAudioAdScreen)}
-                        className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 text-[11px] font-semibold transition-all flex items-center gap-1"
-                      >
-                        <span className="material-symbols-outlined text-[14px]">
-                          {showAudioAdScreen ? 'visibility_off' : 'visibility'}
-                        </span>
-                        <span>{showAudioAdScreen ? 'ซ่อนจอยูทูป' : 'แสดงจอยูทูปสำหรับกดข้าม'}</span>
-                      </button>
-                      <button
-                        onClick={() => setMode('video')}
-                        className="px-3 py-1 rounded-lg bg-amber-500/25 hover:bg-amber-500/35 text-amber-200 border border-amber-500/50 text-[11px] font-bold transition-all flex items-center gap-1"
-                      >
-                        <span className="material-symbols-outlined text-[14px]">play_circle</span>
-                        <span>สลับไปหน้าจอใหญ่</span>
-                      </button>
+                  <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-gradient-to-r from-amber-500/15 via-emerald-500/10 to-blue-500/10 border border-amber-500/30 text-xs">
+                    <div className="flex items-center gap-2 text-amber-200">
+                      <span className="material-symbols-outlined text-[20px] text-amber-400">info</span>
+                      <div>
+                        <span className="font-semibold text-amber-300">หากมีโฆษณา YouTube หรือเสียงยังไม่เล่น: </span>
+                        <span>แตะที่หน้าจอวิดีโอด้านขวามือโดยตรง เพื่อเริ่มเล่น หรือกดปุ่ม <strong>"ข้ามโฆษณา (Skip Ad)"</strong> ได้ทันที</span>
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* Combined Artwork + Interactive YouTube Player Viewport */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                {/* Side-by-Side: Podcast Waveform Artwork + Live YouTube Player */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
                   {/* Visualizer Artwork Card */}
                   <div
                     className={`${
-                      youtubeId && showAudioAdScreen ? 'md:col-span-5' : 'md:col-span-12'
-                    } relative h-48 sm:h-56 rounded-2xl overflow-hidden shadow-2xl border border-slate-800 flex items-center justify-center transition-all duration-300`}
+                      youtubeId ? 'md:col-span-5' : 'md:col-span-12'
+                    } relative rounded-2xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col items-center justify-center p-6 min-h-[220px]`}
                   >
                     <img
                       src={podcast.imageUrl}
                       alt={podcast.title}
-                      className="absolute inset-0 w-full h-full object-cover filter blur-sm scale-105 opacity-40"
+                      className="absolute inset-0 w-full h-full object-cover filter blur-sm scale-105 opacity-30"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#060e20] via-black/50 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#060e20] via-black/60 to-transparent" />
 
                     {/* Center Audio Artwork & Waveform Animation */}
-                    <div className="relative z-10 flex flex-col items-center gap-3 text-center px-4">
-                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden shadow-2xl ring-4 ring-emerald-500/30">
+                    <div className="relative z-10 flex flex-col items-center gap-3 text-center">
+                      <div className="relative w-20 h-20 rounded-2xl overflow-hidden shadow-2xl ring-4 ring-emerald-500/30">
                         <img
                           src={podcast.imageUrl}
                           alt={podcast.title}
@@ -624,51 +571,44 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                       </div>
 
                       {/* Animated Audio Equalizer Bars */}
-                      <div className="flex items-end gap-1 h-6">
+                      <div className="flex items-end gap-1 h-7">
                         {[14, 28, 18, 32, 22, 12, 26, 30, 16, 24, 10, 20].map((h, i) => (
                           <div
                             key={i}
                             className="w-1.5 rounded-full bg-emerald-400 transition-all duration-200"
                             style={{
-                              height: isPlaying ? `${(h * (1 + (i % 3) * 0.2)) % 24 + 6}px` : '3px',
+                              height: isPlaying ? `${(h * (1 + (i % 3) * 0.2)) % 28 + 6}px` : '4px',
                               opacity: isPlaying ? 0.9 : 0.4,
                             }}
                           />
                         ))}
                       </div>
+                      <span className="text-[11px] font-medium text-emerald-300">
+                        {isPlaying ? 'กำลังเล่นเสียงพอดแคสต์...' : 'แตะปุ่ม Play หรือแตะจอด้านข้าง'}
+                      </span>
                     </div>
                   </div>
 
-                  {/* Interactive YouTube Frame (Kept mounted even when hidden so audio never stops!) */}
+                  {/* Direct YouTube Video Window (Allows clicking directly on YouTube player for Ads/Skip Ad) */}
                   {youtubeId && (
-                    <div
-                      className={
-                        showAudioAdScreen
-                          ? 'md:col-span-7 flex flex-col gap-1.5 transition-all duration-300'
-                          : 'fixed -bottom-96 -right-96 w-1 h-1 opacity-0 pointer-events-none overflow-hidden'
-                      }
-                    >
+                    <div className="md:col-span-7 flex flex-col gap-2">
                       <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl border border-slate-700/80">
                         <iframe
                           ref={iframeRef}
                           title={podcast.title}
-                          src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&enablejsapi=1&origin=${encodeURIComponent(
-                            typeof window !== 'undefined' ? window.location.origin : ''
-                          )}&widgetid=1`}
+                          src={youtubeEmbedSrc}
                           onLoad={handleIframeLoad}
                           className="w-full h-full border-0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                           allowFullScreen
                         />
                       </div>
-                      {showAudioAdScreen && (
-                        <div className="flex items-center justify-between text-[11px] text-slate-400 px-1">
-                          <span className="flex items-center gap-1 text-emerald-400 font-medium">
-                            <span className="material-symbols-outlined text-[14px]">touch_app</span>
-                            <span>แตะที่หน้าจอยูทูปนี้เพื่อกดปุ่ม <strong>"ข้ามโฆษณา / Skip Ad"</strong> ได้โดยตรง</span>
-                          </span>
-                        </div>
-                      )}
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 px-1">
+                        <span className="flex items-center gap-1 text-emerald-400 font-medium">
+                          <span className="material-symbols-outlined text-[14px]">touch_app</span>
+                          <span>แตะที่หน้าจอนี้เพื่อกดปุ่ม <strong>"ข้ามโฆษณา (Skip Ad)"</strong> ได้โดยตรง</span>
+                        </span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -775,6 +715,21 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ================= BACKGROUND AUDIO STREAM HOST =================
+          When modal is closed and in standard bottom-bar mode, this keeps the audio stream active */}
+      {youtubeId && !showFullModal && (
+        <div className="fixed -bottom-96 -right-96 w-64 h-36 opacity-0 pointer-events-none overflow-hidden z-[-1]">
+          <iframe
+            ref={iframeRef}
+            title={podcast.title}
+            src={youtubeEmbedSrc}
+            onLoad={handleIframeLoad}
+            className="w-full h-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          />
         </div>
       )}
     </>
