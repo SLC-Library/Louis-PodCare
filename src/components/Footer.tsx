@@ -17,51 +17,48 @@ export const Footer: React.FC<FooterProps> = ({ theme }) => {
           : 'bg-slate-50 border-slate-200 text-slate-600'
       }`}
     >
-      <div className="max-w-[1280px] mx-auto px-6 py-10 flex flex-col md:flex-row items-center md:items-start justify-between gap-8 text-center md:text-left">
-        {/* Left: SLC Library Branding & Responsibility */}
-        <div className="flex flex-col gap-3 max-w-xl">
-          <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
-            {/* Logo Graphic */}
-            <div className="p-2 rounded-2xl bg-white shadow-xs border border-slate-200 flex items-center justify-center">
-              <SlcLibraryLogo size="sm" variant="horizontal" theme="light" className="h-9" />
-            </div>
-
-            <div className="text-center sm:text-left">
-              <div
-                className={`font-bold text-sm sm:text-base ${
-                  isDark ? 'text-white' : 'text-slate-900'
-                }`}
-              >
-                ห้องสมุด วิทยาลัยเซนต์หลุยส์ (SLC Library)
-              </div>
-              <div className="text-xs text-blue-500 font-medium">
-                งานวิทยบริการและวารสารวิชาการ
-              </div>
-            </div>
+      <div className="max-w-[1280px] mx-auto px-6 py-12 flex flex-col md:flex-row items-center md:items-start justify-between gap-8 text-center md:text-left">
+        {/* Left: SLC Library Branding & Credits */}
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 max-w-2xl">
+          {/* Official SLC Library Logo Box */}
+          <div className="w-28 h-28 sm:w-32 sm:h-28 rounded-2xl bg-white shadow-sm border border-slate-200/80 p-3 flex items-center justify-center shrink-0">
+            <SlcLibraryLogo className="w-full h-auto" />
           </div>
 
-          <p className="text-xs leading-relaxed mt-1">
-            <strong>จัดทำและรวบรวมข้อมูลโดย:</strong> ห้องสมุด วิทยาลัยเซนต์หลุยส์ (SLC Library)
-            <br />
-            งานวิทยบริการและวารสารวิชาการ
-          </p>
+          <div className="flex flex-col gap-1.5 text-center sm:text-left">
+            <div className="text-[11px] font-bold tracking-wider text-blue-500 uppercase">
+              จัดทำและรวบรวมข้อมูลโดย
+            </div>
 
-          <div className="text-xs flex flex-col sm:flex-row items-center justify-center md:justify-start gap-2 sm:gap-4 pt-1">
-            <span className="flex items-center gap-1.5">
-              <span>📍</span>
-              <span>วิทยาลัยเซนต์หลุยส์ สาทรใต้ กรุงเทพฯ</span>
-            </span>
-            <span className="hidden sm:inline text-slate-500">•</span>
-            <a
-              href="https://library.slc.ac.th"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-blue-500 hover:text-blue-400 font-medium transition-colors"
+            <h3
+              className={`font-bold text-base sm:text-lg tracking-tight ${
+                isDark ? 'text-white' : 'text-slate-900'
+              }`}
             >
-              <span>🌐</span>
-              <span className="underline decoration-blue-500/40 underline-offset-2">library.slc.ac.th</span>
-              <span className="material-symbols-outlined text-[13px]">open_in_new</span>
-            </a>
+              ห้องสมุด วิทยาลัยเซนต์หลุยส์ (SLC Library)
+            </h3>
+
+            <p className={`text-xs sm:text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+              งานวิทยบริการและวารสารวิชาการ
+            </p>
+
+            <div className="text-xs flex flex-wrap items-center justify-center sm:justify-start gap-2.5 sm:gap-4 pt-1.5">
+              <span className="flex items-center gap-1.5">
+                <span>📍</span>
+                <span>วิทยาลัยเซนต์หลุยส์ สาทรใต้ กรุงเทพฯ</span>
+              </span>
+              <span className="hidden sm:inline text-slate-500">•</span>
+              <a
+                href="https://library.slc.ac.th"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-blue-500 hover:text-blue-400 font-semibold transition-colors"
+              >
+                <span>🌐</span>
+                <span className="underline decoration-blue-500/40 underline-offset-2">library.slc.ac.th</span>
+                <span className="material-symbols-outlined text-[13px]">open_in_new</span>
+              </a>
+            </div>
           </div>
         </div>
 
@@ -85,7 +82,7 @@ export const Footer: React.FC<FooterProps> = ({ theme }) => {
               href="https://www.slc.ac.th"
               target="_blank"
               rel="noopener noreferrer"
-              className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+              className={`px-3 py-2 rounded-xl border text-xs font-medium transition-all ${
                 isDark
                   ? 'border-slate-800 bg-[#0a1226] text-slate-300 hover:text-white hover:border-slate-700'
                   : 'border-slate-300 bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-100'
@@ -97,7 +94,7 @@ export const Footer: React.FC<FooterProps> = ({ theme }) => {
               href="https://library.slc.ac.th"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-xs transition-colors flex items-center gap-1"
+              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5"
             >
               <span>เข้าสู่ SLC Library</span>
               <span className="material-symbols-outlined text-[14px]">open_in_new</span>
