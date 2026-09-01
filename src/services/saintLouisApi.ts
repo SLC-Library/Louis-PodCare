@@ -5,7 +5,7 @@ const BASE_API = 'https://public-api.saintlouis.or.th/user-api';
 const CACHE_KEY = 'slh_contents_cache_v2';
 const CACHE_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
-// Exclude administrative news, closure notices, holiday schedules, and service interruptions
+// Exclude administrative news, closure notices, holiday schedules, PR events, and service interruptions
 const EXCLUDED_ANNOUNCEMENT_KEYWORDS = [
   'ปิดทำการ',
   'วันหยุด',
@@ -31,10 +31,38 @@ const EXCLUDED_ANNOUNCEMENT_KEYWORDS = [
   'แจ้งเวลาเปิด-ปิด',
   'แจ้งเปลี่ยนแปลง',
   'หยุดให้บริการ',
+  'ข่าวสาร',
+  'ประชาสัมพันธ์',
+  'ข่าวประชาสัมพันธ์',
+  'กิจกรรม',
+  'รับสมัคร',
+  'รับสมัครงาน',
+  'ตารางแพทย์',
+  'บริจาคโลหิต',
+  'เชิญชวน',
+  'พิธี',
+  'ทำบุญ',
+  'ประกวดราคา',
+  'จัดซื้อจัดจ้าง',
+  'โปรโมชั่น',
+  'ราคาพิเศษ',
+  'งานสัมมนา',
+  'งานแถลงข่าว',
+  'งดตรวจ',
+  'ขออภัยในความไม่สะดวก',
+  'แจ้งย้ายแผนก',
+  'แจ้งเปิดให้บริการ',
+  'แจ้งหยุด',
+  'วันคล้ายวันสถาปนา',
+  'ถวายพระพร',
+  'ต้อนรับคณะ',
+  'มอบทุน',
+  'พิธีเปิด',
+  'ลงนาม',
 ];
 
 function isKnowledgeArticle(item: RawContentItem): boolean {
-  const text = `${item.topic_th || ''} ${item.topic_en || ''} ${item.description_th || ''}`.toLowerCase();
+  const text = `${item.topic_th || ''} ${item.topic_en || ''} ${item.description_th || ''} ${item.category?.name_th || ''}`.toLowerCase();
   for (const kw of EXCLUDED_ANNOUNCEMENT_KEYWORDS) {
     if (text.includes(kw.toLowerCase())) {
       return false;

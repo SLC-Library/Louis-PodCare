@@ -168,13 +168,13 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                   ? 'text-[#3b82f6] border-[#3b82f6]'
                   : 'text-[#cbd5e1] border-transparent hover:text-[#3b82f6]'
               }`}
-              href="#community"
+              href="#health-articles"
               onClick={(e) => {
                 e.preventDefault();
                 onTabChange('Community');
               }}
             >
-              Community
+              Health Articles
             </a>
           </div>
 

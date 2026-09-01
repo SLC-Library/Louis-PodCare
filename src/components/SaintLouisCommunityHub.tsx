@@ -514,9 +514,9 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
             )}
           </div>
 
-          {/* Right 1 Column: Saint Louis Hospital Direct Links & Hospital Info */}
+          {/* Right 1 Column: Specialized Health Knowledge Centers & Learning Resources */}
           <div className="flex flex-col gap-6">
-            {/* Quick Hospital Services Box */}
+            {/* Specialized Medical Centers Knowledge Box */}
             <div
               className={`p-6 rounded-2xl border ${
                 isDark
@@ -526,109 +526,85 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
             >
               <div className="flex items-center gap-2.5 mb-4">
                 <span className="material-symbols-outlined text-blue-500 text-2xl">
-                  health_and_safety
+                  menu_book
                 </span>
                 <h4
                   className={`font-bold text-base ${
                     isDark ? 'text-white' : 'text-slate-900'
                   }`}
                 >
-                  บริการด่วน รพ.เซนต์หลุยส์
+                  ศูนย์ความรู้เฉพาะทาง
                 </h4>
               </div>
 
               <div className="flex flex-col gap-2.5">
-                <a
-                  href={SAINT_LOUIS_CONTACT.contentsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`p-3 rounded-xl border flex items-center justify-between transition-all ${
-                    isDark
-                      ? 'bg-slate-900/80 border-slate-800 hover:border-blue-500 text-slate-200 hover:text-white'
-                      : 'bg-blue-50/50 border-blue-100 hover:border-blue-300 text-slate-800 hover:text-blue-700'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="material-symbols-outlined text-blue-500 text-lg">
-                      menu_book
-                    </span>
-                    <div>
-                      <div className="text-xs font-bold">คลังบทความสุขภาพ</div>
-                      <div className="text-[11px] text-slate-400">
-                        saintlouis.or.th/contents
+                {[
+                  {
+                    name: 'ศูนย์หัวใจและหลอดเลือด',
+                    desc: 'ความรู้โรคหัวใจ & CT Calcium Score',
+                    icon: 'favorite',
+                    color: 'text-red-500',
+                    category: 'สาระสุขภาพ',
+                  },
+                  {
+                    name: 'ศูนย์เบาหวานและโภชนาการ',
+                    desc: 'การดูแลระดับน้ำตาล & ปรับอาหาร',
+                    icon: 'nutrition',
+                    color: 'text-emerald-500',
+                    category: 'โภชนาการและไลฟ์สไตล์',
+                  },
+                  {
+                    name: 'ศูนย์ศัลยกรรมส่องกล้อง (MIS)',
+                    desc: 'นวัตกรรมผ่าตัดแผลเล็กฟื้นตัวไว',
+                    icon: 'biotech',
+                    color: 'text-blue-500',
+                    category: 'นวัตกรรมทางการแพทย์',
+                  },
+                  {
+                    name: 'ศูนย์เวชศาสตร์เชิงป้องกัน & วัคซีน',
+                    desc: 'คู่มือวัคซีน & ตรวจคัดกรองตามวัย',
+                    icon: 'vaccines',
+                    color: 'text-purple-500',
+                    category: 'เวชศาสตร์เชิงป้องกัน',
+                  },
+                  {
+                    name: 'ศูนย์เวชศาสตร์ฟื้นฟู & กายภาพ',
+                    desc: 'สรีรศาสตร์โต๊ะทำงาน & Office Syndrome',
+                    icon: 'accessibility_new',
+                    color: 'text-amber-500',
+                    category: 'ศูนย์เฉพาะทาง',
+                  },
+                ].map((item, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setSelectedCategory(item.category);
+                      window.scrollTo({ top: 300, behavior: 'smooth' });
+                    }}
+                    className={`p-3 rounded-xl border flex items-center justify-between text-left transition-all ${
+                      isDark
+                        ? 'bg-slate-900/80 border-slate-800 hover:border-blue-500 text-slate-200 hover:text-white'
+                        : 'bg-slate-50 border-slate-200 hover:border-blue-300 text-slate-800 hover:text-blue-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className={`material-symbols-outlined ${item.color} text-lg`}>
+                        {item.icon}
+                      </span>
+                      <div>
+                        <div className="text-xs font-bold">{item.name}</div>
+                        <div className="text-[11px] text-slate-400">{item.desc}</div>
                       </div>
                     </div>
-                  </div>
-                  <span className="material-symbols-outlined text-[16px]">open_in_new</span>
-                </a>
-
-                <a
-                  href={SAINT_LOUIS_CONTACT.appointmentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`p-3 rounded-xl border flex items-center justify-between transition-all ${
-                    isDark
-                      ? 'bg-slate-900/80 border-slate-800 hover:border-blue-500 text-slate-200 hover:text-white'
-                      : 'bg-slate-50 border-slate-200 hover:border-blue-300 text-slate-800 hover:text-blue-700'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="material-symbols-outlined text-emerald-500 text-lg">
-                      calendar_month
+                    <span className="material-symbols-outlined text-[16px] text-slate-400">
+                      chevron_right
                     </span>
-                    <div>
-                      <div className="text-xs font-bold">นัดหมายแพทย์ & ตรวจสุขภาพ</div>
-                      <div className="text-[11px] text-slate-400">ระบบนัดหมายออนไลน์</div>
-                    </div>
-                  </div>
-                  <span className="material-symbols-outlined text-[16px]">open_in_new</span>
-                </a>
-
-                <a
-                  href={`tel:${SAINT_LOUIS_CONTACT.phone.replace(/[^0-9]/g, '')}`}
-                  className={`p-3 rounded-xl border flex items-center justify-between transition-all ${
-                    isDark
-                      ? 'bg-slate-900/80 border-slate-800 hover:border-blue-500 text-slate-200 hover:text-white'
-                      : 'bg-slate-50 border-slate-200 hover:border-blue-300 text-slate-800 hover:text-blue-700'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="material-symbols-outlined text-amber-500 text-lg">
-                      phone_in_talk
-                    </span>
-                    <div>
-                      <div className="text-xs font-bold">ศูนย์บริการข้อมูลทั่วไป</div>
-                      <div className="text-[11px] text-slate-400">
-                        {SAINT_LOUIS_CONTACT.phone} (24 ชั่วโมง)
-                      </div>
-                    </div>
-                  </div>
-                  <span className="material-symbols-outlined text-[16px]">call</span>
-                </a>
-
-                <a
-                  href={`tel:${SAINT_LOUIS_CONTACT.emergencyPhone.replace(/[^0-9]/g, '')}`}
-                  className="p-3 rounded-xl border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-between transition-all"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="material-symbols-outlined text-red-500 text-lg animate-pulse">
-                      emergency
-                    </span>
-                    <div>
-                      <div className="text-xs font-bold text-red-500">
-                        แผนกอุบัติเหตุ-ฉุกเฉิน (ER)
-                      </div>
-                      <div className="text-[11px] text-red-400">
-                        {SAINT_LOUIS_CONTACT.emergencyPhone}
-                      </div>
-                    </div>
-                  </div>
-                  <span className="material-symbols-outlined text-[16px]">call</span>
-                </a>
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Hospital Address & Info Card */}
+            {/* Evidence-Based Knowledge Quality Card */}
             <div
               className={`p-6 rounded-2xl border ${
                 isDark
@@ -638,31 +614,29 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
             >
               <div className="flex items-center gap-2.5 mb-3">
                 <span className="material-symbols-outlined text-blue-500 text-xl">
-                  location_on
+                  verified
                 </span>
                 <h4
                   className={`font-bold text-sm ${
                     isDark ? 'text-white' : 'text-slate-900'
                   }`}
                 >
-                  ที่ตั้งโรงพยาบาลเซนต์หลุยส์
+                  มาตรฐานคลังความรู้สุขภาพ
                 </h4>
               </div>
 
               <p className="text-xs leading-relaxed mb-3">
-                {SAINT_LOUIS_CONTACT.address}
-                <br />
-                (ติดสถานีรถไฟฟ้า BTS เซนต์หลุยส์ / สุรศักดิ์)
+                บทความวิชาการและสื่อการเรียนรู้สุขภาพทั้งหมดได้รับการกลั่นกรองและตรวจทานโดยคณะแพทย์และบุคลากรทางการแพทย์ผู้เชี่ยวชาญ โรงพยาบาลเซนต์หลุยส์ เพื่อให้ข้อมูลมีความถูกต้องตามหลักวิชาการแพทย์
               </p>
 
               <a
-                href="https://maps.google.com/?q=Saint+Louis+Hospital+Bangkok"
+                href={SAINT_LOUIS_CONTACT.contentsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-500 hover:text-blue-400"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-500 hover:text-blue-400 transition-colors"
               >
-                <span className="material-symbols-outlined text-[14px]">map</span>
-                <span>เปิดแผนที่ Google Maps</span>
+                <span className="material-symbols-outlined text-[14px]">auto_stories</span>
+                <span>เปิดคลังบทความ saintlouis.or.th/contents</span>
                 <span className="material-symbols-outlined text-[12px]">open_in_new</span>
               </a>
             </div>
@@ -681,10 +655,10 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
                     isDark ? 'text-white' : 'text-slate-900'
                   }`}
                 >
-                  🎧 รับชมพอดแคสต์ทางการแพทย์
+                  🎧 พอดแคสต์ & สื่อวิดีโอทางการแพทย์
                 </h5>
                 <p className="text-xs mb-3 text-slate-400">
-                  เลือกฟังรายการพอดแคสต์สุขภาพและคลิปสัมภาษณ์แพทย์ผู้เชี่ยวชาญ
+                  รับฟังรายการพอดแคสต์สุขภาพและคลิปสัมภาษณ์แพทย์ผู้เชี่ยวชาญ
                 </p>
                 <button
                   onClick={onExplorePodcasts}

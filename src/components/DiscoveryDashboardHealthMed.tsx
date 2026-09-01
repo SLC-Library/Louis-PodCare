@@ -168,13 +168,13 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
                   ? 'text-blue-600 border-blue-600'
                   : 'text-slate-600 border-transparent hover:text-blue-600'
               }`}
-              href="#community"
+              href="#health-articles"
               onClick={(e) => {
                 e.preventDefault();
                 onTabChange('Community');
               }}
             >
-              Community
+              Health Articles
             </a>
           </div>
 
