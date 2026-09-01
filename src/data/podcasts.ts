@@ -73,6 +73,13 @@ export function createPodcast(item: PodcastItem): PodcastItem {
   };
 }
 
+/**
+ * Utility helper to determine if an item is a Spotify Audio Podcast
+ */
+export function isAudioOnlyPodcast(item: PodcastItem): boolean {
+  return !item.youtubeId && (!item.youtubeUrl || item.youtubeUrl.length === 0) && (!!item.spotifyUrl || !!item.audioUrl);
+}
+
 // ==========================================
 // 🌟 1. PODCAST OF THE WEEK (คลิปเด่นประจำสัปดาห์)
 // ==========================================
@@ -100,6 +107,30 @@ export const PODCAST_CARDS: PodcastItem[] = [
     date: 'MAR 2026',
     imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80',
     audioUrl: 'https://actions.google.com/sounds/v1/ambiences/rain_heavy.ogg',
+    spotifyUrl: 'https://open.spotify.com/genre/wellness',
+  }),
+  createPodcast({
+    id: 'spotify-gut-microbiome-brain',
+    title: 'Gut-Brain Axis: ลำไส้คือสมองที่สอง จุลินทรีย์กำหนดอารมณ์และภูมิคุ้มกัน | Spotify Medicine',
+    category: 'Nutrition & Diet',
+    channel: 'The Medical Audio Hub (Spotify)',
+    description: 'ฟังเสียงล้วนคุณภาพสูง (Spotify Podcast) ค้นพบผลงานวิจัยความเชื่อมโยงของ Gut Microbiome กับระบบประสาท Vagus Nerve และการผลิต Serotonin ในทางเดินอาหาร',
+    duration: '24:15',
+    date: 'FEB 2026',
+    imageUrl: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80',
+    audioUrl: 'https://actions.google.com/sounds/v1/ambiences/wind_subtle.ogg',
+    spotifyUrl: 'https://open.spotify.com/genre/podcast-charts',
+  }),
+  createPodcast({
+    id: 'spotify-mindfulness-vagus-nerve',
+    title: 'เทคนิคกระตุ้น Vagus Nerve และฝึกสติลดคอร์ติซอล (Mindfulness & Stress Relief) | Spotify Audio',
+    category: 'Psychology',
+    channel: 'Mindful SLC Medical Audio',
+    description: 'แบบฝึกหัดเสียงเพื่อการผ่อนคลายกล้ามเนื้อและระบบประสาทอัตโนมัติ (Parasympathetic Activation) เหมาะสำหรับฟังพักผ่อนหรือก่อนนอน ไม่มีโฆษณากวนใจ',
+    duration: '18:50',
+    date: 'JAN 2026',
+    imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80',
+    audioUrl: 'https://actions.google.com/sounds/v1/ambiences/river_slow.ogg',
     spotifyUrl: 'https://open.spotify.com/genre/wellness',
   }),
   createPodcast({

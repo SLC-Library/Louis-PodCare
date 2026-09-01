@@ -1,60 +1,31 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { extractYoutubeId } from '../data/podcasts';
-import { MediaMode, PodcastItem } from '../types';
+import { extractYoutubeId, isAudioOnlyPodcast } from '../data/podcasts';
+import { PodcastItem } from '../types';
 
 interface AudioPlayerProps {
   podcast: PodcastItem | null;
-  initialMode?: MediaMode;
   onClose: () => void;
   isDark?: boolean;
 }
 
 export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   podcast,
-  initialMode = 'video',
   onClose,
   isDark = true,
 }) => {
-  const [mode, setMode] = useState<MediaMode>(initialMode);
   const [isPlaying, setIsPlaying] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
-  const [showFullModal, setShowFullModal] = useState(false);
-  const [isPip, setIsPip] = useState(false);
+  const [showFullAudioModal, setShowFullAudioModal] = useState(false);
+  const [isPipVideo, setIsPipVideo] = useState(false);
 
-  const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const youtubeId = podcast ? extractYoutubeId(podcast.youtubeId || podcast.youtubeUrl) : '';
-  const isDirectAudio = !youtubeId && !!podcast?.audioUrl;
+  const isVideo = !!youtubeId;
+  const isAudio = isAudioOnlyPodcast(podcast || ({} as PodcastItem)) || !isVideo;
 
-  // Sync mode with initialMode if it changes when selecting a new item
-  useEffect(() => {
-    if (!youtubeId) {
-      setMode('audio');
-    } else if (initialMode) {
-      setMode(initialMode);
-      if (initialMode === 'video') {
-        setShowFullModal(true);
-      }
-    }
-  }, [initialMode, podcast?.id, youtubeId]);
-
-  // Helper to send postMessage commands to YouTube IFrame
-  const sendYouTubeCommand = (func: string, args: any[] = []) => {
-    if (iframeRef.current && iframeRef.current.contentWindow) {
-      iframeRef.current.contentWindow.postMessage(
-        JSON.stringify({
-          event: 'command',
-          func: func,
-          args: args,
-        }),
-        '*'
-      );
-    }
-  };
-
-  // Parse duration if possible (e.g. "45 mins" -> 2700, "12:30" -> 750)
+  // Calculate duration in seconds
   const calculateDurationSeconds = (durStr?: string): number => {
     if (!durStr) return 1800;
     if (durStr.includes('min') || durStr.includes('นาที')) {
@@ -74,98 +45,44 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   const initialDuration = calculateDurationSeconds(podcast?.duration);
-  const [dynamicDuration, setDynamicDuration] = useState<number>(initialDuration);
+  const [durationSeconds, setDurationSeconds] = useState<number>(initialDuration);
 
-  // Sync duration when podcast changes
+  // Reset states when podcast changes
   useEffect(() => {
-    setDynamicDuration(calculateDurationSeconds(podcast?.duration));
+    setDurationSeconds(calculateDurationSeconds(podcast?.duration));
     setCurrentTime(0);
     setIsPlaying(true);
-  }, [podcast?.id, podcast?.duration]);
+    setIsPipVideo(false);
+    if (isAudio) {
+      setShowFullAudioModal(false);
+    }
+  }, [podcast?.id, podcast?.duration, isAudio]);
 
-  // Listen to YouTube Player events via window postMessage
-  useEffect(() => {
-    const handleYouTubeMessage = (event: MessageEvent) => {
-      try {
-        if (typeof event.data === 'string') {
-          const data = JSON.parse(event.data);
-          if (data.event === 'infoDelivery' && data.info) {
-            if (data.info.duration && typeof data.info.duration === 'number' && data.info.duration > 0) {
-              setDynamicDuration(Math.round(data.info.duration));
-            }
-            if (data.info.currentTime && typeof data.info.currentTime === 'number') {
-              setCurrentTime(Math.round(data.info.currentTime));
-            }
-            if (data.info.playerState !== undefined) {
-              // 1 = PLAYING, 2 = PAUSED, 0 = ENDED, 3 = BUFFERING, -1 = UNSTARTED
-              if (data.info.playerState === 1) setIsPlaying(true);
-              if (data.info.playerState === 2) setIsPlaying(false);
-              if (data.info.playerState === 0) setIsPlaying(false);
-            }
-          }
-        }
-      } catch {
-        // Non-JSON or foreign postMessage
-      }
-    };
-
-    window.addEventListener('message', handleYouTubeMessage);
-    return () => window.removeEventListener('message', handleYouTubeMessage);
-  }, []);
-
-  const durationSeconds = dynamicDuration || initialDuration;
-
-  // Handle Play/Pause
+  // Audio Playback Handlers
   const handleTogglePlay = () => {
-    const nextState = !isPlaying;
-    setIsPlaying(nextState);
-
-    if (youtubeId) {
-      sendYouTubeCommand(nextState ? 'playVideo' : 'pauseVideo');
-    } else if (audioRef.current) {
-      if (nextState) {
-        audioRef.current.play().catch(() => {});
-      } else {
+    if (audioRef.current) {
+      if (isPlaying) {
         audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        audioRef.current.play().catch(() => {});
+        setIsPlaying(true);
       }
     }
   };
 
-  // Handle Seek
   const handleSeek = (newSeconds: number) => {
     const clamped = Math.max(0, Math.min(durationSeconds, newSeconds));
     setCurrentTime(clamped);
-
-    if (youtubeId) {
-      sendYouTubeCommand('seekTo', [clamped, true]);
-    } else if (audioRef.current) {
+    if (audioRef.current) {
       audioRef.current.currentTime = clamped;
     }
   };
 
-  // Handle Playback Speed
   const handleSetSpeed = (speed: number) => {
     setPlaybackSpeed(speed);
-    if (youtubeId) {
-      sendYouTubeCommand('setPlaybackRate', [speed]);
-    } else if (audioRef.current) {
+    if (audioRef.current) {
       audioRef.current.playbackRate = speed;
-    }
-  };
-
-  // Initialize YouTube Iframe listening event on load
-  const handleIframeLoad = () => {
-    if (iframeRef.current?.contentWindow) {
-      iframeRef.current.contentWindow.postMessage(
-        JSON.stringify({ event: 'listening' }),
-        '*'
-      );
-      if (isPlaying) {
-        sendYouTubeCommand('playVideo');
-      }
-      if (playbackSpeed !== 1) {
-        sendYouTubeCommand('setPlaybackRate', [playbackSpeed]);
-      }
     }
   };
 
@@ -177,179 +94,465 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  const progressPercent = Math.min(100, (currentTime / durationSeconds) * 100);
+  const progressPercent = Math.min(100, (currentTime / (durationSeconds || 1)) * 100);
 
-  // Origin for YouTube postMessage API
+  // Origin for YouTube embed
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const youtubeEmbedSrc = youtubeId
     ? `https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&enablejsapi=1&playsinline=1&rel=0&modestbranding=1&origin=${encodeURIComponent(
         origin
-      )}&widgetid=1`
+      )}`
     : '';
 
-  return (
-    <>
-      {/* ================= BACKGROUND / DIRECT AUDIO ELEMENT (IF MP3) ================= */}
-      {isDirectAudio && podcast.audioUrl && (
-        <audio
-          ref={audioRef}
-          src={podcast.audioUrl}
-          autoPlay
-          onTimeUpdate={(e) => setCurrentTime(Math.round(e.currentTarget.currentTime))}
-          onLoadedMetadata={(e) => setDynamicDuration(Math.round(e.currentTarget.duration))}
-          onEnded={() => setIsPlaying(false)}
-        />
-      )}
-
-      {/* ================= FLOATING MINI BOTTOM BAR / PiP PLAYER ================= */}
-      <div
-        id="media-floating-player"
-        className={`fixed z-50 transition-all duration-300 ${
-          isPip && mode === 'video'
-            ? 'bottom-4 right-4 w-96 rounded-2xl shadow-2xl overflow-hidden border'
-            : 'bottom-4 left-4 right-4 max-w-4xl mx-auto rounded-2xl shadow-2xl backdrop-blur-xl border'
-        } ${
-          isDark
-            ? 'bg-[#060e20]/95 border-blue-500/30 text-[#f8fafc]'
-            : 'bg-white/95 border-slate-200 text-slate-900 shadow-blue-500/10'
-        } ${isPip && mode === 'video' ? 'p-0' : 'p-3 sm:p-4'}`}
-      >
-        {isPip && mode === 'video' ? (
-          /* Mini PiP Video View */
-          <div className="relative aspect-video w-full bg-black">
-            {/* The single iframe is rendered inside the modal/PiP view container */}
-            <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/70 backdrop-blur-md rounded-lg p-1 z-10">
+  // =========================================================================
+  // 🎬 1. YOUTUBE VIDEO PLAYER (MODAL / PICTURE-IN-PICTURE)
+  // =========================================================================
+  if (isVideo) {
+    if (isPipVideo) {
+      // Floating Mini PiP Player (Bottom Right)
+      return (
+        <div
+          id="youtube-pip-container"
+          className="fixed bottom-5 right-5 z-50 w-80 sm:w-96 rounded-2xl shadow-2xl overflow-hidden border border-slate-700 bg-black animate-fade-in"
+        >
+          <div className="relative aspect-video w-full">
+            <iframe
+              title={podcast.title}
+              src={youtubeEmbedSrc}
+              className="w-full h-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+            {/* Top Bar Floating Controls */}
+            <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/80 backdrop-blur-md rounded-lg p-1 z-10">
               <button
-                onClick={() => setIsPip(false)}
-                className="p-1 text-white/80 hover:text-white rounded hover:bg-white/20"
-                title="Restore Player Bar"
-              >
-                <span className="material-symbols-outlined text-[18px]">close_fullscreen</span>
-              </button>
-              <button
-                onClick={() => setShowFullModal(true)}
-                className="p-1 text-white/80 hover:text-white rounded hover:bg-white/20"
-                title="Expand Full Screen"
+                onClick={() => setIsPipVideo(false)}
+                className="p-1 text-white/80 hover:text-white rounded hover:bg-white/20 transition-colors"
+                title="ขยายเต็มหน้าต่าง (Expand Video)"
               >
                 <span className="material-symbols-outlined text-[18px]">open_in_full</span>
               </button>
               <button
                 onClick={onClose}
-                className="p-1 text-red-400 hover:text-red-300 rounded hover:bg-red-500/20"
-                title="Close"
+                className="p-1 text-red-400 hover:text-red-300 rounded hover:bg-red-500/20 transition-colors"
+                title="ปิด (Close)"
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
           </div>
-        ) : (
-          /* Standard Bottom Player Bar */
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-3">
-              {/* Episode Info & Thumbnail */}
-              <div
-                className="flex items-center gap-3 min-w-0 cursor-pointer group"
-                onClick={() => setShowFullModal(true)}
+          <div className="p-3 bg-[#060e20] text-white flex items-center justify-between gap-2 border-t border-slate-800">
+            <div className="min-w-0">
+              <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider flex items-center gap-1">
+                <span className="material-symbols-outlined text-[12px]">smart_display</span>
+                YouTube Video
+              </span>
+              <p className="text-xs font-semibold truncate text-slate-200">{podcast.title}</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Full Video Modal
+    return (
+      <div
+        id="youtube-video-modal"
+        className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fade-in"
+        onClick={onClose}
+      >
+        <div
+          className={`w-full max-w-4xl rounded-3xl p-5 sm:p-7 shadow-2xl border transition-all ${
+            isDark ? 'bg-[#060e20] border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex justify-between items-center gap-3 mb-4 pb-3 border-b border-slate-700/50">
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600/20 text-red-400 border border-red-500/30 text-xs font-bold shadow-sm">
+                <span className="material-symbols-outlined text-[16px]">smart_display</span>
+                <span>YouTube Video Player</span>
+              </span>
+              <span className="hidden sm:inline-block text-xs text-slate-400">
+                {podcast.category} • {podcast.institution || podcast.channel}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsPipVideo(true)}
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                title="ย่อเป็นหน้าต่างลอยด้านล่าง (Minimize to PiP)"
               >
-                <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 shadow-md ring-1 ring-white/10 group-hover:scale-105 transition-transform">
+                <span className="material-symbols-outlined text-[16px]">picture_in_picture_alt</span>
+                <span className="hidden sm:inline">ย่อหน้าจอ (PiP)</span>
+              </button>
+
+              <a
+                href={podcast.youtubeUrl || `https://www.youtube.com/watch?v=${youtubeId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 rounded-lg bg-red-600/15 hover:bg-red-600/25 text-red-400 border border-red-500/30 text-xs font-semibold flex items-center gap-1 transition-colors"
+                title="Open in YouTube"
+              >
+                <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                <span>YouTube</span>
+              </a>
+
+              <button
+                onClick={onClose}
+                className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                title="ปิดหน้าต่างวิดีโอ"
+              >
+                <span className="material-symbols-outlined text-2xl">close</span>
+              </button>
+            </div>
+          </div>
+
+          {/* YouTube Video Frame */}
+          <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl border border-slate-800">
+            <iframe
+              title={podcast.title}
+              src={youtubeEmbedSrc}
+              className="w-full h-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </div>
+
+          {/* Episode Info */}
+          <div className="mt-4 flex flex-col gap-2">
+            <h3 className="text-lg sm:text-2xl font-bold leading-snug text-slate-100">
+              {podcast.title}
+            </h3>
+
+            {podcast.description && (
+              <p className="text-xs sm:text-sm leading-relaxed text-slate-300 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                {podcast.description}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // 🎧 2. SPOTIFY / AUDIO PODCAST PLAYER (BOTTOM BAR + EXPANDED MODAL)
+  // =========================================================================
+  return (
+    <>
+      {/* HTML5 Native Audio for reliable, zero-ad audio playback */}
+      {podcast.audioUrl && (
+        <audio
+          ref={audioRef}
+          src={podcast.audioUrl}
+          autoPlay
+          onTimeUpdate={(e) => setCurrentTime(Math.round(e.currentTarget.currentTime))}
+          onLoadedMetadata={(e) => setDurationSeconds(Math.round(e.currentTarget.duration))}
+          onEnded={() => setIsPlaying(false)}
+        />
+      )}
+
+      {/* Persistent Bottom Audio Player Bar */}
+      <div
+        id="spotify-bottom-player-bar"
+        className={`fixed bottom-4 left-4 right-4 max-w-4xl mx-auto z-50 rounded-2xl shadow-2xl backdrop-blur-xl border p-3 sm:p-4 transition-all duration-300 ${
+          isDark
+            ? 'bg-[#060e20]/95 border-emerald-500/30 text-[#f8fafc]'
+            : 'bg-white/95 border-slate-200 text-slate-900 shadow-emerald-500/10'
+        }`}
+      >
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-3">
+            {/* Episode Info & Thumbnail */}
+            <div
+              className="flex items-center gap-3 min-w-0 cursor-pointer group"
+              onClick={() => setShowFullAudioModal(true)}
+            >
+              <div className="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 shadow-md ring-2 ring-emerald-500/30 group-hover:scale-105 transition-transform">
+                <img
+                  src={podcast.imageUrl}
+                  alt={podcast.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-emerald-950/40 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-emerald-400 text-[20px] animate-pulse">
+                    graphic_eq
+                  </span>
+                </div>
+              </div>
+
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[12px]">podcasts</span>
+                    Spotify Podcast
+                  </span>
+                  <span className="text-[10px] text-slate-400 truncate hidden sm:inline">
+                    • {podcast.channel || podcast.institution}
+                  </span>
+                </div>
+                <h4 className="text-sm font-bold truncate max-w-[200px] sm:max-w-xs md:max-w-md group-hover:text-emerald-400 transition-colors">
+                  {podcast.title}
+                </h4>
+              </div>
+            </div>
+
+            {/* Audio Controls */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <button
+                onClick={() => handleSeek(currentTime - 15)}
+                className="hidden sm:flex p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                title="ย้อนกลับ 15 วินาที"
+              >
+                <span className="material-symbols-outlined text-[20px]">replay_15</span>
+              </button>
+
+              <button
+                onClick={handleTogglePlay}
+                className="w-10 h-10 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center shadow-lg shadow-emerald-500/25 transition-transform hover:scale-105"
+                title={isPlaying ? 'หยุดชั่วคราว' : 'เล่นต่อ'}
+              >
+                <span
+                  className="material-symbols-outlined text-[22px]"
+                  style={{ fontVariationSettings: "'FILL' 1" }}
+                >
+                  {isPlaying ? 'pause' : 'play_arrow'}
+                </span>
+              </button>
+
+              <button
+                onClick={() => handleSeek(currentTime + 15)}
+                className="hidden sm:flex p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                title="ข้ามไปข้างหน้า 15 วินาที"
+              >
+                <span className="material-symbols-outlined text-[20px]">forward_15</span>
+              </button>
+
+              {/* Speed toggle */}
+              <button
+                onClick={() => {
+                  const next =
+                    playbackSpeed === 1
+                      ? 1.25
+                      : playbackSpeed === 1.25
+                      ? 1.5
+                      : playbackSpeed === 1.5
+                      ? 2
+                      : 1;
+                  handleSetSpeed(next);
+                }}
+                className="hidden sm:inline-block text-xs font-bold px-2 py-1 rounded-md bg-slate-800 text-emerald-400 hover:text-white border border-slate-700"
+                title="ความเร็วในการเล่นเสียง"
+              >
+                {playbackSpeed}x
+              </button>
+
+              {/* Expand Modal */}
+              <button
+                onClick={() => setShowFullAudioModal(true)}
+                className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                title="ขยายเครื่องเล่นเสียงเต็มจอ"
+              >
+                <span className="material-symbols-outlined text-[20px]">open_in_full</span>
+              </button>
+
+              {/* Close player */}
+              <button
+                onClick={onClose}
+                className="p-1.5 rounded-full hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors"
+                title="ปิดเครื่องเล่น"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Timeline Scrubber */}
+          <div className="w-full flex items-center gap-3 pt-1">
+            <span className="text-[11px] text-slate-400 font-mono">
+              {formatTime(currentTime)}
+            </span>
+            <input
+              type="range"
+              min="0"
+              max={durationSeconds || 1}
+              value={currentTime}
+              onChange={(e) => handleSeek(Number(e.target.value))}
+              className="w-full h-1.5 bg-slate-700/60 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+            />
+            <span className="text-[11px] text-slate-400 font-mono">
+              {formatTime(durationSeconds)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Expanded Audio Modal */}
+      {showFullAudioModal && (
+        <div
+          id="spotify-audio-full-modal"
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fade-in"
+          onClick={() => setShowFullAudioModal(false)}
+        >
+          <div
+            className={`w-full max-w-2xl rounded-3xl p-6 sm:p-8 shadow-2xl border transition-all ${
+              isDark ? 'bg-[#060e20] border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex justify-between items-center gap-3 mb-6 pb-4 border-b border-slate-700/50">
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold shadow-sm">
+                  <span className="material-symbols-outlined text-[18px]">podcasts</span>
+                  <span>Spotify Audio Podcast</span>
+                </span>
+                <span className="text-xs text-slate-400">เสียงระดับสตูดิโอ</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {podcast.spotifyUrl && (
+                  <a
+                    href={podcast.spotifyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3.5 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/40 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
+                    title="Open in Spotify"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">podcasts</span>
+                    <span>เปิดใน Spotify</span>
+                  </a>
+                )}
+                <button
+                  onClick={() => setShowFullAudioModal(false)}
+                  className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                  title="ปิด"
+                >
+                  <span className="material-symbols-outlined text-2xl">close</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Audio Album Artwork & Sound Waves */}
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col items-center justify-center p-8 mb-6">
+              <img
+                src={podcast.imageUrl}
+                alt={podcast.title}
+                className="absolute inset-0 w-full h-full object-cover filter blur-md scale-110 opacity-25"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#060e20] via-black/60 to-transparent" />
+
+              <div className="relative z-10 flex flex-col items-center gap-4 text-center">
+                <div className="relative w-36 h-36 rounded-2xl overflow-hidden shadow-2xl ring-4 ring-emerald-500/30">
                   <img
                     src={podcast.imageUrl}
                     alt={podcast.title}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="material-symbols-outlined text-white text-[20px]">
-                      {mode === 'video' ? 'movie' : 'headphones'}
-                    </span>
-                  </div>
+                  {isPlaying && (
+                    <div className="absolute inset-0 bg-emerald-950/40 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-emerald-400 text-4xl animate-pulse">
+                        graphic_eq
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold text-blue-500 uppercase tracking-wider truncate">
-                      {podcast.institution}
-                    </span>
-                    <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
-                        mode === 'video'
-                          ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                          : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                      }`}
-                    >
-                      {mode === 'video' ? 'VIDEO' : 'AUDIO'}
-                    </span>
-                  </div>
-                  <h4 className="text-sm font-bold truncate max-w-[180px] sm:max-w-xs md:max-w-md group-hover:text-blue-400 transition-colors">
-                    {podcast.title}
-                  </h4>
+                {/* Animated Equalizer Waveform */}
+                <div className="flex items-end gap-1.5 h-10 mt-2">
+                  {[16, 32, 22, 38, 26, 14, 30, 36, 18, 28, 12, 24, 34, 20].map((h, i) => (
+                    <div
+                      key={i}
+                      className="w-1.5 rounded-full bg-emerald-400 transition-all duration-200 shadow-sm shadow-emerald-500/50"
+                      style={{
+                        height: isPlaying ? `${(h * (1 + (i % 3) * 0.2)) % 36 + 6}px` : '4px',
+                        opacity: isPlaying ? 0.95 : 0.4,
+                      }}
+                    />
+                  ))}
                 </div>
+                <span className="text-xs font-medium text-emerald-300">
+                  {isPlaying ? 'กำลังเล่นพอดแคสต์เสียงคมชัด...' : 'แตะปุ่มเพื่อเล่นเสียง'}
+                </span>
+              </div>
+            </div>
+
+            {/* Episode Title & Description */}
+            <div className="flex flex-col gap-2 mb-6">
+              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                {podcast.category} • {podcast.institution || podcast.channel}
+              </span>
+              <h3 className="text-xl sm:text-2xl font-bold leading-snug">
+                {podcast.title}
+              </h3>
+              {podcast.description && (
+                <p className="text-xs sm:text-sm text-slate-300 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 leading-relaxed">
+                  {podcast.description}
+                </p>
+              )}
+            </div>
+
+            {/* Timeline Scrubber */}
+            <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 mb-6">
+              <div className="flex justify-between text-xs text-slate-400 font-mono mb-2">
+                <span>{formatTime(currentTime)}</span>
+                <span>{formatTime(durationSeconds)}</span>
+              </div>
+              <div
+                className="w-full h-2.5 bg-slate-700/50 rounded-full overflow-hidden cursor-pointer relative"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const clickX = e.clientX - rect.left;
+                  const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+                  handleSeek(Math.floor(ratio * durationSeconds));
+                }}
+              >
+                <div
+                  className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-150"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Audio Controls (Speed, Replay 15, Play, Forward 15) */}
+            <div className="flex items-center justify-between gap-4">
+              {/* Speed Buttons */}
+              <div className="flex items-center gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+                {[0.75, 1, 1.25, 1.5, 2].map((spd) => (
+                  <button
+                    key={spd}
+                    onClick={() => handleSetSpeed(spd)}
+                    className={`text-xs px-2 py-1 rounded-lg font-semibold transition-all ${
+                      playbackSpeed === spd
+                        ? 'bg-emerald-600 text-white shadow-md'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {spd}x
+                  </button>
+                ))}
               </div>
 
-              {/* Mode Switcher Buttons */}
-              <div className="hidden sm:flex items-center p-1 rounded-xl bg-[#0f172a]/80 border border-slate-700/60 shadow-inner gap-1">
-                {youtubeId ? (
-                  <>
-                    <button
-                      id="toggle-video-mode-btn"
-                      onClick={() => {
-                        setMode('video');
-                        setShowFullModal(true);
-                      }}
-                      className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                        mode === 'video'
-                          ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                          : 'text-slate-400 hover:text-slate-200'
-                      }`}
-                      title="ดูคลิปวิดีโอจาก YouTube"
-                    >
-                      <span className="material-symbols-outlined text-[16px]">play_circle</span>
-                      <span>ดูคลิป (Video)</span>
-                    </button>
-                    <button
-                      id="toggle-audio-mode-btn"
-                      onClick={() => {
-                        setMode('audio');
-                        setShowFullModal(true);
-                      }}
-                      className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                        mode === 'audio'
-                          ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
-                          : 'text-slate-400 hover:text-slate-200'
-                      }`}
-                      title="ฟังเสียงพอดแคสต์ (Audio Stream)"
-                    >
-                      <span className="material-symbols-outlined text-[16px]">headphones</span>
-                      <span>ฟังเสียง (Audio)</span>
-                    </button>
-                  </>
-                ) : (
-                  <div className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-emerald-400 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-                    <span className="material-symbols-outlined text-[16px]">graphic_eq</span>
-                    <span>Spotify / Audio Only</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Controls */}
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                {/* Audio controls (Play/Pause, Skip, Speed) */}
+              {/* Main Play Controls */}
+              <div className="flex items-center gap-3">
                 <button
                   onClick={() => handleSeek(currentTime - 15)}
-                  className="hidden sm:flex p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
-                  title="ย้อนกลับ 15 วินาที"
+                  className="p-3 rounded-full hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+                  title="ย้อนหลัง 15 วินาที"
                 >
-                  <span className="material-symbols-outlined text-[20px]">replay_15</span>
+                  <span className="material-symbols-outlined text-2xl">replay_15</span>
                 </button>
 
                 <button
                   onClick={handleTogglePlay}
-                  className={`w-10 h-10 rounded-full text-white flex items-center justify-center shadow-lg transition-transform hover:scale-105 ${
-                    mode === 'audio' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-blue-600 hover:bg-blue-500'
-                  }`}
+                  className="w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center shadow-xl shadow-emerald-500/30 hover:scale-105 transition-all"
                   title={isPlaying ? 'หยุดชั่วคราว' : 'เล่นต่อ'}
                 >
                   <span
-                    className="material-symbols-outlined text-[22px]"
+                    className="material-symbols-outlined text-3xl"
                     style={{ fontVariationSettings: "'FILL' 1" }}
                   >
                     {isPlaying ? 'pause' : 'play_arrow'}
@@ -358,412 +561,14 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
                 <button
                   onClick={() => handleSeek(currentTime + 15)}
-                  className="hidden sm:flex p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                  className="p-3 rounded-full hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
                   title="ข้ามไปข้างหน้า 15 วินาที"
                 >
-                  <span className="material-symbols-outlined text-[20px]">forward_15</span>
-                </button>
-
-                {/* Speed toggle */}
-                <button
-                  onClick={() => {
-                    const next =
-                      playbackSpeed === 1
-                        ? 1.25
-                        : playbackSpeed === 1.25
-                        ? 1.5
-                        : playbackSpeed === 1.5
-                        ? 2
-                        : 1;
-                    handleSetSpeed(next);
-                  }}
-                  className="hidden sm:inline-block text-xs font-bold px-2 py-1 rounded-md bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
-                  title="ความเร็วในการเล่น"
-                >
-                  {playbackSpeed}x
-                </button>
-
-                {/* Expand Modal */}
-                <button
-                  onClick={() => setShowFullModal(true)}
-                  className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
-                  title="ขยายเครื่องเล่น"
-                >
-                  <span className="material-symbols-outlined text-[20px]">open_in_full</span>
-                </button>
-
-                {/* Close player */}
-                <button
-                  onClick={onClose}
-                  className="p-1.5 rounded-full hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors"
-                  title="ปิดเครื่องเล่น"
-                >
-                  <span className="material-symbols-outlined text-[20px]">close</span>
+                  <span className="material-symbols-outlined text-2xl">forward_15</span>
                 </button>
               </div>
-            </div>
-
-            {/* Audio Mode Progress & Timeline */}
-            <div className="w-full flex items-center gap-3 pt-1">
-              <span className="text-[11px] text-slate-400 font-mono">
-                {formatTime(currentTime)}
-              </span>
-              <input
-                type="range"
-                min="0"
-                max={durationSeconds}
-                value={currentTime}
-                onChange={(e) => handleSeek(Number(e.target.value))}
-                className={`w-full h-1.5 bg-slate-700/60 rounded-lg appearance-none cursor-pointer ${
-                  mode === 'audio' ? 'accent-emerald-500' : 'accent-blue-500'
-                }`}
-              />
-              <span className="text-[11px] text-slate-400 font-mono">
-                {formatTime(durationSeconds)}
-              </span>
             </div>
           </div>
-        )}
-      </div>
-
-      {/* ================= EXPANDED FULL MODAL PLAYER ================= */}
-      {showFullModal && (
-        <div
-          id="media-full-modal"
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fade-in"
-          onClick={() => setShowFullModal(false)}
-        >
-          <div
-            className={`w-full max-w-4xl rounded-3xl p-5 sm:p-7 shadow-2xl border transition-all ${
-              isDark
-                ? 'bg-[#060e20] border-slate-800 text-white'
-                : 'bg-white border-slate-200 text-slate-900'
-            }`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header with Mode Switcher & Close */}
-            <div className="flex flex-wrap justify-between items-center gap-3 mb-5 border-b border-slate-700/50 pb-4">
-              {/* Dual Mode Selector Pill */}
-              <div className="flex items-center bg-[#0f172a] p-1 rounded-2xl border border-slate-700">
-                {youtubeId ? (
-                  <>
-                    <button
-                      id="modal-mode-video-btn"
-                      onClick={() => setMode('video')}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-                        mode === 'video'
-                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 ring-1 ring-blue-400'
-                          : 'text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-[18px]">movie</span>
-                      <span>ดูคลิป YouTube (Video)</span>
-                    </button>
-                    <button
-                      id="modal-mode-audio-btn"
-                      onClick={() => setMode('audio')}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-                        mode === 'audio'
-                          ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 ring-1 ring-emerald-400'
-                          : 'text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-[18px]">headphones</span>
-                      <span>ฟังเสียง (Audio Podcast)</span>
-                    </button>
-                  </>
-                ) : (
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 ring-1 ring-emerald-400">
-                    <span className="material-symbols-outlined text-[18px]">graphic_eq</span>
-                    <span>Spotify Audio Podcast (ไม่มีโฆษณาคั่น)</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Right Action Icons */}
-              <div className="flex items-center gap-2">
-                {podcast.spotifyUrl && (
-                  <a
-                    href={podcast.spotifyUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/40 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
-                    title="Open in Spotify"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">podcasts</span>
-                    <span>Spotify</span>
-                  </a>
-                )}
-                {youtubeId && (
-                  <a
-                    href={podcast.youtubeUrl || `https://www.youtube.com/watch?v=${youtubeId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-lg bg-red-600/15 hover:bg-red-600/25 text-red-400 border border-red-500/30 text-xs font-semibold flex items-center gap-1 transition-colors"
-                    title="Open in YouTube"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">open_in_new</span>
-                    <span>YouTube</span>
-                  </a>
-                )}
-                <button
-                  onClick={() => setShowFullModal(false)}
-                  className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
-                  title="Close Modal"
-                >
-                  <span className="material-symbols-outlined text-2xl">close</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Media Content Area based on Mode */}
-            {mode === 'video' ? (
-              /* ================= VIDEO MODE ================= */
-              <div className="flex flex-col gap-4">
-                <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl border border-slate-800">
-                  {youtubeId && (
-                    <iframe
-                      ref={iframeRef}
-                      title={podcast.title}
-                      src={youtubeEmbedSrc}
-                      onLoad={handleIframeLoad}
-                      className="w-full h-full border-0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                    />
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-2 mt-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-blue-400 uppercase tracking-wider bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/20">
-                      {podcast.category} • {podcast.institution}
-                    </span>
-                    <span className="text-xs text-slate-400 flex items-center gap-1 font-mono">
-                      <span className="material-symbols-outlined text-[14px]">schedule</span>
-                      {formatTime(currentTime)} / {formatTime(durationSeconds)}
-                    </span>
-                  </div>
-
-                  <h3 className="text-xl sm:text-2xl font-bold leading-snug text-slate-100">
-                    {podcast.title}
-                  </h3>
-
-                  {podcast.description && (
-                    <p className="text-sm leading-relaxed text-slate-300 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
-                      {podcast.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ) : (
-              /* ================= AUDIO PODCAST MODE ================= */
-              <div className="flex flex-col gap-4">
-                {/* Helpful Banner for YouTube Ads / Skip Ad Assistance */}
-                {youtubeId && (
-                  <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-gradient-to-r from-amber-500/15 via-emerald-500/10 to-blue-500/10 border border-amber-500/30 text-xs">
-                    <div className="flex items-center gap-2 text-amber-200">
-                      <span className="material-symbols-outlined text-[20px] text-amber-400">info</span>
-                      <div>
-                        <span className="font-semibold text-amber-300">หากมีโฆษณา YouTube หรือเสียงยังไม่เล่น: </span>
-                        <span>แตะที่หน้าจอวิดีโอด้านขวามือโดยตรง เพื่อเริ่มเล่น หรือกดปุ่ม <strong>"ข้ามโฆษณา (Skip Ad)"</strong> ได้ทันที</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Side-by-Side: Podcast Waveform Artwork + Live YouTube Player */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
-                  {/* Visualizer Artwork Card */}
-                  <div
-                    className={`${
-                      youtubeId ? 'md:col-span-5' : 'md:col-span-12'
-                    } relative rounded-2xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col items-center justify-center p-6 min-h-[220px]`}
-                  >
-                    <img
-                      src={podcast.imageUrl}
-                      alt={podcast.title}
-                      className="absolute inset-0 w-full h-full object-cover filter blur-sm scale-105 opacity-30"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#060e20] via-black/60 to-transparent" />
-
-                    {/* Center Audio Artwork & Waveform Animation */}
-                    <div className="relative z-10 flex flex-col items-center gap-3 text-center">
-                      <div className="relative w-20 h-20 rounded-2xl overflow-hidden shadow-2xl ring-4 ring-emerald-500/30">
-                        <img
-                          src={podcast.imageUrl}
-                          alt={podcast.title}
-                          className="w-full h-full object-cover"
-                        />
-                        {isPlaying && (
-                          <div className="absolute inset-0 bg-emerald-950/40 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-emerald-400 text-2xl animate-pulse">
-                              graphic_eq
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Animated Audio Equalizer Bars */}
-                      <div className="flex items-end gap-1 h-7">
-                        {[14, 28, 18, 32, 22, 12, 26, 30, 16, 24, 10, 20].map((h, i) => (
-                          <div
-                            key={i}
-                            className="w-1.5 rounded-full bg-emerald-400 transition-all duration-200"
-                            style={{
-                              height: isPlaying ? `${(h * (1 + (i % 3) * 0.2)) % 28 + 6}px` : '4px',
-                              opacity: isPlaying ? 0.9 : 0.4,
-                            }}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-[11px] font-medium text-emerald-300">
-                        {isPlaying ? 'กำลังเล่นเสียงพอดแคสต์...' : 'แตะปุ่ม Play หรือแตะจอด้านข้าง'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Direct YouTube Video Window (Allows clicking directly on YouTube player for Ads/Skip Ad) */}
-                  {youtubeId && (
-                    <div className="md:col-span-7 flex flex-col gap-2">
-                      <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl border border-slate-700/80">
-                        <iframe
-                          ref={iframeRef}
-                          title={podcast.title}
-                          src={youtubeEmbedSrc}
-                          onLoad={handleIframeLoad}
-                          className="w-full h-full border-0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                          allowFullScreen
-                        />
-                      </div>
-                      <div className="flex items-center justify-between text-[11px] text-slate-400 px-1">
-                        <span className="flex items-center gap-1 text-emerald-400 font-medium">
-                          <span className="material-symbols-outlined text-[14px]">touch_app</span>
-                          <span>แตะที่หน้าจอนี้เพื่อกดปุ่ม <strong>"ข้ามโฆษณา (Skip Ad)"</strong> ได้โดยตรง</span>
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Episode Info */}
-                <div className="text-center sm:text-left">
-                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                    <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-                      {podcast.category} • {podcast.institution}
-                    </span>
-                  </div>
-                  <h3 className="text-lg sm:text-xl font-bold mt-1.5 leading-snug">
-                    {podcast.title}
-                  </h3>
-                  {podcast.description && (
-                    <p className="text-xs sm:text-sm text-slate-300 mt-1 line-clamp-2">
-                      {podcast.description}
-                    </p>
-                  )}
-                </div>
-
-                {/* Audio Progress Bar */}
-                <div className="bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800">
-                  <div className="flex justify-between text-xs text-slate-400 font-mono mb-2">
-                    <span>{formatTime(currentTime)}</span>
-                    <span>{formatTime(durationSeconds)}</span>
-                  </div>
-                  <div
-                    className="w-full h-2.5 bg-slate-700/50 rounded-full overflow-hidden cursor-pointer relative"
-                    onClick={(e) => {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const clickX = e.clientX - rect.left;
-                      const ratio = Math.max(0, Math.min(1, clickX / rect.width));
-                      handleSeek(Math.floor(ratio * durationSeconds));
-                    }}
-                  >
-                    <div
-                      className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-150"
-                      style={{ width: `${progressPercent}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Audio Controls */}
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-                  {/* Speed Selector */}
-                  <div className="flex items-center gap-1">
-                    {[0.75, 1, 1.25, 1.5, 2].map((spd) => (
-                      <button
-                        key={spd}
-                        onClick={() => handleSetSpeed(spd)}
-                        className={`text-xs px-2.5 py-1 rounded-lg font-semibold transition-all ${
-                          playbackSpeed === spd
-                            ? 'bg-emerald-600 text-white shadow-md'
-                            : 'bg-slate-800 text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        {spd}x
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Play / Skip Buttons */}
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => handleSeek(currentTime - 15)}
-                      className="p-2.5 rounded-full hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
-                      title="ย้อนกลับ 15 วินาที"
-                    >
-                      <span className="material-symbols-outlined text-2xl">replay_15</span>
-                    </button>
-
-                    <button
-                      onClick={handleTogglePlay}
-                      className="w-12 h-12 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center shadow-xl shadow-emerald-500/25 hover:scale-105 transition-all"
-                      title={isPlaying ? 'หยุดชั่วคราว' : 'เล่นต่อ'}
-                    >
-                      <span
-                        className="material-symbols-outlined text-2xl"
-                        style={{ fontVariationSettings: "'FILL' 1" }}
-                      >
-                        {isPlaying ? 'pause' : 'play_arrow'}
-                      </span>
-                    </button>
-
-                    <button
-                      onClick={() => handleSeek(currentTime + 15)}
-                      className="p-2.5 rounded-full hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
-                      title="ข้ามไปข้างหน้า 15 วินาที"
-                    >
-                      <span className="material-symbols-outlined text-2xl">forward_15</span>
-                    </button>
-                  </div>
-
-                  {/* Quick Switch to Video */}
-                  <button
-                    onClick={() => setMode('video')}
-                    className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-semibold underline underline-offset-4"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">movie</span>
-                    <span>สลับไปดูคลิปเต็ม</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ================= BACKGROUND AUDIO STREAM HOST =================
-          When modal is closed and in standard bottom-bar mode, this keeps the audio stream active */}
-      {youtubeId && !showFullModal && (
-        <div className="fixed -bottom-96 -right-96 w-64 h-36 opacity-0 pointer-events-none overflow-hidden z-[-1]">
-          <iframe
-            ref={iframeRef}
-            title={podcast.title}
-            src={youtubeEmbedSrc}
-            onLoad={handleIframeLoad}
-            className="w-full h-full border-0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          />
         </div>
       )}
     </>

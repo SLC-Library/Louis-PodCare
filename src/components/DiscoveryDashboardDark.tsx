@@ -3,6 +3,7 @@ import {
   ALL_PODCASTS,
   CATEGORIES,
   FEATURED_PODCAST,
+  isAudioOnlyPodcast,
   LOGO_DARK,
   MORE_PODCAST_CARDS,
   PODCAST_CARDS,
@@ -296,111 +297,120 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
             ) : (
               /* Bookmarked Grid (Dark) */
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredBookmarks.map((card) => (
-                  <article
-                    key={card.id}
-                    id={`dark-library-card-${card.id}`}
-                    className="flex flex-col bg-[#060e20] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl border border-[#334155] group transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40"
-                  >
-                    <div
-                      className="relative w-full aspect-video cursor-pointer"
-                      onClick={() => onPlayEpisode(card, 'video')}
+                {filteredBookmarks.map((card) => {
+                  const isAudio = isAudioOnlyPodcast(card);
+
+                  return (
+                    <article
+                      key={card.id}
+                      id={`dark-library-card-${card.id}`}
+                      className="flex flex-col bg-[#060e20] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl border border-[#334155] group transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40"
                     >
-                      <img
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        data-alt={card.imageAlt}
-                        src={card.imageUrl}
-                        alt={card.title}
-                      />
-                      <div className="absolute bottom-2.5 right-2.5 bg-black/80 text-white px-2.5 py-1 rounded-md text-[12px] font-medium backdrop-blur-sm">
-                        {card.duration}
-                      </div>
-                      <div className="absolute top-2.5 left-2.5 bg-[#060e20]/90 px-2.5 py-1 rounded-md text-[12px] text-[#93c5fd] backdrop-blur-sm border border-[#334155] font-semibold max-w-[70%] truncate">
-                        {card.institution || card.channel}
-                      </div>
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onPlayEpisode(card, 'video');
-                          }}
-                          className="px-3.5 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1 shadow-lg shadow-blue-600/40 transform hover:scale-105 transition-all"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">play_arrow</span>
-                          <span>ดูคลิป</span>
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onPlayEpisode(card, 'audio');
-                          }}
-                          className="px-3.5 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1 shadow-lg shadow-emerald-600/40 transform hover:scale-105 transition-all"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">headphones</span>
-                          <span>ฟังเสียง</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="p-5 flex flex-col flex-grow gap-2">
-                      <h3
-                        onClick={() => onPlayEpisode(card, 'video')}
-                        className="text-[19px] font-bold leading-[26px] text-[#f8fafc] group-hover:text-[#3b82f6] transition-colors line-clamp-2 cursor-pointer"
+                      <div
+                        className="relative w-full aspect-video cursor-pointer"
+                        onClick={() => onPlayEpisode(card)}
                       >
-                        {card.title}
-                      </h3>
-
-                      {card.description && (
-                        <p className="text-[14px] text-[#cbd5e1] line-clamp-2 mt-1">
-                          {card.description}
-                        </p>
-                      )}
-
-                      {/* Watch Video vs Listen Audio Action Buttons */}
-                      <div className="flex items-center gap-2 mt-2">
-                        <button
-                          onClick={() => onPlayEpisode(card, 'video')}
-                          className="flex-1 py-1.5 px-3 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">movie</span>
-                          <span>ดูคลิป</span>
-                        </button>
-                        <button
-                          onClick={() => onPlayEpisode(card, 'audio')}
-                          className="flex-1 py-1.5 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">headphones</span>
-                          <span>ฟังเสียง</span>
-                        </button>
-                      </div>
-
-                      <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#334155]">
-                        <div className="flex items-center gap-2 text-[#94a3b8] text-[13px] font-medium">
-                          <span className="material-symbols-outlined text-[16px] text-blue-400">
-                            {card.institutionIcon}
-                          </span>
-                          <span className="text-slate-300 font-medium">{card.category}</span>
+                        <img
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          data-alt={card.imageAlt}
+                          src={card.imageUrl}
+                          alt={card.title}
+                        />
+                        <div className="absolute bottom-2.5 right-2.5 bg-black/80 text-white px-2.5 py-1 rounded-md text-[12px] font-medium backdrop-blur-sm">
+                          {card.duration}
                         </div>
-                        <button
-                          aria-label={`Remove ${card.title} from library`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleBookmark(card.id);
-                          }}
-                          className="p-1.5 rounded-full transition-colors text-blue-400 bg-blue-500/10 hover:bg-red-500/20 hover:text-red-400"
-                          title="Remove from saved library"
-                        >
-                          <span
-                            className="material-symbols-outlined"
-                            style={{ fontVariationSettings: "'FILL' 1" }}
-                          >
-                            bookmark
+                        {/* Format Badge (YouTube vs Spotify) */}
+                        <div className={`absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md text-[12px] backdrop-blur-sm border font-semibold flex items-center gap-1 max-w-[80%] truncate ${
+                          isAudio
+                            ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500/40'
+                            : 'bg-[#060e20]/90 text-red-300 border-red-500/30'
+                        }`}>
+                          <span className="material-symbols-outlined text-[14px]">
+                            {isAudio ? 'podcasts' : 'smart_display'}
                           </span>
-                        </button>
+                          <span className="truncate">{isAudio ? 'Spotify Podcast' : (card.institution || card.channel)}</span>
+                        </div>
+
+                        {/* Hover Overlay Button */}
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onPlayEpisode(card);
+                            }}
+                            className={`px-4 py-2 rounded-full text-white text-xs font-bold flex items-center gap-1.5 shadow-lg transform hover:scale-105 transition-all ${
+                              isAudio
+                                ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/40'
+                                : 'bg-red-600 hover:bg-red-500 shadow-red-600/40'
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-[18px]">
+                              {isAudio ? 'headphones' : 'play_arrow'}
+                            </span>
+                            <span>{isAudio ? 'ฟังเสียง (Spotify)' : 'ดูวิดีโอ (YouTube)'}</span>
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  </article>
-                ))}
+
+                      <div className="p-5 flex flex-col flex-grow gap-2">
+                        <h3
+                          onClick={() => onPlayEpisode(card)}
+                          className="text-[19px] font-bold leading-[26px] text-[#f8fafc] group-hover:text-[#3b82f6] transition-colors line-clamp-2 cursor-pointer"
+                        >
+                          {card.title}
+                        </h3>
+
+                        {card.description && (
+                          <p className="text-[14px] text-[#cbd5e1] line-clamp-2 mt-1">
+                            {card.description}
+                          </p>
+                        )}
+
+                        {/* Dedicated Media Action Button */}
+                        <div className="mt-2">
+                          <button
+                            onClick={() => onPlayEpisode(card)}
+                            className={`w-full py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all border ${
+                              isAudio
+                                ? 'bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-400 border-emerald-500/30'
+                                : 'bg-red-500/10 hover:bg-red-500/25 text-red-400 border-red-500/30'
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-[18px]">
+                              {isAudio ? 'headphones' : 'movie'}
+                            </span>
+                            <span>{isAudio ? 'ฟังเสียงพอดแคสต์ (Spotify)' : 'ดูวิดีโอ (YouTube)'}</span>
+                          </button>
+                        </div>
+
+                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#334155]">
+                          <div className="flex items-center gap-2 text-[#94a3b8] text-[13px] font-medium">
+                            <span className="material-symbols-outlined text-[16px] text-blue-400">
+                              {card.institutionIcon}
+                            </span>
+                            <span className="text-slate-300 font-medium">{card.category}</span>
+                          </div>
+                          <button
+                            aria-label={`Remove ${card.title} from library`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onToggleBookmark(card.id);
+                            }}
+                            className="p-1.5 rounded-full transition-colors text-blue-400 bg-blue-500/10 hover:bg-red-500/20 hover:text-red-400"
+                            title="Remove from saved library"
+                          >
+                            <span
+                              className="material-symbols-outlined"
+                              style={{ fontVariationSettings: "'FILL' 1" }}
+                            >
+                              bookmark
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -425,7 +435,7 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
               {/* Thumbnail Side */}
               <div
                 className="w-full md:w-3/5 h-64 md:h-[420px] relative overflow-hidden cursor-pointer"
-                onClick={() => onPlayEpisode(FEATURED_PODCAST, 'video')}
+                onClick={() => onPlayEpisode(FEATURED_PODCAST)}
               >
                 <div
                   className="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
@@ -435,47 +445,36 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
 
                 {/* Gentle Default Gradient & Subtle Play Hint when not hovered */}
                 <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-[#060e20]/80 via-transparent to-transparent flex items-center justify-center pointer-events-none group-hover:opacity-0 transition-opacity duration-300">
-                  <div className="w-16 h-16 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center text-white/80 shadow-lg">
-                    <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  <div className="w-16 h-16 rounded-full bg-red-600/80 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-xl">
+                    <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>
                       play_arrow
                     </span>
                   </div>
                 </div>
 
-                {/* Hover Overlay: Shows Video vs Audio Selection */}
+                {/* Hover Overlay: Shows Video Selection */}
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                  <div
-                    className="flex flex-wrap items-center justify-center gap-3 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300"
-                    onClick={(e) => e.stopPropagation()}
+                  <button
+                    id="hero-play-video-button"
+                    aria-label="Play Featured Video"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPlayEpisode(FEATURED_PODCAST);
+                    }}
+                    className="h-14 sm:h-16 px-8 bg-red-600 hover:bg-red-500 text-white rounded-full flex items-center gap-3 shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 ring-4 ring-red-500/30 font-bold text-base"
                   >
-                    <button
-                      id="hero-play-video-button"
-                      aria-label="Play Featured Video"
-                      onClick={() => onPlayEpisode(FEATURED_PODCAST, 'video')}
-                      className="h-14 sm:h-16 px-6 bg-[#3b82f6] hover:bg-blue-500 text-white rounded-full flex items-center gap-2.5 shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 ring-4 ring-blue-500/30 font-bold text-sm sm:text-base"
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontVariationSettings: "'FILL' 1", fontSize: '28px' }}
                     >
-                      <span
-                        className="material-symbols-outlined"
-                        style={{ fontVariationSettings: "'FILL' 1", fontSize: '26px' }}
-                      >
-                        play_arrow
-                      </span>
-                      <span>ดูคลิป (Video)</span>
-                    </button>
-                    <button
-                      id="hero-play-audio-button"
-                      aria-label="Listen Featured Audio"
-                      onClick={() => onPlayEpisode(FEATURED_PODCAST, 'audio')}
-                      className="h-14 sm:h-16 px-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full flex items-center gap-2.5 shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 ring-4 ring-emerald-500/30 font-bold text-sm sm:text-base"
-                    >
-                      <span className="material-symbols-outlined text-[24px]">headphones</span>
-                      <span>ฟังเสียง (Audio)</span>
-                    </button>
-                  </div>
+                      play_arrow
+                    </span>
+                    <span>ดูวิดีโอ (Watch on YouTube)</span>
+                  </button>
                 </div>
 
-                <div className="absolute top-4 left-4 bg-[#0f172a]/90 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[12px] font-semibold text-[#3b82f6] flex items-center gap-1.5 border border-[#334155] z-10">
-                  <span className="material-symbols-outlined text-[16px] text-amber-400">star</span>
+                <div className="absolute top-4 left-4 bg-red-600/90 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[12px] font-bold text-white flex items-center gap-1.5 border border-red-400/40 z-10 shadow-lg">
+                  <span className="material-symbols-outlined text-[16px]">smart_display</span>
                   <span>Featured YouTube Episode</span>
                 </div>
               </div>
@@ -567,6 +566,7 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
             >
               {filteredCards.map((card) => {
                 const isBookmarked = bookmarks.has(card.id);
+                const isAudio = isAudioOnlyPodcast(card);
 
                 return (
                   <article
@@ -578,7 +578,7 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                   >
                     <div
                       className={`relative w-full cursor-pointer ${card.span2 ? 'h-48 md:h-64' : 'aspect-video'}`}
-                      onClick={() => onPlayEpisode(card, 'video')}
+                      onClick={() => onPlayEpisode(card)}
                     >
                       <img
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -589,36 +589,43 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                       <div className="absolute bottom-2.5 right-2.5 bg-black/80 text-white px-2.5 py-1 rounded-md text-[12px] font-medium backdrop-blur-sm">
                         {card.duration}
                       </div>
-                      <div className="absolute top-2.5 left-2.5 bg-[#060e20]/90 px-2.5 py-1 rounded-md text-[12px] text-[#93c5fd] backdrop-blur-sm border border-[#334155] font-semibold max-w-[70%] truncate">
-                        {card.institution || card.channel}
+                      
+                      {/* Format Badge (YouTube vs Spotify) */}
+                      <div className={`absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md text-[12px] backdrop-blur-sm border font-semibold flex items-center gap-1 max-w-[75%] truncate ${
+                        isAudio
+                          ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500/40'
+                          : 'bg-[#060e20]/90 text-red-300 border-red-500/30'
+                      }`}>
+                        <span className="material-symbols-outlined text-[14px]">
+                          {isAudio ? 'podcasts' : 'smart_display'}
+                        </span>
+                        <span className="truncate">{isAudio ? 'Spotify Podcast' : (card.institution || card.channel)}</span>
                       </div>
+
+                      {/* Center Hover Action */}
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            onPlayEpisode(card, 'video');
+                            onPlayEpisode(card);
                           }}
-                          className="px-3.5 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1 shadow-lg shadow-blue-600/40 transform hover:scale-105 transition-all"
+                          className={`px-4 py-2 rounded-full text-white text-xs font-bold flex items-center gap-1.5 shadow-lg transform hover:scale-105 transition-all ${
+                            isAudio
+                              ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/40'
+                              : 'bg-red-600 hover:bg-red-500 shadow-red-600/40'
+                          }`}
                         >
-                          <span className="material-symbols-outlined text-[16px]">play_arrow</span>
-                          <span>ดูคลิป</span>
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onPlayEpisode(card, 'audio');
-                          }}
-                          className="px-3.5 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1 shadow-lg shadow-emerald-600/40 transform hover:scale-105 transition-all"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">headphones</span>
-                          <span>ฟังเสียง</span>
+                          <span className="material-symbols-outlined text-[18px]">
+                            {isAudio ? 'headphones' : 'play_arrow'}
+                          </span>
+                          <span>{isAudio ? 'ฟังเสียง (Spotify)' : 'ดูวิดีโอ (YouTube)'}</span>
                         </button>
                       </div>
                     </div>
 
                     <div className="p-5 flex flex-col flex-grow gap-2">
                       <h3
-                        onClick={() => onPlayEpisode(card, 'video')}
+                        onClick={() => onPlayEpisode(card)}
                         className="text-[20px] font-bold leading-[28px] text-[#f8fafc] group-hover:text-[#3b82f6] transition-colors line-clamp-2 cursor-pointer"
                       >
                         {card.title}
@@ -630,21 +637,20 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                         </p>
                       )}
 
-                      {/* Dual Action Buttons */}
-                      <div className="flex items-center gap-2 mt-2">
+                      {/* Single Clear Action Button */}
+                      <div className="mt-2">
                         <button
-                          onClick={() => onPlayEpisode(card, 'video')}
-                          className="flex-1 py-1.5 px-3 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
+                          onClick={() => onPlayEpisode(card)}
+                          className={`w-full py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all border ${
+                            isAudio
+                              ? 'bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-400 border-emerald-500/30'
+                              : 'bg-red-500/10 hover:bg-red-500/25 text-red-400 border-red-500/30'
+                          }`}
                         >
-                          <span className="material-symbols-outlined text-[16px]">movie</span>
-                          <span>ดูคลิป</span>
-                        </button>
-                        <button
-                          onClick={() => onPlayEpisode(card, 'audio')}
-                          className="flex-1 py-1.5 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">headphones</span>
-                          <span>ฟังเสียง</span>
+                          <span className="material-symbols-outlined text-[18px]">
+                            {isAudio ? 'headphones' : 'movie'}
+                          </span>
+                          <span>{isAudio ? 'ฟังเสียงพอดแคสต์ (Spotify)' : 'ดูวิดีโอ (YouTube)'}</span>
                         </button>
                       </div>
 
@@ -664,7 +670,7 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                           className={`p-1.5 rounded-full transition-colors ${
                             isBookmarked
                               ? 'text-blue-400 bg-blue-500/10'
-                              : 'text-[#94a3b8] hover:text-[#3b82f6] hover:bg-[#1e293b]'
+                              : 'text-[#cbd5e1] hover:text-[#3b82f6] hover:bg-[#1e293b]'
                           }`}
                         >
                           <span
