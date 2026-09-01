@@ -172,7 +172,7 @@ export const PODCAST_CARDS: PodcastItem[] = [
   createPodcast({
     youtubeUrl: 'https://www.youtube.com/watch?v=PlJLsNmxyxY&t=4663s',
     title: 'หมอโอ๊ค Lifestyle Medicine 6 กฎสุขภาพดี | Health is the New Wealth EP.8',
-    category: 'Nutrition & Diet',
+    category: 'General Health',
     channel: 'THE SECRET SAUCE',
     description: 'Health is the New Wealth เอพิโสดนี้ ชวนหมอโอ๊ค-สมิทธิ์ อารยะสกุล มาอัปเดตเทรนด์การแพทย์เพื่อสุขภาพฉบับล่าสุดที่ส่งตรงจากฮาร์วาร์ด ‘Lifestyle Medicine’ 6 กฎการเปลี่ยนพฤติกรรม สร้างวิถีชีวิตใหม่ที่จะเปลี่ยนชีวิตให้ดีขึ้นตลอดกาล',
     duration: '1:31:59',
