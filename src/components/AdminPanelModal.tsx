@@ -433,26 +433,11 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                   <button
                     type="submit"
                     id="admin-unlock-btn"
-                    className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/30 hover:scale-102 active:scale-98"
+                    className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/30 hover:scale-102 active:scale-98 mt-1"
                   >
                     <span className="material-symbols-outlined text-[20px]">lock_open</span>
                     <span>ปลดล็อคเข้าสู่ระบบ Admin</span>
                   </button>
-
-                  <div className="p-3 bg-blue-950/40 border border-blue-500/20 rounded-2xl text-left flex items-start gap-2.5">
-                    <span className="material-symbols-outlined text-blue-400 text-[18px] flex-shrink-0 mt-0.5">
-                      info
-                    </span>
-                    <div className="text-[11px] text-slate-300 leading-relaxed">
-                      <span className="font-semibold text-blue-300">รหัสผ่านเริ่มต้นจากระบบ:</span>{' '}
-                      <code className="px-1.5 py-0.5 bg-blue-900/60 rounded text-blue-200 font-mono font-bold border border-blue-400/30">
-                        {DEFAULT_ADMIN_PASSCODE}
-                      </code>
-                      <div className="text-slate-400 text-[10px] mt-0.5">
-                        (คุณสามารถเปลี่ยนรหัสผ่านเป็นของคุณเองได้ในแท็บ 'ความปลอดภัย' หลังเข้าสู่ระบบ)
-                      </div>
-                    </div>
-                  </div>
                 </form>
               </motion.div>
             </div>
@@ -1065,9 +1050,9 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                             type="button"
                             onClick={handleResetPasscodeDefault}
                             className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-rose-600/20 text-slate-300 hover:text-rose-300 text-xs font-semibold border border-slate-700 transition-colors"
-                            title="คืนค่ารหัสผ่านกลับเป็น Lib@2026"
+                            title="คืนค่ารหัสผ่านกลับเป็นค่าเริ่มต้นของระบบ"
                           >
-                            คืนค่าเริ่มต้น (Lib@2026)
+                            คืนค่ารหัสผ่านเริ่มต้น
                           </button>
                         </div>
                       </form>
