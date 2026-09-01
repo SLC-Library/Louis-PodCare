@@ -54,16 +54,12 @@ export default function App() {
   };
 
   // Clean, gentle fade transition between Dark and Light mode
-  const getVariants = () => {
-    return {
-      initial: { opacity: 0 },
-      animate: { opacity: 1 },
-      exit: { opacity: 0 },
-      transition: { duration: 0.16, ease: 'easeInOut' },
-    };
+  const currentVariant = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+    transition: { duration: 0.16 },
   };
-
-  const currentVariant = getVariants();
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[#0f172a]">
