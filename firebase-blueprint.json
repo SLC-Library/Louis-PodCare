@@ -1,0 +1,81 @@
+{
+  "entities": {
+    "Podcasts": {
+      "title": "Podcasts",
+      "description": "Healthcare podcast episodes curated from Saint Louis Hospital",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the podcast episode"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the podcast episode"
+        },
+        "doctorName": {
+          "type": "string",
+          "description": "Doctor or host name"
+        },
+        "specialty": {
+          "type": "string",
+          "description": "Medical specialty or department"
+        },
+        "department": {
+          "type": "string",
+          "description": "Department name"
+        },
+        "duration": {
+          "type": "string",
+          "description": "Duration string (e.g. 24:15)"
+        },
+        "date": {
+          "type": "string",
+          "description": "Release date string"
+        },
+        "category": {
+          "type": "string",
+          "description": "Podcast category"
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the episode"
+        },
+        "youtubeId": {
+          "type": "string",
+          "description": "YouTube video ID (e.g. dQw4w9WgXcQ)"
+        },
+        "views": {
+          "type": "string",
+          "description": "View or listen count"
+        },
+        "thumbnail": {
+          "type": "string",
+          "description": "Thumbnail image URL"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of tags"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp ISO string of creation"
+        },
+        "order": {
+          "type": "number",
+          "description": "Display sort order"
+        }
+      },
+      "required": ["id", "title", "doctorName", "youtubeId"]
+    }
+  },
+  "firestore": {
+    "/podcasts/{podcastId}": {
+      "entity": "Podcasts",
+      "description": "Collection of all podcast episodes"
+    }
+  }
+}

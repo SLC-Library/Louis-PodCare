@@ -7,7 +7,8 @@ interface AdminPanelModalProps {
   isOpen: boolean;
   onClose: () => void;
   podcasts: PodcastItem[];
-  onSaveEpisodes: (episodes: PodcastItem[]) => void;
+  onSaveEpisodes: (episodes: PodcastItem[], singleUpdatedItem?: PodcastItem) => void;
+  onDeleteEpisode?: (id: string) => void;
   onResetDefault: () => void;
   isDark?: boolean;
 }
@@ -29,6 +30,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   onClose,
   podcasts,
   onSaveEpisodes,
+  onDeleteEpisode,
   onResetDefault,
   isDark = true,
 }) => {
@@ -205,9 +207,13 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   // Delete episode
   const handleDelete = (id?: string) => {
     if (!id) return;
-    if (window.confirm('คุณต้องการลบตอนพอดแคสต์นี้ใช่หรือไม่?')) {
-      const updated = podcasts.filter((p) => p.id !== id);
-      onSaveEpisodes(updated);
+    if (window.confirm('คุณต้องการลบตอนพอดแคสต์นี้ใช่หรือไม่? ข้อมูลจะถูกลบออกจากฐานข้อมูลกลาง (Cloud Firestore) ทันที')) {
+      if (onDeleteEpisode) {
+        onDeleteEpisode(id);
+      } else {
+        const updated = podcasts.filter((p) => p.id !== id);
+        onSaveEpisodes(updated);
+      }
       if (editingId === id) {
         resetForm();
       }
@@ -222,7 +228,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     const target = podcasts[itemIndex];
     const remaining = podcasts.filter((p) => p.id !== id);
     const updated = [target, ...remaining];
-    onSaveEpisodes(updated);
+    onSaveEpisodes(updated, target);
   };
 
   // Submit Save
@@ -256,14 +262,14 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     if (editingId) {
       // Update existing item
       updatedList = podcasts.map((p) => (p.id === editingId ? normalized : p));
-      setSaveSuccessMessage('✅ อัปเดตข้อมูลตอนเรียบร้อยแล้ว!');
+      setSaveSuccessMessage('✅ ซิงค์อัปเดตข้อมูลขึ้น Cloud Database เรียบร้อยแล้ว!');
     } else {
       // Add as newest at the top
       updatedList = [normalized, ...podcasts];
-      setSaveSuccessMessage('🎉 เพิ่มตอนใหม่ล่าสุดขึ้นด้านบนเรียบร้อยแล้ว!');
+      setSaveSuccessMessage('🎉 บันทึกตอนใหม่ขึ้น Cloud Database เรียบร้อย ผู้ใช้ทุกคนจะเห็นทันที!');
     }
 
-    onSaveEpisodes(updatedList);
+    onSaveEpisodes(updatedList, normalized);
     setTimeout(() => {
       setSaveSuccessMessage(null);
     }, 4000);
@@ -1062,8 +1068,11 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
               </div>
 
               {/* Modal Footer */}
-              <div className="px-6 py-3.5 bg-[#070d1e] border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-                <span>💾 ข้อมูลที่บันทึกจะถูกจัดเก็บไว้ใน Browser ของคุณโดยอัตโนมัติ (Local Persistence)</span>
+              <div className="px-6 py-3.5 bg-[#070d1e] border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
+                <span className="flex items-center gap-1.5 text-emerald-400">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>🔥 เชื่อมต่อ Real-time Cloud Database (Firebase Firestore) - อัปเดตถึงผู้ใช้ทุกคนทันที</span>
+                </span>
                 <button
                   onClick={onClose}
                   className="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium transition-colors"

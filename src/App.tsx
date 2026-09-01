@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { DiscoveryDashboardDark } from './components/DiscoveryDashboardDark';
 import { DiscoveryDashboardHealthMed } from './components/DiscoveryDashboardHealthMed';
@@ -6,10 +6,13 @@ import { AudioPlayer } from './components/AudioPlayer';
 import { AdminPanelModal } from './components/AdminPanelModal';
 import { MediaMode, PodcastItem, ScreenId, TabId, TransitionType } from './types';
 import {
-  loadSavedEpisodes,
-  saveEpisodesToStorage,
-  resetEpisodesToDefault,
-} from './utils/podcastStorage';
+  subscribeToPodcasts,
+  savePodcastToFirestore,
+  deletePodcastFromFirestore,
+  resetPodcastsToDefaultInFirestore,
+  initializeFirestorePodcastsIfEmpty,
+} from './services/podcastService';
+import { ALL_PODCASTS } from './data/podcasts';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('dark');
@@ -21,8 +24,29 @@ export default function App() {
   const [activeMediaMode, setActiveMediaMode] = useState<MediaMode>('video');
   const [isAdminOpen, setIsAdminOpen] = useState<boolean>(false);
 
-  // Dynamic podcasts stored in localStorage
-  const [podcasts, setPodcasts] = useState<PodcastItem[]>(() => loadSavedEpisodes());
+  // Dynamic Real-time Podcasts synced with Firebase Firestore
+  const [podcasts, setPodcasts] = useState<PodcastItem[]>(ALL_PODCASTS);
+  const [isFirebaseSyncing, setIsFirebaseSyncing] = useState<boolean>(true);
+
+  // Subscribe to real-time updates from Firebase Firestore
+  useEffect(() => {
+    initializeFirestorePodcastsIfEmpty();
+
+    const unsubscribe = subscribeToPodcasts(
+      (items) => {
+        if (items && items.length > 0) {
+          setPodcasts(items);
+        }
+        setIsFirebaseSyncing(false);
+      },
+      (err) => {
+        console.warn('Real-time Firestore sync encountered an issue, running with local data:', err);
+        setIsFirebaseSyncing(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   const [bookmarks, setBookmarks] = useState<Set<string>>(() => {
     try {
@@ -46,14 +70,42 @@ export default function App() {
     setActivePodcast(podcast);
   };
 
-  const handleSaveEpisodes = (newEpisodes: PodcastItem[]) => {
+  // Save single or full list of episodes to Firestore
+  const handleSaveEpisodes = async (newEpisodes: PodcastItem[], singleUpdatedItem?: PodcastItem) => {
+    // Optimistic UI update
     setPodcasts(newEpisodes);
-    saveEpisodesToStorage(newEpisodes);
+
+    try {
+      if (singleUpdatedItem) {
+        await savePodcastToFirestore(singleUpdatedItem);
+      } else {
+        // Save all items that may be new or modified
+        for (const item of newEpisodes) {
+          await savePodcastToFirestore(item);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to sync episode to Firestore:', err);
+    }
   };
 
-  const handleResetDefault = () => {
-    const defaults = resetEpisodesToDefault();
-    setPodcasts(defaults);
+  const handleDeleteEpisode = async (id: string) => {
+    // Optimistic UI update
+    setPodcasts((prev) => prev.filter((p) => p.id !== id));
+    try {
+      await deletePodcastFromFirestore(id);
+    } catch (err) {
+      console.error('Failed to delete episode from Firestore:', err);
+    }
+  };
+
+  const handleResetDefault = async () => {
+    try {
+      await resetPodcastsToDefaultInFirestore();
+    } catch (err) {
+      console.error('Failed to reset Firestore podcasts:', err);
+      setPodcasts(ALL_PODCASTS);
+    }
   };
 
   const handleToggleBookmark = (id: string) => {
@@ -146,6 +198,7 @@ export default function App() {
         onClose={() => setIsAdminOpen(false)}
         podcasts={podcasts}
         onSaveEpisodes={handleSaveEpisodes}
+        onDeleteEpisode={handleDeleteEpisode}
         onResetDefault={handleResetDefault}
         isDark={currentScreen === 'dark'}
       />
