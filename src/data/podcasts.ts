@@ -189,7 +189,7 @@ export const PODCAST_CARDS: PodcastItem[] = [
   }),
   createPodcast({
     id: '001',
-    title: 'เราจะรู้ว่าตับของเราเริ่มเสื่อมได้หรือไม่? / 6 Minute Health Talk EP.14',
+    title: 'เราจะรู้ว่าตับของเราเริ่มเสื่อมได้หรือไม่? | 6 Minute Health Talk EP.14',
     category: 'General Health',
     channel: '6 Minute Health Talk',
     description: 'วันนี้เป็น Ep. ที่มาจากคำถามบน Tiktok ที่มีคนถามเกี่ยวกับการทำงานของตับ เราสามารถรู้ได้หรือไม่ว่า ตับของเราเริ่มเสื่อม หรือทำงานได้น้อยลง ? มีสัญญาณหรืออาการเริ่มต้นอะไรบ้างไหมที่ให้เรารู้ตัวก่อน ? มาฟังคำตอบจากพี่หมอเอ้ว ใน 6 Minute Health Talk EP.14 กันค่ะ',
@@ -199,13 +199,23 @@ export const PODCAST_CARDS: PodcastItem[] = [
   }),
   createPodcast({
     id: '002',
-    title: 'น้ําตาลในเลือดสูง อาการเป็นยังไง? / หมอแบงค์ Food Doctor',
+    title: 'น้ําตาลในเลือดสูง อาการเป็นยังไง? | หมอแบงค์ Food Doctor',
     category: 'Nutrition & Diet',
     channel: 'หมอแบงค์ Food Doctor',
     description: 'น้ำตาลในเลือดสูง อาการเป็นยังไง | หมอแบงค์ food doctor',
     duration: '08:43',
     spotifyUrl: 'https://open.spotify.com/episode/38JiRhu1B8vY1VhE7b0rWH',
     imageUrl: 'https://image-cdn-ak.spotifycdn.com/image/ab67656300005f1f5353bffe2566cbd5f328391e',
+  }),
+  createPodcast({
+    id: '003',
+    title: 'Living Well EP.25 | ทำความรู้จัก"นาฬิกาชีวิต"เคล็ดลับปรับสมดุลร่างกาย',
+    category: 'General Health',
+    channel: 'Living Well',
+    description: 'รู้หรือไม่ว่า คนเราไม่ได้มีนาฬิกาบอกเวลาอยู่แค่บนข้อมือ หรือในอุปกรณ์อิเล็กทรอนิกส์ต่าง ๆ เท่านั้น แต่เรายังมีนาฬิกาชีวิตที่ติดตัวมาตั้งแต่กำเนิด ที่เป็นเครื่องบอกเวลาให้ร่างกายทำสิ่งต่าง ๆ ให้เป็นปกติได้ ไม่ว่าจะเป็นการตื่นนอน รับประทานอาหาร หรือนอนหลับพักผ่อน มากกว่านั้นยังมีส่วนสำคัญในการเสริมสร้างความแข็งแรงให้กับร่างกายอีกด้วย เมื่อนาฬิกาเรือนนี้มีความสำคัญอย่างมากในการดูแลและสร้างสมดุลให้กับร่างกายโดยรวมของเรา คุณหมอโง้ย พจ.จิดาภา ช่วยชู แพทย์แผนจีน โรงพยาบาลดีบุก อยากชวนทุกคนมาเช็กเวลาบนนาฬิกาชีวิต ได้ใน LIVING WELL PODCAST EP.25 มารับฟังไปพร้อม ๆ กันเลยค่ะ',
+    duration: '05:40',
+    spotifyUrl: 'https://open.spotify.com/episode/5wQUC3IYffBjoOkrT09msK',
+    imageUrl: 'https://image-cdn-fa.spotifycdn.com/image/ab67656300005f1f169cd8f34b8f7a6104527518',
   }),
 ];
 
