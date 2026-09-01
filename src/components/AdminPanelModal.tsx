@@ -376,8 +376,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                   ยืนยันสิทธิ์ผู้ดูแลระบบ (Admin Access)
                 </h3>
                 <p className="text-xs text-slate-400 mb-6 leading-relaxed">
-                  ระบบได้รับการป้องกันเพื่อความปลอดภัย กรุณาป้อนรหัสผ่าน Admin <br> เพื่อแก้ไขหรือจัดการรายการพอดแคสต์
-                </p>
+                  ระบบได้รับการป้องกันเพื่อความปลอดภัย กรุณาป้อนรหัสผ่าน Admin <p> เพื่อแก้ไขหรือจัดการรายการพอดแคสต์
+                </p></p>
 
                 {/* Password Form */}
                 <form onSubmit={handleUnlock} className="w-full flex flex-col gap-4">
