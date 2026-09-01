@@ -2,8 +2,46 @@ import { ArticleItem } from '../types';
 import { SAINT_LOUIS_ARTICLES, FEATURED_ARTICLE } from '../data/articles';
 
 const BASE_API = 'https://public-api.saintlouis.or.th/user-api';
-const CACHE_KEY = 'slh_contents_cache_v1';
+const CACHE_KEY = 'slh_contents_cache_v2';
 const CACHE_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
+// Exclude administrative news, closure notices, holiday schedules, and service interruptions
+const EXCLUDED_ANNOUNCEMENT_KEYWORDS = [
+  'ปิดทำการ',
+  'วันหยุด',
+  'งดให้บริการ',
+  'แจ้งปิด',
+  'ประกาศปิด',
+  'ตารางแพทย์งด',
+  'ปรับเปลี่ยนเวลา',
+  'วันหยุดราชการ',
+  'ปิดบริการ',
+  'เวลาทำการ',
+  'วันสงกรานต์',
+  'วันปีใหม่',
+  'วันแรงงาน',
+  'วันเฉลิม',
+  'ประกาศโรงพยาบาล',
+  'ชั่วคราว',
+  'ปิดระบบ',
+  'งดรับ',
+  'ย้ายจุด',
+  'ขออภัย',
+  'ปิดให้บริการ',
+  'แจ้งเวลาเปิด-ปิด',
+  'แจ้งเปลี่ยนแปลง',
+  'หยุดให้บริการ',
+];
+
+function isKnowledgeArticle(item: RawContentItem): boolean {
+  const text = `${item.topic_th || ''} ${item.topic_en || ''} ${item.description_th || ''}`.toLowerCase();
+  for (const kw of EXCLUDED_ANNOUNCEMENT_KEYWORDS) {
+    if (text.includes(kw.toLowerCase())) {
+      return false;
+    }
+  }
+  return true;
+}
 
 interface RawContentItem {
   id: number;
@@ -153,23 +191,40 @@ export async function fetchSaintLouisArticles(forceRefresh = false): Promise<Fet
     }
 
     const contentsJson = await contentsRes.json();
-    const rawItems: RawContentItem[] = contentsJson.data || [];
+    const rawAllItems: RawContentItem[] = contentsJson.data || [];
+    // Filter strictly for knowledge & health education articles (excluding closure/holiday/administrative news)
+    const rawItems: RawContentItem[] = rawAllItems.filter(isKnowledgeArticle);
 
     let rawRecommend: RawContentItem[] = [];
     if (recommendRes && recommendRes.ok) {
       const recJson = await recommendRes.json();
-      rawRecommend = recJson.data || [];
+      const rawRecAll: RawContentItem[] = recJson.data || [];
+      rawRecommend = rawRecAll.filter(isKnowledgeArticle);
     }
 
     let categoriesList = ['ทั้งหมด'];
     if (catRes && catRes.ok) {
       const catJson = await catRes.json();
       const rawCats: Array<{ name_th: string }> = catJson.data || [];
-      const catNames = rawCats.map((c) => c.name_th).filter(Boolean);
+      const catNames = rawCats
+        .map((c) => c.name_th)
+        .filter(
+          (name) =>
+            Boolean(name) &&
+            !['ข่าวสาร', 'ข่าวประชาสัมพันธ์', 'ประกาศ', 'กิจกรรม'].includes(name)
+        );
       categoriesList = ['ทั้งหมด', ...catNames];
     } else {
       const uniqueCats = Array.from(
-        new Set(rawItems.map((item) => item.category?.name_th).filter(Boolean) as string[])
+        new Set(
+          rawItems
+            .map((item) => item.category?.name_th)
+            .filter(
+              (name) =>
+                Boolean(name) &&
+                !['ข่าวสาร', 'ข่าวประชาสัมพันธ์', 'ประกาศ', 'กิจกรรม'].includes(name as string)
+            ) as string[]
+        )
       );
       categoriesList = ['ทั้งหมด', ...uniqueCats];
     }
@@ -192,7 +247,7 @@ export async function fetchSaintLouisArticles(forceRefresh = false): Promise<Fet
     const result: FetchArticlesResult = {
       featured: featuredItem,
       articles: articlesList.length > 0 ? articlesList : SAINT_LOUIS_ARTICLES,
-      categories: categoriesList.length > 1 ? categoriesList : ['ทั้งหมด', 'บทความสุขภาพ', 'ข่าวสาร'],
+      categories: categoriesList.length > 1 ? categoriesList : ['ทั้งหมด', 'สาระสุขภาพ', 'นวัตกรรมทางการแพทย์', 'ศูนย์เฉพาะทาง', 'โภชนาการและไลฟ์สไตล์', 'เวชศาสตร์เชิงป้องกัน'],
       lastUpdated: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
       source: 'live',
     };
@@ -219,7 +274,7 @@ export async function fetchSaintLouisArticles(forceRefresh = false): Promise<Fet
     return {
       featured: FEATURED_ARTICLE,
       articles: SAINT_LOUIS_ARTICLES,
-      categories: ['ทั้งหมด', 'สาระสุขภาพ', 'ข่าวสารและกิจกรรม', 'นวัตกรรมทางการแพทย์', 'ศูนย์เฉพาะทาง', 'โภชนาการและไลฟ์สไตล์'],
+      categories: ['ทั้งหมด', 'สาระสุขภาพ', 'นวัตกรรมทางการแพทย์', 'ศูนย์เฉพาะทาง', 'โภชนาการและไลฟ์สไตล์', 'เวชศาสตร์เชิงป้องกัน'],
       lastUpdated: 'ออฟไลน์ (ข้อมูลสำรอง)',
       source: 'fallback',
     };

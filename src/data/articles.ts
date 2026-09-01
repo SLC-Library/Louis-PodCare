@@ -3,10 +3,10 @@ import { ArticleItem } from '../types';
 export const SAINT_LOUIS_ARTICLE_CATEGORIES = [
   'ทั้งหมด',
   'สาระสุขภาพ',
-  'ข่าวสารและกิจกรรม',
   'นวัตกรรมทางการแพทย์',
   'ศูนย์เฉพาะทาง',
   'โภชนาการและไลฟ์สไตล์',
+  'เวชศาสตร์เชิงป้องกัน',
 ];
 
 export const FEATURED_ARTICLE: ArticleItem = {
@@ -57,7 +57,7 @@ export const SAINT_LOUIS_ARTICLES: ArticleItem[] = [
   {
     id: 'slh-article-3',
     title: 'วัคซีนป้องกันโรคสำหรับผู้ใหญ่และผู้สูงอายุ สิ่งจำเป็นที่ไม่ควรมองข้าม',
-    category: 'สาระสุขภาพ',
+    category: 'เวชศาสตร์เชิงป้องกัน',
     department: 'ศูนย์สร้างเสริมสุขภาพและวัคซีน รพ.เซนต์หลุยส์',
     date: '05 ก.พ. 2025',
     readTime: '4 นาที',
@@ -70,8 +70,8 @@ export const SAINT_LOUIS_ARTICLES: ArticleItem[] = [
   },
   {
     id: 'slh-article-4',
-    title: 'ตรวจสุขภาพประจำปี เลือกแพ็กเกจอย่างไรให้ตรงกับช่วงวัยและไลฟ์สไตล์',
-    category: 'ข่าวสารและกิจกรรม',
+    title: 'ตรวจสุขภาพประจำปี เลือกโปรแกรมอย่างไรให้ตรงกับช่วงวัยและไลฟ์สไตล์',
+    category: 'เวชศาสตร์เชิงป้องกัน',
     department: 'ศูนย์ตรวจสุขภาพ รพ.เซนต์หลุยส์ (Executive Health Center)',
     date: '28 ม.ค. 2025',
     readTime: '3 นาที',

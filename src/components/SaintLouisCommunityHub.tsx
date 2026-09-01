@@ -102,14 +102,14 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
               </span>
             </div>
 
-            <h1 className="text-xl sm:text-2xl md:text-[26px] lg:text-[28px] font-bold tracking-tight text-white leading-tight whitespace-normal md:whitespace-nowrap">
-              บทความ สาระสุขภาพ และข่าวสารโรงพยาบาล
+            <h1 className="text-xl sm:text-2xl md:text-[26px] lg:text-[28px] font-bold tracking-tight text-white leading-tight">
+              คลังบทความและสาระสุขภาพ
             </h1>
 
             <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed">
-              เชื่อมโยงข้อมูลล่าสุดแบบอัตโนมัติจากเว็บไซต์โรงพยาบาลเซนต์หลุยส์ (saintlouis.or.th)
+              รวบรวมสาระความรู้ทางการแพทย์ การดูแลสุขภาพเชิงป้องกัน และนวัตกรรมการรักษา
               <br className="hidden sm:inline" />{' '}
-              เพื่อให้คุณได้รับสาระความรู้ทางการแพทย์ที่ถูกต้องและทันต่อเหตุการณ์
+              จากคณะแพทย์และศูนย์การรักษาเฉพาะทาง โรงพยาบาลเซนต์หลุยส์ (saintlouis.or.th)
             </p>
 
             {/* Live Sync Status Pill */}
@@ -118,10 +118,10 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <span>
                   {dataState?.source === 'live'
-                    ? `Live Sync: saintlouis.or.th (อัปเดตล่าสุด ${dataState.lastUpdated} น.)`
+                    ? `Live Sync: saintlouis.or.th (อัปเดต ${dataState.lastUpdated} น.)`
                     : dataState?.source === 'cache'
                     ? `ซิงค์อัตโนมัติ: saintlouis.or.th (ข้อมูลล่าสุด ${dataState.lastUpdated} น.)`
-                    : 'เชื่อมต่อคลังข้อมูลโรงพยาบาลเซนต์หลุยส์'}
+                    : 'เชื่อมต่อคลังความรู้สุขภาพ รพ.เซนต์หลุยส์'}
                 </span>
               </span>
 
@@ -156,7 +156,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
             <div className="flex items-center justify-between sm:justify-start gap-4 px-3 py-1.5 text-xs text-blue-200">
               <span className="flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[15px] text-emerald-400">verified</span>
-                ข้อมูลทางการแพทย์รับรอง
+                บทความสุขภาพรับรอง
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[15px] text-amber-300">call</span>
@@ -177,7 +177,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`snap-start flex-shrink-0 px-4 py-2 rounded-full text-[13px] font-medium transition-all ${
+                className={`snap-start flex-shrink-0 px-4 py-2 rounded-full text-xs sm:text-[13px] font-medium transition-all ${
                   isActive
                     ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20 font-semibold'
                     : isDark
@@ -202,10 +202,10 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
           </span>
           <input
             type="text"
-            placeholder="ค้นหาบทความ, ข่าว, ศูนย์ตรวจ..."
+            placeholder="ค้นหาบทความสาระสุขภาพ, อาการ, การรักษา..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full pl-10 pr-9 py-2 rounded-full text-[13px] transition-all outline-none ${
+            className={`w-full pl-10 pr-9 py-2 rounded-full text-xs sm:text-[13px] transition-all outline-none ${
               isDark
                 ? 'bg-[#131b2e] border border-[#334155] text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
                 : 'bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 shadow-xs'
@@ -367,9 +367,9 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
               >
                 <span className="material-symbols-outlined text-blue-500">feed</span>
                 <span>
-                  บทความและข่าวสารล่าสุด {selectedCategory !== 'ทั้งหมด' && `(${selectedCategory})`}
+                  บทความสาระความรู้ล่าสุด {selectedCategory !== 'ทั้งหมด' && `(${selectedCategory})`}
                 </span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-semibold">
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-semibold">
                   {filteredArticles.length} รายการ
                 </span>
               </h3>
@@ -378,9 +378,9 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
                 href={SAINT_LOUIS_CONTACT.contentsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs font-semibold text-blue-500 hover:text-blue-400 flex items-center gap-1"
+                className="text-xs font-semibold text-blue-500 hover:text-blue-400 flex items-center gap-1 transition-colors"
               >
-                <span>ดูทั้งหมดบนเว็บ รพ.</span>
+                <span>ดูบทความทั้งหมดบนเว็บ รพ.</span>
                 <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
               </a>
             </div>
@@ -396,7 +396,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
                 <span className="material-symbols-outlined text-4xl text-slate-400 mb-2">
                   find_in_page
                 </span>
-                <p className="font-medium text-base">ไม่พบบทความที่ตรงกับคำค้นหา</p>
+                <p className="font-medium text-base">ไม่พบบทความสาระความรู้ที่ตรงกับคำค้นหา</p>
                 <p className="text-xs mt-1">ลองเปลี่ยนคำค้นหา หรือเลือกหมวดหมู่อื่นดูนะครับ</p>
                 <button
                   onClick={() => {
@@ -413,40 +413,40 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
                 {filteredArticles.map((article) => (
                   <div
                     key={article.id}
-                    className={`group rounded-2xl border flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg ${
+                    className={`group rounded-2xl border flex flex-col justify-between overflow-hidden transition-all duration-300 hover:shadow-lg ${
                       isDark
                         ? 'bg-[#060e20] border-[#1e293b] hover:border-blue-500/40'
                         : 'bg-white border-slate-200 hover:border-blue-300'
                     }`}
                   >
-                    {/* Image */}
-                    <div
-                      className="relative h-44 overflow-hidden cursor-pointer bg-slate-800"
-                      onClick={() => setSelectedArticleModal(article)}
-                    >
-                      <img
-                        src={article.imageUrl}
-                        alt={article.title}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800&auto=format&fit=crop';
-                        }}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        referrerPolicy="no-referrer"
-                      />
-                      <div className="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-xs text-white text-[11px] font-semibold px-2.5 py-0.5 rounded-md">
-                        {article.category}
-                      </div>
-                      {article.readTime && (
-                        <div className="absolute bottom-2.5 right-2.5 bg-black/70 backdrop-blur-xs text-white text-[11px] font-medium px-2 py-0.5 rounded-md">
-                          {article.readTime}
+                    <div>
+                      {/* Image */}
+                      <div
+                        className="relative h-44 overflow-hidden cursor-pointer bg-slate-800"
+                        onClick={() => setSelectedArticleModal(article)}
+                      >
+                        <img
+                          src={article.imageUrl}
+                          alt={article.title}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src =
+                              'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800&auto=format&fit=crop';
+                          }}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          referrerPolicy="no-referrer"
+                        />
+                        <div className="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-xs text-white text-[11px] font-semibold px-2.5 py-0.5 rounded-md">
+                          {article.category}
                         </div>
-                      )}
-                    </div>
+                        {article.readTime && (
+                          <div className="absolute bottom-2.5 right-2.5 bg-black/70 backdrop-blur-xs text-white text-[11px] font-medium px-2 py-0.5 rounded-md">
+                            {article.readTime}
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Body */}
-                    <div className="p-4 sm:p-5 flex flex-col flex-1 justify-between gap-3">
-                      <div className="flex flex-col gap-2">
+                      {/* Body */}
+                      <div className="p-4 sm:p-5 flex flex-col gap-2.5">
                         <div className="flex items-center justify-between text-[11px] text-slate-400">
                           <span>{article.date}</span>
                           <span className="text-blue-400 font-medium truncate max-w-[140px]">
@@ -456,7 +456,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
 
                         <h4
                           onClick={() => setSelectedArticleModal(article)}
-                          className={`font-bold text-[15px] leading-snug line-clamp-2 cursor-pointer transition-colors ${
+                          className={`font-bold text-[16px] sm:text-[17px] leading-[24px] line-clamp-2 cursor-pointer transition-colors ${
                             isDark
                               ? 'text-slate-100 group-hover:text-blue-400'
                               : 'text-slate-900 group-hover:text-blue-600'
@@ -466,47 +466,47 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
                         </h4>
 
                         <p
-                          className={`text-xs line-clamp-3 leading-relaxed ${
-                            isDark ? 'text-slate-300' : 'text-slate-600'
+                          className={`text-[13px] line-clamp-2 leading-[21px] ${
+                            isDark ? 'text-slate-400' : 'text-slate-600'
                           }`}
                         >
                           {article.summary}
                         </p>
                       </div>
+                    </div>
 
-                      {/* Footer Links */}
-                      <div
-                        className={`flex items-center justify-between pt-3 border-t text-xs ${
-                          isDark ? 'border-slate-800' : 'border-slate-100'
-                        }`}
+                    {/* Footer Links */}
+                    <div
+                      className={`px-4 sm:px-5 pb-4 pt-3 border-t flex items-center justify-between text-xs ${
+                        isDark ? 'border-slate-800' : 'border-slate-100'
+                      }`}
+                    >
+                      <button
+                        onClick={() => setSelectedArticleModal(article)}
+                        className="font-semibold text-blue-500 hover:text-blue-400 flex items-center gap-1"
                       >
-                        <button
-                          onClick={() => setSelectedArticleModal(article)}
-                          className="font-semibold text-blue-500 hover:text-blue-400 flex items-center gap-1"
-                        >
-                          <span>อ่านสรุป</span>
-                          <span className="material-symbols-outlined text-[14px]">
-                            chevron_right
-                          </span>
-                        </button>
+                        <span>อ่านสรุปในแอป</span>
+                        <span className="material-symbols-outlined text-[14px]">
+                          chevron_right
+                        </span>
+                      </button>
 
-                        <a
-                          href={article.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`flex items-center gap-1 transition-colors ${
-                            isDark
-                              ? 'text-slate-400 hover:text-white'
-                              : 'text-slate-500 hover:text-slate-800'
-                          }`}
-                          title="เปิดอ่านบนเว็บไซต์โรงพยาบาลเซนต์หลุยส์"
-                        >
-                          <span>เว็บ รพ.</span>
-                          <span className="material-symbols-outlined text-[13px]">
-                            open_in_new
-                          </span>
-                        </a>
-                      </div>
+                      <a
+                        href={article.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center gap-1 transition-colors ${
+                          isDark
+                            ? 'text-slate-400 hover:text-white'
+                            : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                        title="เปิดอ่านบนเว็บไซต์โรงพยาบาลเซนต์หลุยส์"
+                      >
+                        <span>เว็บ รพ.</span>
+                        <span className="material-symbols-outlined text-[13px]">
+                          open_in_new
+                        </span>
+                      </a>
                     </div>
                   </div>
                 ))}
@@ -553,7 +553,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
                       menu_book
                     </span>
                     <div>
-                      <div className="text-xs font-bold">คลังบทความและข่าวสาร</div>
+                      <div className="text-xs font-bold">คลังบทความสุขภาพ</div>
                       <div className="text-[11px] text-slate-400">
                         saintlouis.or.th/contents
                       </div>
