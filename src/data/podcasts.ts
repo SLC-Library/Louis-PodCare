@@ -90,7 +90,6 @@ export const FEATURED_PODCAST = createPodcast({
   channel: 'LifeDot',
   description: 'มาทำความเข้าใจกับ “พีระมิดแห่งความสุข” โดย “หมอกลาง นพ.ณัฐณกัณฑ์ พิชยะวงศ์ภัค” (ว. 44236) หรือ “พี่กลาง หอสมุดแห่งชาติ” ที่หลาย ๆ คนรู้จัก',
   duration: '35:53',
-  date: 'Nov 24, 2025',
 });
 
 // ==========================================
@@ -98,25 +97,12 @@ export const FEATURED_PODCAST = createPodcast({
 // ==========================================
 export const PODCAST_CARDS: PodcastItem[] = [
   createPodcast({
-    id: 'spotify-longevity-sleep-health',
-    title: 'เจาะลึกศาสตร์แห่งการนอนหลับ & ชะลอวัยระดับเซลล์ (Sleep Science & Longevity) | Spotify Health',
-    category: 'Nutrition & Diet',
-    channel: 'Spotify Health & Wellness',
-    description: 'พอดแคสต์ระบบเสียงคมชัด (Spotify Audio Podcast) ว่าด้วยกลไก Circadian Rhythm การหลั่งเมลาโทนิน และโภชนาการฟื้นฟูเซลล์สมองขณะหลับ ฟังลื่นไหล ไม่มีโฆษณาวิดีโอคั่น',
-    duration: '28:40',
-    date: 'MAR 2026',
-    imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80',
-    audioUrl: 'https://actions.google.com/sounds/v1/ambiences/rain_heavy.ogg',
-    spotifyUrl: 'https://open.spotify.com/genre/wellness',
-  }),
-  createPodcast({
     youtubeUrl: 'https://www.youtube.com/watch?v=7geqNRcIpEI&t=713s',
     title: 'งดแป้ง งดน้ำตาล อาจทำให้สุขภาพพัง! เป็นมะเร็ง โรคไต ห้ามกินอะไรบ้าง I Doctor’s Talk EP.33',
     category: 'Nutrition & Diet',
     channel: 'Zerosick',
     description: 'Doctor’s Talk คือ Podcast ที่หมอและผู้เชี่ยวชาญทางด้านสุขภาพจะมาพูดคุยประเด็นสุขภาพต่างๆ ใน EP นี้ หมอจิมมี่ นพ. สุทธิพจน์ ภัทรมงคลกาล (ว.55103) และ พญ.วีรนุช โรจน์ยินดีเลิศ (ว.34250) อายุรแพทย์ชำนาญการด้านโภชนศาสตร์คลินิก จะมาให้ความรู้เกี่ยวกับความเชื่อที่หลายคนเข้าใจผิด กินคลีน กินน้ำมันมะพร้าว งดแป้ง งดน้ำตาล สุขภาพอาจพังไม่รู้ตัว เพราะจริงๆ แล้ว น้ำตาลดีต่อสุขภาพ ถ้าอยากแข็งแรง ไม่เสี่ยงมะเร็งต้องกินอะไร หรือถ้าเป็นมะเร็ง โรคไต ห้ามกินอะไรบ้าง EP นี้ ห้ามพลาด!',
     duration: '47:37',
-    date: 'AUG 14, 2025',
   }),
   createPodcast({
     youtubeUrl: 'https://www.youtube.com/watch?v=PlJLsNmxyxY&t=4663s',
@@ -125,7 +111,6 @@ export const PODCAST_CARDS: PodcastItem[] = [
     channel: 'THE SECRET SAUCE',
     description: 'Health is the New Wealth เอพิโสดนี้ ชวนหมอโอ๊ค-สมิทธิ์ อารยะสกุล มาอัปเดตเทรนด์การแพทย์เพื่อสุขภาพฉบับล่าสุดที่ส่งตรงจากฮาร์วาร์ด ‘Lifestyle Medicine’ 6 กฎการเปลี่ยนพฤติกรรม สร้างวิถีชีวิตใหม่ที่จะเปลี่ยนชีวิตให้ดีขึ้นตลอดกาล',
     duration: '1:31:59',
-    date: 'JUN 9, 2024',
   }),
   createPodcast({
     youtubeUrl: 'https://www.youtube.com/watch?v=zlbDZPwpgBA',
@@ -134,8 +119,15 @@ export const PODCAST_CARDS: PodcastItem[] = [
     channel: 'Peanut Butter',
     description: 'Mental Health กับการที่เราต้องเจอ 1 วัน 1000 Situation 😂 ทั้งใจดีหรือใจร้ายหลากหลายเรื่องราวผสมกันไป เลยอยากมาออกกำลังทางใจเพื่อลดแรงปะทะค่ะ (ส่วนเราก็ไม่ได้เป็นคนใจ Tough ขนาดนั้น เป็นผู้หญิงใจบอบบางเหมือนกัน) จะฝึกไปด้วยกันนี้แหล่ะฮึบๆๆ',
     duration: '16:53',
-    date: 'OCT 26, 2024',
   }),
+  createPodcast({
+    createPodcast({
+  title: 'เราเป็นคนสะสมความเศร้าอยู่หรือเปล่า?',
+  category: 'Psychology',
+  channel: 'alljit สุขภาพจิตใจ',
+  duration: '23:57',
+  spotifyUrl: 'https://open.spotify.com/episode/5wXPC18ZP8Ztn5VZ1XOghv',
+})
 ];
 
 // ==========================================
