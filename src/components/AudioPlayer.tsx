@@ -4,26 +4,13 @@ import {
   Headphones,
   Maximize2,
   Minimize2,
-  Pause,
-  Play,
   Radio,
-  RotateCcw,
-  RotateCw,
   Sparkles,
   Tv,
-  Volume2,
-  VolumeX,
   X,
 } from 'lucide-react';
 import { extractSpotifyInfo, extractYoutubeId, isAudioOnlyPodcast } from '../data/podcasts';
 import { PodcastItem } from '../types';
-
-declare global {
-  interface Window {
-    onSpotifyIframeApiReady?: (IFrameAPI: any) => void;
-    SpotifyIframeApi?: any;
-  }
-}
 
 interface AudioPlayerProps {
   podcast: PodcastItem | null;
@@ -32,50 +19,14 @@ interface AudioPlayerProps {
   isDark?: boolean;
 }
 
-// Singleton loader for Spotify IFrame API
-let spotifyApiPromise: Promise<any> | null = null;
-function getSpotifyIFrameApi(): Promise<any> {
-  if (typeof window === 'undefined') return Promise.reject(new Error('Window not available'));
-  if (window.SpotifyIframeApi) return Promise.resolve(window.SpotifyIframeApi);
-  if (spotifyApiPromise) return spotifyApiPromise;
-
-  spotifyApiPromise = new Promise((resolve) => {
-    const prevCallback = window.onSpotifyIframeApiReady;
-    window.onSpotifyIframeApiReady = (IFrameAPI: any) => {
-      window.SpotifyIframeApi = IFrameAPI;
-      if (prevCallback) prevCallback(IFrameAPI);
-      resolve(IFrameAPI);
-    };
-
-    if (!document.getElementById('spotify-iframe-api-script')) {
-      const script = document.createElement('script');
-      script.id = 'spotify-iframe-api-script';
-      script.src = 'https://open.spotify.com/embed/iframe-api/v1';
-      script.async = true;
-      document.body.appendChild(script);
-    }
-  });
-
-  return spotifyApiPromise;
-}
-
 export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   podcast,
   initialMode = 'audio',
   onClose,
   isDark = true,
 }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
-  const [showFullAudioModal, setShowFullAudioModal] = useState(false);
   const [isPipVideo, setIsPipVideo] = useState(false);
-  const [isSpotifyReady, setIsSpotifyReady] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const spotifyContainerRef = useRef<HTMLDivElement | null>(null);
-  const spotifyEmbedControllerRef = useRef<any>(null);
 
   const youtubeId = podcast ? extractYoutubeId(podcast.youtubeId || podcast.youtubeUrl) : '';
   const isVideo = !!youtubeId;
@@ -84,164 +35,19 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   // Spotify info extraction
   const rawSpotifyInput = podcast?.spotifyEmbedUrl || podcast?.spotifyUrl;
   const spotifyInfo = extractSpotifyInfo(rawSpotifyInput);
-  const isSpotifyPodcast = isAudio && !!(spotifyInfo?.embedUrl || podcast?.spotifyUrl || podcast?.spotifyEmbedUrl);
-  const spotifyUri = spotifyInfo?.type && spotifyInfo?.id
-    ? `spotify:${spotifyInfo.type}:${spotifyInfo.id}`
-    : podcast?.spotifyUrl || '';
-
-  // Calculate duration in seconds
-  const calculateDurationSeconds = (durStr?: string): number => {
-    if (!durStr) return 360;
-    if (durStr.includes('min') || durStr.includes('นาที')) {
-      const mins = parseInt(durStr.replace(/[^0-9]/g, ''), 10);
-      return isNaN(mins) ? 360 : mins * 60;
-    }
-    if (durStr.includes(':')) {
-      const parts = durStr.split(':').map((p) => parseInt(p.trim(), 10));
-      if (parts.length === 2) return (parts[0] || 0) * 60 + (parts[1] || 0);
-      if (parts.length === 3) return (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
-    }
-    const parsedNum = parseInt(durStr, 10);
-    if (!isNaN(parsedNum)) {
-      return parsedNum > 100 ? parsedNum : parsedNum * 60;
-    }
-    return 360;
-  };
-
-  const [durationSeconds, setDurationSeconds] = useState<number>(() => calculateDurationSeconds(podcast?.duration));
-
-  // Initialize and bind Spotify IFrame API Controller
-  useEffect(() => {
-    if (!podcast || !isSpotifyPodcast || !spotifyContainerRef.current) return;
-
-    let isMounted = true;
-    const targetElement = spotifyContainerRef.current;
-
-    getSpotifyIFrameApi()
-      .then((IFrameAPI) => {
-        if (!isMounted || !targetElement) return;
-
-        // Clear previous content if any
-        targetElement.innerHTML = '';
-        const embedMount = document.createElement('div');
-        targetElement.appendChild(embedMount);
-
-        const options = {
-          uri: spotifyUri,
-          width: '100%',
-          height: 232,
-        };
-
-        const callback = (EmbedController: any) => {
-          if (!isMounted) return;
-          spotifyEmbedControllerRef.current = EmbedController;
-          setIsSpotifyReady(true);
-
-          EmbedController.addListener('playback_update', (e: any) => {
-            if (!isMounted || !e?.data) return;
-            const { isPaused, isBuffering, position, duration } = e.data;
-
-            if (typeof isPaused === 'boolean') {
-              setIsPlaying(!isPaused);
-            }
-            if (typeof position === 'number') {
-              setCurrentTime(Math.round(position / 1000));
-            }
-            if (typeof duration === 'number' && duration > 0) {
-              setDurationSeconds(Math.round(duration / 1000));
-            }
-          });
-
-          EmbedController.addListener('ready', () => {
-            if (isMounted) {
-              setIsSpotifyReady(true);
-            }
-          });
-        };
-
-        IFrameAPI.createController(embedMount, options, callback);
-      })
-      .catch(() => {
-        setIsSpotifyReady(false);
-      });
-
-    return () => {
-      isMounted = false;
-      spotifyEmbedControllerRef.current = null;
-      if (targetElement) {
-        targetElement.innerHTML = '';
-      }
-    };
-  }, [podcast?.id, isSpotifyPodcast, spotifyUri]);
+  const spotifyEmbedUrl =
+    podcast?.spotifyEmbedUrl ||
+    spotifyInfo?.embedUrl ||
+    (podcast?.spotifyUrl
+      ? podcast.spotifyUrl.replace('open.spotify.com/', 'open.spotify.com/embed/')
+      : '');
 
   // Reset states when podcast changes
   useEffect(() => {
-    setDurationSeconds(calculateDurationSeconds(podcast?.duration));
-    setCurrentTime(0);
-    setIsPlaying(false);
     setIsPipVideo(false);
-  }, [podcast?.id, podcast?.duration]);
-
-  // Audio Playback Handlers (Seamlessly works with Spotify Controller & HTML5 Audio)
-  const handleTogglePlay = () => {
-    if (isSpotifyPodcast && spotifyEmbedControllerRef.current) {
-      try {
-        spotifyEmbedControllerRef.current.togglePlay();
-      } catch {
-        // Fallback toggle state
-        setIsPlaying((prev) => !prev);
-      }
-    } else if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      } else {
-        audioRef.current.play().catch(() => {});
-        setIsPlaying(true);
-      }
-    } else {
-      setIsPlaying((prev) => !prev);
-    }
-  };
-
-  const handleSeek = (newSeconds: number) => {
-    const clamped = Math.max(0, Math.min(durationSeconds, newSeconds));
-    setCurrentTime(clamped);
-
-    if (isSpotifyPodcast && spotifyEmbedControllerRef.current) {
-      try {
-        spotifyEmbedControllerRef.current.seek(clamped);
-      } catch {
-        // ignore
-      }
-    } else if (audioRef.current) {
-      audioRef.current.currentTime = clamped;
-    }
-  };
-
-  const handleSetSpeed = (speed: number) => {
-    setPlaybackSpeed(speed);
-    if (audioRef.current) {
-      audioRef.current.playbackRate = speed;
-    }
-  };
-
-  const handleToggleMute = () => {
-    setIsMuted((prev) => !prev);
-    if (audioRef.current) {
-      audioRef.current.muted = !isMuted;
-    }
-  };
+  }, [podcast?.id]);
 
   if (!podcast) return null;
-
-  const formatTime = (secs: number) => {
-    const m = Math.floor(secs / 60);
-    const s = Math.floor(secs % 60);
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
-  };
-
-  const progressPercent = durationSeconds > 0 ? Math.min(100, (currentTime / durationSeconds) * 100) : 0;
 
   // Origin for YouTube embed
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
@@ -386,314 +192,136 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   }
 
   // =========================================================================
-  // 🎧 2. SPOTIFY / AUDIO PODCAST PLAYER (BOTTOM BAR + DOCKED CONTROLLER MODAL)
+  // 🎧 2. SPOTIFY / AUDIO PODCAST FULL MODAL PLAYER (DIRECT ON CLICK)
   // =========================================================================
   return (
-    <>
-      {/* HTML5 Native Audio for direct MP3 audio playback */}
+    <div
+      id="spotify-audio-full-modal"
+      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fade-in"
+      onClick={onClose}
+    >
+      {/* Native MP3 Audio fallback if audioUrl is present */}
       {podcast.audioUrl && (
-        <audio
-          ref={audioRef}
-          src={podcast.audioUrl}
-          autoPlay
-          onTimeUpdate={(e) => setCurrentTime(Math.round(e.currentTarget.currentTime))}
-          onLoadedMetadata={(e) => setDurationSeconds(Math.round(e.currentTarget.duration))}
-          onEnded={() => setIsPlaying(false)}
-        />
+        <audio ref={audioRef} src={podcast.audioUrl} autoPlay />
       )}
 
-      {/* Persistent Bottom Audio Player Bar */}
       <div
-        id="spotify-bottom-player-bar"
-        className={`fixed bottom-4 left-4 right-4 max-w-4xl mx-auto z-50 rounded-2xl shadow-2xl backdrop-blur-xl border p-3 sm:p-4 transition-all duration-300 ${
-          isDark
-            ? 'bg-[#060e20]/95 border-emerald-500/40 text-[#f8fafc] shadow-emerald-950/40'
-            : 'bg-white/95 border-emerald-500/30 text-slate-900 shadow-xl shadow-emerald-500/10'
+        className={`w-full max-w-2xl rounded-3xl p-5 sm:p-7 shadow-2xl border transition-all ${
+          isDark ? 'bg-[#060e20] border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
         }`}
+        onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between gap-3">
-            {/* Episode Info & Thumbnail */}
-            <div
-              className="flex items-center gap-3 min-w-0 cursor-pointer group"
-              onClick={() => setShowFullAudioModal(true)}
-              title="คลิกเพื่อขยายหน้าจอเครื่องเล่นเต็มรูปแบบ"
-            >
-              <div className="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 shadow-md ring-2 ring-emerald-500/40 group-hover:scale-105 transition-transform bg-slate-900">
-                <img
-                  src={podcast.imageUrl}
-                  alt={podcast.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className={`absolute inset-0 bg-emerald-950/40 flex items-center justify-center transition-opacity ${isPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                  {isPlaying ? (
-                    <div className="flex items-end gap-0.5 h-4">
-                      <span className="w-1 bg-emerald-400 rounded-full animate-bounce h-3" style={{ animationDelay: '0ms' }} />
-                      <span className="w-1 bg-emerald-400 rounded-full animate-bounce h-4" style={{ animationDelay: '150ms' }} />
-                      <span className="w-1 bg-emerald-400 rounded-full animate-bounce h-2.5" style={{ animationDelay: '300ms' }} />
-                    </div>
-                  ) : (
-                    <Headphones className="w-5 h-5 text-emerald-400" />
-                  )}
-                </div>
-              </div>
-
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1">
-                    <Radio className="w-3 h-3 text-emerald-400" />
-                    Spotify Podcast
-                  </span>
-                  <span className="text-[10px] text-slate-400 truncate hidden sm:inline">
-                    • {podcast.channel || podcast.institution}
-                  </span>
-                  {isPlaying && (
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      กำลังเล่น
-                    </span>
-                  )}
-                </div>
-                <h4 className="text-sm font-bold truncate max-w-[200px] sm:max-w-xs md:max-w-md group-hover:text-emerald-400 transition-colors">
-                  {podcast.title}
-                </h4>
-              </div>
-            </div>
-
-            {/* Audio Controls (100% Synchronized with Spotify Controller) */}
-            <div className="flex items-center gap-1 sm:gap-2">
-              {/* Rewind 15s */}
-              <button
-                onClick={() => handleSeek(currentTime - 15)}
-                className="hidden sm:flex items-center justify-center relative p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
-                title="ย้อนกลับ 15 วินาที"
-              >
-                <RotateCcw className="w-4 h-4" />
-                <span className="text-[9px] font-bold absolute -bottom-0.5 text-emerald-400">15</span>
-              </button>
-
-              {/* Main Play / Pause Button (Controls Spotify & Audio) */}
-              <button
-                onClick={handleTogglePlay}
-                className="w-10 h-10 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30 transition-all hover:scale-105 active:scale-95"
-                title={isPlaying ? 'หยุดชั่วคราว (Pause)' : 'เล่นต่อ (Play)'}
-              >
-                {isPlaying ? (
-                  <Pause className="w-5 h-5 fill-current" />
-                ) : (
-                  <Play className="w-5 h-5 fill-current ml-0.5" />
-                )}
-              </button>
-
-              {/* Forward 15s */}
-              <button
-                onClick={() => handleSeek(currentTime + 15)}
-                className="hidden sm:flex items-center justify-center relative p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
-                title="ข้ามไปข้างหน้า 15 วินาที"
-              >
-                <RotateCw className="w-4 h-4" />
-                <span className="text-[9px] font-bold absolute -bottom-0.5 text-emerald-400">15</span>
-              </button>
-
-              {/* Expand Full Player Modal */}
-              <button
-                onClick={() => setShowFullAudioModal(true)}
-                className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
-                title="ขยายเครื่องเล่นเสียงเต็มจอ (Expand Full Player)"
-              >
-                <Maximize2 className="w-4 h-4" />
-              </button>
-
-              {/* Close Player */}
-              <button
-                onClick={onClose}
-                className="p-2 rounded-full hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors"
-                title="ปิดเครื่องเล่น (Close)"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+        {/* Modal Header */}
+        <div className="flex justify-between items-center gap-3 mb-5 pb-4 border-b border-slate-700/50">
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold shadow-sm">
+              <Radio className="w-4 h-4 text-emerald-400" />
+              <span>Spotify Audio Podcast</span>
+            </span>
+            <span className="text-xs text-slate-400 hidden sm:inline">เสียงระดับสตูดิโอ</span>
           </div>
 
-          {/* Timeline Scrubber */}
-          <div className="w-full flex items-center gap-2.5 pt-1">
-            <span className="text-[11px] text-slate-400 font-mono min-w-[34px]">
-              {formatTime(currentTime)}
-            </span>
-            <div className="relative flex-grow flex items-center">
-              <input
-                type="range"
-                min="0"
-                max={durationSeconds || 1}
-                value={currentTime}
-                onChange={(e) => handleSeek(Number(e.target.value))}
-                className="w-full h-1.5 bg-slate-700/60 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-              />
-            </div>
-            <span className="text-[11px] text-slate-400 font-mono min-w-[34px] text-right">
-              {formatTime(durationSeconds)}
-            </span>
+          <div className="flex items-center gap-2">
+            {podcast.spotifyUrl && (
+              <a
+                href={podcast.spotifyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/40 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
+                title="Open in Spotify"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>เปิดใน Spotify</span>
+              </a>
+            )}
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+              title="ปิดเครื่องเล่น (Close)"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* 
-        Persistent Spotify Embed Host Container
-        Kept in the DOM so that audio does not cut off when toggling between minimized bottom bar and expanded modal!
-      */}
-      <div
-        className={
-          showFullAudioModal
-            ? 'fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fade-in'
-            : 'fixed -left-[9999px] -top-[9999px] w-[1px] h-[1px] opacity-0 pointer-events-none'
-        }
-        onClick={() => setShowFullAudioModal(false)}
-      >
-        <div
-          className={`w-full max-w-2xl rounded-3xl p-6 sm:p-8 shadow-2xl border transition-all ${
-            isDark ? 'bg-[#060e20] border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
-          }`}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Modal Header */}
-          <div className="flex justify-between items-center gap-3 mb-5 pb-4 border-b border-slate-700/50">
-            <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold shadow-sm">
-                <Radio className="w-4 h-4 text-emerald-400" />
-                <span>Spotify Audio Podcast</span>
-              </span>
-              <span className="text-xs text-slate-400 hidden sm:inline">เสียงระดับสตูดิโอ</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {podcast.spotifyUrl && (
-                <a
-                  href={podcast.spotifyUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3.5 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/40 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
-                  title="Open in Spotify"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>เปิดใน Spotify</span>
-                </a>
-              )}
-              <button
-                onClick={() => setShowFullAudioModal(false)}
-                className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
-                title="ย่อลงแถบด้านล่าง"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+        {/* Spotify Official Player Embed Frame */}
+        {spotifyEmbedUrl ? (
+          <div className="mb-5 rounded-2xl overflow-hidden shadow-2xl border border-emerald-500/30 bg-black/80 p-1.5">
+            <iframe
+              title={`Spotify Player - ${podcast.title}`}
+              src={spotifyEmbedUrl}
+              width="100%"
+              height="232"
+              frameBorder="0"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy"
+              className="w-full rounded-xl"
+            />
           </div>
-
-          {/* Spotify Official Player Embed Frame (Controlled & Live-Synced) */}
-          <div className="mb-5 rounded-2xl overflow-hidden shadow-2xl border border-emerald-500/30 bg-black/80 p-2 relative">
-            <div ref={spotifyContainerRef} className="w-full min-h-[232px]" />
-
-            {/* Sync Badge */}
-            <div className="mt-2 px-3 py-1.5 bg-emerald-950/60 rounded-xl border border-emerald-500/20 flex items-center justify-between text-xs text-emerald-300">
-              <span className="flex items-center gap-1.5">
-                <span className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-emerald-400 animate-ping' : 'bg-slate-500'}`} />
-                <span>{isPlaying ? 'ระบบกำลังเล่นเสียงพอดแคสต์ (ซิงค์ปุ่มควบคุมแล้ว)' : 'กดปุ่ม Play ด้านล่างหรือบน Spotify เพื่อฟังเสียง'}</span>
-              </span>
-              <span className="text-[11px] font-mono text-emerald-400/80">
-                {formatTime(currentTime)} / {formatTime(durationSeconds)}
-              </span>
+        ) : (
+          /* Custom Cover View if no spotifyEmbedUrl */
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col items-center justify-center p-8 mb-5 bg-slate-900/60">
+            <div className="relative w-32 h-32 rounded-2xl overflow-hidden shadow-2xl ring-4 ring-emerald-500/30 mb-3">
+              <img
+                src={podcast.imageUrl}
+                alt={podcast.title}
+                className="w-full h-full object-cover"
+              />
             </div>
+            <p className="text-sm font-semibold text-emerald-400 flex items-center gap-2">
+              <Headphones className="w-4 h-4" />
+              <span>เครื่องเล่นพอดแคสต์เสียง</span>
+            </p>
           </div>
+        )}
 
-          {/* Episode Title & Description */}
-          <div className="flex flex-col gap-2 mb-5">
+        {/* Episode Title & Details */}
+        <div className="flex flex-col gap-2 mb-4">
+          <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
-              {podcast.category} • {podcast.institution || podcast.channel}
+              {podcast.category}
             </span>
-            <h3 className="text-lg sm:text-xl font-bold leading-snug">
-              {podcast.title}
-            </h3>
-            {podcast.description && (
-              <p className="text-xs sm:text-sm text-slate-300 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 leading-relaxed max-h-28 overflow-y-auto">
-                {podcast.description}
-              </p>
+            <span className="text-xs text-slate-400">•</span>
+            <span className="text-xs text-slate-300 font-medium">
+              {podcast.institution || podcast.channel}
+            </span>
+            {podcast.duration && (
+              <>
+                <span className="text-xs text-slate-400">•</span>
+                <span className="text-xs text-slate-400 font-mono">
+                  {podcast.duration}
+                </span>
+              </>
             )}
           </div>
 
-          {/* Interactive Synchronized Timeline Scrubber */}
-          <div className="bg-slate-900/70 p-4 rounded-2xl border border-slate-800 mb-5">
-            <div className="flex justify-between text-xs text-slate-400 font-mono mb-2">
-              <span className="text-emerald-400 font-semibold">{formatTime(currentTime)}</span>
-              <span>{formatTime(durationSeconds)}</span>
-            </div>
-            <div className="relative flex items-center">
-              <input
-                type="range"
-                min="0"
-                max={durationSeconds || 1}
-                value={currentTime}
-                onChange={(e) => handleSeek(Number(e.target.value))}
-                className="w-full h-2 bg-slate-700/60 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-              />
-            </div>
-          </div>
+          <h3 className="text-lg sm:text-xl font-bold leading-snug text-slate-100">
+            {podcast.title}
+          </h3>
 
-          {/* Synchronized Play Controls (Rewind 15s, Play/Pause, Forward 15s) */}
-          <div className="flex items-center justify-between gap-4">
-            {/* Speed selection indicator */}
-            <div className="flex items-center gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
-              {[0.75, 1, 1.25, 1.5, 2].map((spd) => (
-                <button
-                  key={spd}
-                  onClick={() => handleSetSpeed(spd)}
-                  className={`text-xs px-2.5 py-1 rounded-lg font-semibold transition-all ${
-                    playbackSpeed === spd
-                      ? 'bg-emerald-600 text-white shadow-md'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {spd}x
-                </button>
-              ))}
-            </div>
+          {podcast.description && (
+            <p className="text-xs sm:text-sm text-slate-300 bg-slate-900/70 p-4 rounded-2xl border border-slate-800/80 leading-relaxed max-h-36 overflow-y-auto">
+              {podcast.description}
+            </p>
+          )}
+        </div>
 
-            {/* Main Synced Play Controls */}
-            <div className="flex items-center gap-3">
-              {/* Rewind 15s */}
-              <button
-                onClick={() => handleSeek(currentTime - 15)}
-                className="p-3 rounded-full hover:bg-white/10 text-slate-300 hover:text-white transition-colors relative flex items-center justify-center group"
-                title="ย้อนหลัง 15 วินาที"
-              >
-                <RotateCcw className="w-6 h-6 group-hover:text-emerald-400 transition-colors" />
-                <span className="text-[10px] font-bold absolute -bottom-0.5 text-emerald-400">15</span>
-              </button>
+        {/* Footer info & Spotify action */}
+        <div className="flex items-center justify-between pt-3 border-t border-slate-800 text-xs text-slate-400">
+          <span className="flex items-center gap-1.5 text-emerald-400/90 font-medium">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>กดปุ่ม Play บนกล่อง Spotify ด้านบนเพื่อเริ่มฟังได้ทันที</span>
+          </span>
 
-              {/* Big Synced Play Button */}
-              <button
-                onClick={handleTogglePlay}
-                className="w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center shadow-xl shadow-emerald-500/30 hover:scale-105 active:scale-95 transition-all"
-                title={isPlaying ? 'หยุดชั่วคราว (Pause Spotify)' : 'เล่นต่อ (Play Spotify)'}
-              >
-                {isPlaying ? (
-                  <Pause className="w-7 h-7 fill-current" />
-                ) : (
-                  <Play className="w-7 h-7 fill-current ml-1" />
-                )}
-              </button>
-
-              {/* Forward 15s */}
-              <button
-                onClick={() => handleSeek(currentTime + 15)}
-                className="p-3 rounded-full hover:bg-white/10 text-slate-300 hover:text-white transition-colors relative flex items-center justify-center group"
-                title="ข้ามไปข้างหน้า 15 วินาที"
-              >
-                <RotateCw className="w-6 h-6 group-hover:text-emerald-400 transition-colors" />
-                <span className="text-[10px] font-bold absolute -bottom-0.5 text-emerald-400">15</span>
-              </button>
-            </div>
-          </div>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-semibold transition-colors"
+          >
+            ปิดหน้าต่าง
+          </button>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
