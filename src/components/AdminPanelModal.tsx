@@ -372,12 +372,12 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                   </span>
                 </div>
 
-                <h3 className="text-xl font-bold text-white mb-1.5">
+                <h3 className="text-xl font-bold text-white mb-2 tracking-tight">
                   ยืนยันสิทธิ์ผู้ดูแลระบบ (Admin Access)
                 </h3>
-                <p className="text-xs text-slate-400 mb-6 leading-relaxed">
-                  ระบบได้รับการป้องกันเพื่อความปลอดภัย กรุณาป้อนรหัสผ่าน Admin <p> เพื่อแก้ไขหรือจัดการรายการพอดแคสต์
-                </p></p>
+                <p className="text-xs text-slate-400 mb-6 leading-relaxed max-w-xs">
+                  ระบบได้รับการป้องกันเพื่อความปลอดภัย กรุณาป้อนรหัสผ่าน Admin เพื่อแก้ไขหรือจัดการรายการพอดแคสต์
+                </p>
 
                 {/* Password Form */}
                 <form onSubmit={handleUnlock} className="w-full flex flex-col gap-4">

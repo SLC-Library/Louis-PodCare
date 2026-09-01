@@ -385,25 +385,27 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
                         </div>
                       </div>
 
-                      <div className="p-5 flex flex-col flex-grow gap-2">
-                        <h3
-                          onClick={() => onPlayEpisode(card)}
-                          className="text-[19px] font-bold leading-[26px] text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 cursor-pointer"
-                        >
-                          {card.title}
-                        </h3>
+                      <div className="p-5 flex flex-col flex-grow justify-between gap-3">
+                        <div className="flex flex-col gap-2">
+                          <h3
+                            onClick={() => onPlayEpisode(card)}
+                            className="text-[17px] sm:text-[18px] font-bold leading-[25px] text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 cursor-pointer tracking-tight"
+                          >
+                            {card.title}
+                          </h3>
 
-                        {card.description && (
-                          <p className="text-[14px] text-slate-600 line-clamp-2 mt-1">
-                            {card.description}
-                          </p>
-                        )}
+                          {card.description && (
+                            <p className="text-[13.5px] leading-[22px] text-slate-600 line-clamp-2">
+                              {card.description}
+                            </p>
+                          )}
+                        </div>
 
                         {/* Single Action Button */}
-                        <div className="mt-2">
+                        <div className="pt-1">
                           <button
                             onClick={() => onPlayEpisode(card)}
-                            className={`w-full py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all border ${
+                            className={`w-full py-2.5 px-3.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all border ${
                               isAudio
                                 ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
                                 : 'bg-red-50 hover:bg-red-100 text-red-700 border-red-200'
@@ -416,12 +418,12 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
                           </button>
                         </div>
 
-                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-100">
+                        <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
                           <div className="flex items-center gap-2 text-slate-600 text-[13px] font-medium">
                             <span className="material-symbols-outlined text-[16px] text-blue-600">
                               {card.institutionIcon}
                             </span>
-                            <span className="text-slate-700 font-medium">{card.category}</span>
+                            <span className="text-slate-700 font-medium text-xs">{card.category}</span>
                           </div>
                           <button
                             aria-label={`Remove ${card.title} from library`}
@@ -699,25 +701,27 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
                         </div>
                       </div>
 
-                      <div className="p-5 flex flex-col flex-grow gap-2">
-                        <h3
-                          onClick={() => onPlayEpisode(card)}
-                          className="text-[20px] font-bold leading-[28px] text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 cursor-pointer"
-                        >
-                          {card.title}
-                        </h3>
+                      <div className="p-5 flex flex-col flex-grow justify-between gap-3">
+                        <div className="flex flex-col gap-2">
+                          <h3
+                            onClick={() => onPlayEpisode(card)}
+                            className="text-[17px] sm:text-[18px] font-bold leading-[25px] text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 cursor-pointer tracking-tight"
+                          >
+                            {card.title}
+                          </h3>
 
-                        {card.description && (
-                          <p className="text-[14px] text-slate-600 line-clamp-2 mt-1">
-                            {card.description}
-                          </p>
-                        )}
+                          {card.description && (
+                            <p className="text-[13.5px] leading-[22px] text-slate-600 line-clamp-2">
+                              {card.description}
+                            </p>
+                          )}
+                        </div>
 
                         {/* Single Clear Action Button */}
-                        <div className="mt-2">
+                        <div className="pt-1">
                           <button
                             onClick={() => onPlayEpisode(card)}
-                            className={`w-full py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all border ${
+                            className={`w-full py-2.5 px-3.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all border ${
                               isAudio
                                 ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
                                 : 'bg-red-50 hover:bg-red-100 text-red-700 border-red-200'
@@ -730,12 +734,12 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
                           </button>
                         </div>
 
-                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-100">
+                        <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
                           <div className="flex items-center gap-2 text-slate-600 text-[13px] font-medium">
                             <span className="material-symbols-outlined text-[16px] text-blue-600">
                               {card.institutionIcon}
                             </span>
-                            <span className="text-slate-700 font-medium">{card.category}</span>
+                            <span className="text-slate-700 font-medium text-xs">{card.category}</span>
                           </div>
                           <button
                             aria-label={`Bookmark ${card.title}`}

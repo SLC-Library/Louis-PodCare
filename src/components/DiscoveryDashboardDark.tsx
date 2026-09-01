@@ -385,28 +385,30 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                         </div>
                       </div>
 
-                      <div className="p-5 flex flex-col flex-grow gap-2">
-                        <h3
-                          onClick={() => onPlayEpisode(card)}
-                          className="text-[19px] font-bold leading-[26px] text-[#f8fafc] group-hover:text-[#3b82f6] transition-colors line-clamp-2 cursor-pointer"
-                        >
-                          {card.title}
-                        </h3>
+                      <div className="p-5 flex flex-col flex-grow justify-between gap-3">
+                        <div className="flex flex-col gap-2">
+                          <h3
+                            onClick={() => onPlayEpisode(card)}
+                            className="text-[17px] sm:text-[18px] font-bold leading-[25px] text-[#f8fafc] group-hover:text-[#3b82f6] transition-colors line-clamp-2 cursor-pointer tracking-tight"
+                          >
+                            {card.title}
+                          </h3>
 
-                        {card.description && (
-                          <p className="text-[14px] text-[#cbd5e1] line-clamp-2 mt-1">
-                            {card.description}
-                          </p>
-                        )}
+                          {card.description && (
+                            <p className="text-[13.5px] leading-[22px] text-[#94a3b8] line-clamp-2">
+                              {card.description}
+                            </p>
+                          )}
+                        </div>
 
                         {/* Dedicated Media Action Button */}
-                        <div className="mt-2">
+                        <div className="pt-1">
                           <button
                             onClick={() => onPlayEpisode(card)}
-                            className={`w-full py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all border ${
+                            className={`w-full py-2.5 px-3.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all border ${
                               isAudio
-                                ? 'bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-400 border-emerald-500/30'
-                                : 'bg-red-500/10 hover:bg-red-500/25 text-red-400 border-red-500/30'
+                                ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                : 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/30'
                             }`}
                           >
                             <span className="material-symbols-outlined text-[18px]">
@@ -416,12 +418,12 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                           </button>
                         </div>
 
-                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#334155]">
+                        <div className="flex items-center justify-between pt-3 border-t border-[#334155]/60 mt-auto">
                           <div className="flex items-center gap-2 text-[#94a3b8] text-[13px] font-medium">
                             <span className="material-symbols-outlined text-[16px] text-blue-400">
                               {card.institutionIcon}
                             </span>
-                            <span className="text-slate-300 font-medium">{card.category}</span>
+                            <span className="text-slate-300 font-medium text-xs">{card.category}</span>
                           </div>
                           <button
                             aria-label={`Remove ${card.title} from library`}
@@ -699,28 +701,30 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                         </div>
                       </div>
 
-                      <div className="p-5 flex flex-col flex-grow gap-2">
-                        <h3
-                          onClick={() => onPlayEpisode(card)}
-                          className="text-[20px] font-bold leading-[28px] text-[#f8fafc] group-hover:text-[#3b82f6] transition-colors line-clamp-2 cursor-pointer"
-                        >
-                          {card.title}
-                        </h3>
+                      <div className="p-5 flex flex-col flex-grow justify-between gap-3">
+                        <div className="flex flex-col gap-2">
+                          <h3
+                            onClick={() => onPlayEpisode(card)}
+                            className="text-[17px] sm:text-[18px] font-bold leading-[25px] text-[#f8fafc] group-hover:text-[#3b82f6] transition-colors line-clamp-2 cursor-pointer tracking-tight"
+                          >
+                            {card.title}
+                          </h3>
 
-                        {card.description && (
-                          <p className="text-[14px] text-[#cbd5e1] line-clamp-2 mt-1">
-                            {card.description}
-                          </p>
-                        )}
+                          {card.description && (
+                            <p className="text-[13.5px] leading-[22px] text-[#94a3b8] line-clamp-2">
+                              {card.description}
+                            </p>
+                          )}
+                        </div>
 
                         {/* Single Clear Action Button */}
-                        <div className="mt-2">
+                        <div className="pt-1">
                           <button
                             onClick={() => onPlayEpisode(card)}
-                            className={`w-full py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all border ${
+                            className={`w-full py-2.5 px-3.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all border ${
                               isAudio
-                                ? 'bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-400 border-emerald-500/30'
-                                : 'bg-red-500/10 hover:bg-red-500/25 text-red-400 border-red-500/30'
+                                ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                : 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/30'
                             }`}
                           >
                             <span className="material-symbols-outlined text-[18px]">
@@ -730,12 +734,12 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                           </button>
                         </div>
 
-                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#334155]">
+                        <div className="flex items-center justify-between pt-3 border-t border-[#334155]/60 mt-auto">
                           <div className="flex items-center gap-2 text-[#94a3b8] text-[13px] font-medium">
                             <span className="material-symbols-outlined text-[16px] text-blue-400">
                               {card.institutionIcon}
                             </span>
-                            <span className="text-slate-300 font-medium">{card.category}</span>
+                            <span className="text-slate-300 font-medium text-xs">{card.category}</span>
                           </div>
                           <button
                             aria-label={`Bookmark ${card.title}`}
