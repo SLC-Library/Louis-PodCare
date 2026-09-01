@@ -17,6 +17,55 @@ export function extractYoutubeId(urlOrId?: string): string {
 }
 
 /**
+ * Utility helper to extract Spotify Embed URL, Type, and ID from any format:
+ * - Standard Web URL: https://open.spotify.com/episode/5wXPC18ZP8Ztn5VZ1XOghv
+ * - Embed URL: https://open.spotify.com/embed/episode/5wXPC18ZP8Ztn5VZ1XOghv
+ * - Full <iframe> Code: <iframe src="https://open.spotify.com/embed/episode/5wXPC18ZP8Ztn5VZ1XOghv..." ...></iframe>
+ * - Spotify URI: spotify:episode:5wXPC18ZP8Ztn5VZ1XOghv
+ */
+export function extractSpotifyInfo(input?: string): {
+  type?: 'episode' | 'show' | 'track' | 'playlist';
+  id?: string;
+  embedUrl?: string;
+  webUrl?: string;
+} | null {
+  if (!input) return null;
+  const raw = input.trim();
+
+  // If iframe code, extract src attribute
+  let target = raw;
+  const srcMatch = raw.match(/src=["']([^"']+)["']/i);
+  if (srcMatch && srcMatch[1]) {
+    target = srcMatch[1];
+  }
+
+  // Regex matching episode, show, track, playlist
+  const match = target.match(
+    /(?:open\.spotify\.com\/(?:embed\/)?|spotify:)(episode|show|track|playlist)[/:]([a-zA-Z0-9]+)/i
+  );
+
+  if (match && match[1] && match[2]) {
+    const type = match[1].toLowerCase() as 'episode' | 'show' | 'track' | 'playlist';
+    const id = match[2];
+    return {
+      type,
+      id,
+      embedUrl: `https://open.spotify.com/embed/${type}/${id}?utm_source=generator`,
+      webUrl: `https://open.spotify.com/${type}/${id}`,
+    };
+  }
+
+  // If it's a genre or general spotify url
+  if (target.includes('spotify.com')) {
+    return {
+      webUrl: target,
+    };
+  }
+
+  return null;
+}
+
+/**
  * Auto-select an appropriate Material Symbol icon based on the category name
  */
 export function getCategoryIcon(category?: string): string {
@@ -43,6 +92,12 @@ export function createPodcast(item: PodcastItem): PodcastItem {
   const category = item.category || 'Medical Tech';
   const channel = item.institution || item.channel || 'SLC Medical';
   
+  // Extract Spotify Information if available
+  const rawSpotify = item.spotifyEmbedUrl || item.spotifyUrl;
+  const spotifyInfo = extractSpotifyInfo(rawSpotify);
+  const spotifyEmbedUrl = item.spotifyEmbedUrl || spotifyInfo?.embedUrl;
+  const spotifyUrl = item.spotifyUrl || spotifyInfo?.webUrl || rawSpotify;
+
   // Auto YouTube thumbnail if not provided
   const imageUrl =
     item.imageUrl ||
@@ -50,7 +105,11 @@ export function createPodcast(item: PodcastItem): PodcastItem {
 
   const id =
     item.id ||
-    (ytId ? `yt-${ytId}` : title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+    (ytId
+      ? `yt-${ytId}`
+      : spotifyInfo?.id
+      ? `spotify-${spotifyInfo.id}`
+      : title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
 
   return {
     ...item,
@@ -67,6 +126,8 @@ export function createPodcast(item: PodcastItem): PodcastItem {
     imageAlt: item.imageAlt || title,
     youtubeId: ytId,
     youtubeUrl: item.youtubeUrl || (ytId ? `https://www.youtube.com/watch?v=${ytId}` : undefined),
+    spotifyUrl,
+    spotifyEmbedUrl,
     description:
       item.description ||
       `Watch and listen to "${title}" curated by ${channel}. Available in high-definition video and audio streaming modes.`,
@@ -90,6 +151,7 @@ export const FEATURED_PODCAST = createPodcast({
   channel: 'LifeDot',
   description: 'มาทำความเข้าใจกับ “พีระมิดแห่งความสุข” โดย “หมอกลาง นพ.ณัฐณกัณฑ์ พิชยะวงศ์ภัค” (ว. 44236) หรือ “พี่กลาง หอสมุดแห่งชาติ” ที่หลาย ๆ คนรู้จัก',
   duration: '35:53',
+  date: 'Nov 24, 2025',
 });
 
 // ==========================================
@@ -97,12 +159,62 @@ export const FEATURED_PODCAST = createPodcast({
 // ==========================================
 export const PODCAST_CARDS: PodcastItem[] = [
   createPodcast({
+    id: 'spotify-ep-5wXPC18ZP8Ztn5VZ1XOghv',
+    title: 'สุขภาพ & วิทยาศาสตร์การแพทย์ยุคใหม่ | Spotify Health Special',
+    category: 'Nutrition & Diet',
+    channel: 'Spotify Health Medical',
+    description: 'พอดแคสต์คุณภาพเสียงระดับสตูดิโอ พร้อม Embed Player ของ Spotify อย่างเป็นทางการ สามารถเล่นเสียง พัก และปรับความเร็วได้ลื่นไหล',
+    duration: '22:15',
+    date: 'MAR 2026',
+    imageUrl: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80',
+    spotifyUrl: 'https://open.spotify.com/episode/5wXPC18ZP8Ztn5VZ1XOghv',
+    spotifyEmbedUrl: 'https://open.spotify.com/embed/episode/5wXPC18ZP8Ztn5VZ1XOghv?utm_source=generator',
+    audioUrl: 'https://actions.google.com/sounds/v1/ambiences/rain_heavy.ogg',
+  }),
+  createPodcast({
+    id: 'spotify-longevity-sleep-health',
+    title: 'เจาะลึกศาสตร์แห่งการนอนหลับ & ชะลอวัยระดับเซลล์ (Sleep Science & Longevity) | Spotify Health',
+    category: 'Nutrition & Diet',
+    channel: 'Spotify Health & Wellness',
+    description: 'พอดแคสต์ระบบเสียงคมชัด (Spotify Audio Podcast) ว่าด้วยกลไก Circadian Rhythm การหลั่งเมลาโทนิน และโภชนาการฟื้นฟูเซลล์สมองขณะหลับ ฟังลื่นไหล ไม่มีโฆษณาวิดีโอคั่น',
+    duration: '28:40',
+    date: 'MAR 2026',
+    imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80',
+    audioUrl: 'https://actions.google.com/sounds/v1/ambiences/rain_heavy.ogg',
+    spotifyUrl: 'https://open.spotify.com/genre/wellness',
+  }),
+  createPodcast({
+    id: 'spotify-gut-microbiome-brain',
+    title: 'Gut-Brain Axis: ลำไส้คือสมองที่สอง จุลินทรีย์กำหนดอารมณ์และภูมิคุ้มกัน | Spotify Medicine',
+    category: 'Nutrition & Diet',
+    channel: 'The Medical Audio Hub (Spotify)',
+    description: 'ฟังเสียงล้วนคุณภาพสูง (Spotify Podcast) ค้นพบผลงานวิจัยความเชื่อมโยงของ Gut Microbiome กับระบบประสาท Vagus Nerve และการผลิต Serotonin ในทางเดินอาหาร',
+    duration: '24:15',
+    date: 'FEB 2026',
+    imageUrl: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80',
+    audioUrl: 'https://actions.google.com/sounds/v1/ambiences/wind_subtle.ogg',
+    spotifyUrl: 'https://open.spotify.com/genre/podcast-charts',
+  }),
+  createPodcast({
+    id: 'spotify-mindfulness-vagus-nerve',
+    title: 'เทคนิคกระตุ้น Vagus Nerve และฝึกสติลดคอร์ติซอล (Mindfulness & Stress Relief) | Spotify Audio',
+    category: 'Psychology',
+    channel: 'Mindful SLC Medical Audio',
+    description: 'แบบฝึกหัดเสียงเพื่อการผ่อนคลายกล้ามเนื้อและระบบประสาทอัตโนมัติ (Parasympathetic Activation) เหมาะสำหรับฟังพักผ่อนหรือก่อนนอน ไม่มีโฆษณากวนใจ',
+    duration: '18:50',
+    date: 'JAN 2026',
+    imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80',
+    audioUrl: 'https://actions.google.com/sounds/v1/ambiences/river_slow.ogg',
+    spotifyUrl: 'https://open.spotify.com/genre/wellness',
+  }),
+  createPodcast({
     youtubeUrl: 'https://www.youtube.com/watch?v=7geqNRcIpEI&t=713s',
     title: 'งดแป้ง งดน้ำตาล อาจทำให้สุขภาพพัง! เป็นมะเร็ง โรคไต ห้ามกินอะไรบ้าง I Doctor’s Talk EP.33',
     category: 'Nutrition & Diet',
     channel: 'Zerosick',
     description: 'Doctor’s Talk คือ Podcast ที่หมอและผู้เชี่ยวชาญทางด้านสุขภาพจะมาพูดคุยประเด็นสุขภาพต่างๆ ใน EP นี้ หมอจิมมี่ นพ. สุทธิพจน์ ภัทรมงคลกาล (ว.55103) และ พญ.วีรนุช โรจน์ยินดีเลิศ (ว.34250) อายุรแพทย์ชำนาญการด้านโภชนศาสตร์คลินิก จะมาให้ความรู้เกี่ยวกับความเชื่อที่หลายคนเข้าใจผิด กินคลีน กินน้ำมันมะพร้าว งดแป้ง งดน้ำตาล สุขภาพอาจพังไม่รู้ตัว เพราะจริงๆ แล้ว น้ำตาลดีต่อสุขภาพ ถ้าอยากแข็งแรง ไม่เสี่ยงมะเร็งต้องกินอะไร หรือถ้าเป็นมะเร็ง โรคไต ห้ามกินอะไรบ้าง EP นี้ ห้ามพลาด!',
     duration: '47:37',
+    date: 'AUG 14, 2025',
   }),
   createPodcast({
     youtubeUrl: 'https://www.youtube.com/watch?v=PlJLsNmxyxY&t=4663s',
@@ -111,6 +223,7 @@ export const PODCAST_CARDS: PodcastItem[] = [
     channel: 'THE SECRET SAUCE',
     description: 'Health is the New Wealth เอพิโสดนี้ ชวนหมอโอ๊ค-สมิทธิ์ อารยะสกุล มาอัปเดตเทรนด์การแพทย์เพื่อสุขภาพฉบับล่าสุดที่ส่งตรงจากฮาร์วาร์ด ‘Lifestyle Medicine’ 6 กฎการเปลี่ยนพฤติกรรม สร้างวิถีชีวิตใหม่ที่จะเปลี่ยนชีวิตให้ดีขึ้นตลอดกาล',
     duration: '1:31:59',
+    date: 'JUN 9, 2024',
   }),
   createPodcast({
     youtubeUrl: 'https://www.youtube.com/watch?v=zlbDZPwpgBA',
@@ -119,15 +232,44 @@ export const PODCAST_CARDS: PodcastItem[] = [
     channel: 'Peanut Butter',
     description: 'Mental Health กับการที่เราต้องเจอ 1 วัน 1000 Situation 😂 ทั้งใจดีหรือใจร้ายหลากหลายเรื่องราวผสมกันไป เลยอยากมาออกกำลังทางใจเพื่อลดแรงปะทะค่ะ (ส่วนเราก็ไม่ได้เป็นคนใจ Tough ขนาดนั้น เป็นผู้หญิงใจบอบบางเหมือนกัน) จะฝึกไปด้วยกันนี้แหล่ะฮึบๆๆ',
     duration: '16:53',
+    date: 'OCT 26, 2024',
   }),
   createPodcast({
-    createPodcast({
-  title: 'เราเป็นคนสะสมความเศร้าอยู่หรือเปล่า?',
-  category: 'Psychology',
-  channel: 'alljit สุขภาพจิตใจ',
-  duration: '23:57',
-  spotifyUrl: 'https://open.spotify.com/episode/5wXPC18ZP8Ztn5VZ1XOghv',
+    id: 'patient-handoff-protocols',
+    title: 'Optimizing Patient Handoff Protocols in Critical Care',
+    category: 'Nursing',
+    institution: 'Johns Hopkins',
+    duration: '08:15',
+    imageUrl:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuBRovgBeCx59I1z68jVtE6P-YBO1DCrCYtA13y7z7NhbdCrDWCNKxIvlWF4kenk-daDrK7h3DttO0__UUyvRRqDMh32rw0boxarDA8uEPCateB6ukg_A9c2nAHfHh_Le_RihIIDyKu18UJEQhOvZ3W1Jv2Ep92mCCzgfdesK_Tm9ZtXpNRcHBNXcYvvgu9sHUwecydDTXiVaHmG-HlP5Wyr9HCebJqlq35XuHLhj-fozOPw1XJmrXv-',
+    description: 'Standardized communication checklists that prevent diagnostic errors during emergency shift transitions.',
+    youtubeId: 'v4E5oE1fF3M',
   }),
+  createPodcast({
+    id: 'immunotherapy-review',
+    title: 'Targeted Immunotherapy: A Year in Review',
+    category: 'Research',
+    institution: 'Nature Medicine',
+    duration: '55:00',
+    description:
+      'A comprehensive panel discussion with leading oncologists on the efficacy of recent CAR-T and checkpoint inhibitor trials.',
+    imageUrl:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuB14NYz1oy7tUkjwU36q-U1nIlqVUcURgJdRRI7njfTXM46g-Rrf9rVUCKXS-t4Praq1ZTX86zmkST_z0F3qde2zUFVvFemLEIVZgSSNZ1PcmCwE7zZj2qY6dmkvKkA3gpa2HgfgMMpQel9JUwtIaz78b4pQwXuT7MAb20o6jdD2w8cB7N_W1O3AlTC_Ekapp7o_px5NAk-at5JHIHaMsw0qp7j-is646grg3b7Tt0DXIaDUGAKtuKK',
+    span2: true,
+    youtubeId: 'Ub_o06bQ8gE',
+  }),
+  createPodcast({
+    id: 'arrhythmia-detection',
+    title: 'Wearable Tech in Arrhythmia Detection & Prevention',
+    category: 'Cardiology',
+    institution: 'Cleveland Clinic',
+    duration: '22:15',
+    imageUrl:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuBAwpg57QloUdbhWVwdpOhswYuswt6zq-3Ts5eWD5VJV2Ia9y_HC-IJD2jGTbCFSXlamRSUBUFlwLMEpbbPo6dull6wKLIqV2FkdBYfl-l5hYqHniM1LW1qNquWZL9OKQBACVj8i3pD_WTAIFUw7hUyGrI8D0J7ucEJLLqgVORhIKvReqKbZueGjY9Xjlpkk517VnIttQttibrM8QKNxkuBTW8HO4ZpRlc12C1i_TO9lX657aZqBZod',
+    description: 'Continuous smartwatch ECG monitoring and its impact on early atrial fibrillation diagnosis in outpatient care.',
+    youtubeId: 'e8v3m32eMko',
+  }),
+];
 
 // ==========================================
 // ➕ 3. รายการวิดีโอเพิ่มเติม (กด Load More)

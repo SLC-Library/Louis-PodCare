@@ -436,49 +436,68 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
               </div>
             </div>
 
-            {/* Audio Album Artwork & Sound Waves */}
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col items-center justify-center p-8 mb-6">
-              <img
-                src={podcast.imageUrl}
-                alt={podcast.title}
-                className="absolute inset-0 w-full h-full object-cover filter blur-md scale-110 opacity-25"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#060e20] via-black/60 to-transparent" />
-
-              <div className="relative z-10 flex flex-col items-center gap-4 text-center">
-                <div className="relative w-36 h-36 rounded-2xl overflow-hidden shadow-2xl ring-4 ring-emerald-500/30">
-                  <img
-                    src={podcast.imageUrl}
-                    alt={podcast.title}
-                    className="w-full h-full object-cover"
-                  />
-                  {isPlaying && (
-                    <div className="absolute inset-0 bg-emerald-950/40 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-emerald-400 text-4xl animate-pulse">
-                        graphic_eq
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Animated Equalizer Waveform */}
-                <div className="flex items-end gap-1.5 h-10 mt-2">
-                  {[16, 32, 22, 38, 26, 14, 30, 36, 18, 28, 12, 24, 34, 20].map((h, i) => (
-                    <div
-                      key={i}
-                      className="w-1.5 rounded-full bg-emerald-400 transition-all duration-200 shadow-sm shadow-emerald-500/50"
-                      style={{
-                        height: isPlaying ? `${(h * (1 + (i % 3) * 0.2)) % 36 + 6}px` : '4px',
-                        opacity: isPlaying ? 0.95 : 0.4,
-                      }}
-                    />
-                  ))}
-                </div>
-                <span className="text-xs font-medium text-emerald-300">
-                  {isPlaying ? 'กำลังเล่นพอดแคสต์เสียงคมชัด...' : 'แตะปุ่มเพื่อเล่นเสียง'}
-                </span>
+            {/* Spotify Official Embed Player OR Custom Studio Waveform */}
+            {podcast.spotifyEmbedUrl ? (
+              <div className="mb-6 rounded-2xl overflow-hidden shadow-2xl border border-emerald-500/30 bg-black/60 p-2">
+                <iframe
+                  title={`Spotify Player - ${podcast.title}`}
+                  data-testid="embed-iframe"
+                  style={{ borderRadius: '14px' }}
+                  src={podcast.spotifyEmbedUrl}
+                  width="100%"
+                  height="232"
+                  frameBorder="0"
+                  allowFullScreen
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  loading="lazy"
+                  className="w-full shadow-inner"
+                />
               </div>
-            </div>
+            ) : (
+              /* Audio Album Artwork & Sound Waves */
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col items-center justify-center p-8 mb-6">
+                <img
+                  src={podcast.imageUrl}
+                  alt={podcast.title}
+                  className="absolute inset-0 w-full h-full object-cover filter blur-md scale-110 opacity-25"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#060e20] via-black/60 to-transparent" />
+
+                <div className="relative z-10 flex flex-col items-center gap-4 text-center">
+                  <div className="relative w-36 h-36 rounded-2xl overflow-hidden shadow-2xl ring-4 ring-emerald-500/30">
+                    <img
+                      src={podcast.imageUrl}
+                      alt={podcast.title}
+                      className="w-full h-full object-cover"
+                    />
+                    {isPlaying && (
+                      <div className="absolute inset-0 bg-emerald-950/40 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-emerald-400 text-4xl animate-pulse">
+                          graphic_eq
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Animated Equalizer Waveform */}
+                  <div className="flex items-end gap-1.5 h-10 mt-2">
+                    {[16, 32, 22, 38, 26, 14, 30, 36, 18, 28, 12, 24, 34, 20].map((h, i) => (
+                      <div
+                        key={i}
+                        className="w-1.5 rounded-full bg-emerald-400 transition-all duration-200 shadow-sm shadow-emerald-500/50"
+                        style={{
+                          height: isPlaying ? `${(h * (1 + (i % 3) * 0.2)) % 36 + 6}px` : '4px',
+                          opacity: isPlaying ? 0.95 : 0.4,
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xs font-medium text-emerald-300">
+                    {isPlaying ? 'กำลังเล่นพอดแคสต์เสียงคมชัด...' : 'แตะปุ่มเพื่อเล่นเสียง'}
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Episode Title & Description */}
             <div className="flex flex-col gap-2 mb-6">
