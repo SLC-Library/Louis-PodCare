@@ -127,8 +127,7 @@ export const PODCAST_CARDS: PodcastItem[] = [
   channel: 'alljit สุขภาพจิตใจ',
   duration: '23:57',
   spotifyUrl: 'https://open.spotify.com/episode/5wXPC18ZP8Ztn5VZ1XOghv',
-})
-];
+  }),
 
 // ==========================================
 // ➕ 3. รายการวิดีโอเพิ่มเติม (กด Load More)
