@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { extractYoutubeId, isAudioOnlyPodcast } from '../data/podcasts';
-import { MediaMode, PodcastItem } from '../types';
+import { PodcastItem } from '../types';
 
 interface AudioPlayerProps {
   podcast: PodcastItem | null;
-  initialMode?: MediaMode;
   onClose: () => void;
   isDark?: boolean;
 }

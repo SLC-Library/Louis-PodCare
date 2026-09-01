@@ -1,59 +1,9 @@
-import React, { Component, ErrorInfo, ReactNode, useState } from 'react';
+import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { DiscoveryDashboardDark } from './components/DiscoveryDashboardDark';
 import { DiscoveryDashboardHealthMed } from './components/DiscoveryDashboardHealthMed';
 import { AudioPlayer } from './components/AudioPlayer';
 import { MediaMode, PodcastItem, ScreenId, TabId, TransitionType } from './types';
-
-interface ErrorBoundaryProps {
-  children: ReactNode;
-}
-
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
-}
-
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Louis PodCare ErrorBoundary caught:', error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="min-h-screen bg-[#0f172a] text-white flex flex-col items-center justify-center p-6 text-center">
-          <div className="max-w-md bg-[#1e293b] p-8 rounded-2xl border border-slate-700 shadow-2xl flex flex-col items-center gap-4">
-            <span className="material-symbols-outlined text-amber-400 text-5xl">warning</span>
-            <h2 className="text-xl font-bold">เกิดข้อผิดพลาดในการโหลดหน้าเว็บ</h2>
-            <p className="text-sm text-slate-300">
-              {this.state.error?.message || 'ระบบกำลังกู้คืนข้อมูล กรุณากดปุ่มเพื่อรีเฟรชหน้า'}
-            </p>
-            <button
-              onClick={() => {
-                localStorage.removeItem('louis_podcare_bookmarks');
-                window.location.reload();
-              }}
-              className="px-6 py-2.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg transition-all"
-            >
-              รีเฟรชและเริ่มใหม่
-            </button>
-          </div>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('dark');
@@ -103,68 +53,78 @@ export default function App() {
     });
   };
 
-  return (
-    <ErrorBoundary>
-      <div className={`relative min-h-screen overflow-x-hidden ${currentScreen === 'dark' ? 'bg-[#0f172a]' : 'bg-[#f8fafc]'}`}>
-        {/* Interactive Screen Container with Smooth Transitions */}
-        <AnimatePresence mode="wait">
-          {currentScreen === 'dark' ? (
-            <motion.div
-              key="screen-dark"
-              initial={{ opacity: 0.8 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0.8 }}
-              transition={{ duration: 0.15 }}
-              className="w-full min-h-screen"
-            >
-              <DiscoveryDashboardDark
-                onNavigate={handleNavigate}
-                onPlayEpisode={handlePlayEpisode}
-                bookmarks={bookmarks}
-                onToggleBookmark={handleToggleBookmark}
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-                selectedCategory={selectedCategory}
-                onCategoryChange={setSelectedCategory}
-                searchQuery={searchQuery}
-                onSearchQueryChange={setSearchQuery}
-              />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="screen-healthmed"
-              initial={{ opacity: 0.8 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0.8 }}
-              transition={{ duration: 0.15 }}
-              className="w-full min-h-screen"
-            >
-              <DiscoveryDashboardHealthMed
-                onNavigate={handleNavigate}
-                onPlayEpisode={handlePlayEpisode}
-                bookmarks={bookmarks}
-                onToggleBookmark={handleToggleBookmark}
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-                selectedCategory={selectedCategory}
-                onCategoryChange={setSelectedCategory}
-                searchQuery={searchQuery}
-                onSearchQueryChange={setSearchQuery}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+  // Clean, gentle fade transition between Dark and Light mode
+  const getVariants = () => {
+    return {
+      initial: { opacity: 0 },
+      animate: { opacity: 1 },
+      exit: { opacity: 0 },
+      transition: { duration: 0.16, ease: 'easeInOut' },
+    };
+  };
 
-        {/* Persistent Media Player (Video / Audio) if an episode is selected */}
-        {activePodcast && (
-          <AudioPlayer
-            podcast={activePodcast}
-            initialMode={activeMediaMode}
-            onClose={() => setActivePodcast(null)}
-            isDark={currentScreen === 'dark'}
-          />
+  const currentVariant = getVariants();
+
+  return (
+    <div className="relative min-h-screen overflow-x-hidden bg-[#0f172a]">
+      {/* Interactive Screen Container with Smooth Transitions */}
+      <AnimatePresence mode="wait" initial={false}>
+        {currentScreen === 'dark' ? (
+          <motion.div
+            key="screen-dark"
+            initial={currentVariant.initial}
+            animate={currentVariant.animate}
+            exit={currentVariant.exit}
+            transition={currentVariant.transition}
+            className="w-full min-h-screen"
+          >
+            <DiscoveryDashboardDark
+              onNavigate={handleNavigate}
+              onPlayEpisode={handlePlayEpisode}
+              bookmarks={bookmarks}
+              onToggleBookmark={handleToggleBookmark}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              searchQuery={searchQuery}
+              onSearchQueryChange={setSearchQuery}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="screen-healthmed"
+            initial={currentVariant.initial}
+            animate={currentVariant.animate}
+            exit={currentVariant.exit}
+            transition={currentVariant.transition}
+            className="w-full min-h-screen"
+          >
+            <DiscoveryDashboardHealthMed
+              onNavigate={handleNavigate}
+              onPlayEpisode={handlePlayEpisode}
+              bookmarks={bookmarks}
+              onToggleBookmark={handleToggleBookmark}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              searchQuery={searchQuery}
+              onSearchQueryChange={setSearchQuery}
+            />
+          </motion.div>
         )}
-      </div>
-    </ErrorBoundary>
+      </AnimatePresence>
+
+      {/* Persistent Media Player (Video / Audio) if an episode is selected */}
+      {activePodcast && (
+        <AudioPlayer
+          podcast={activePodcast}
+          initialMode={activeMediaMode}
+          onClose={() => setActivePodcast(null)}
+          isDark={currentScreen === 'dark'}
+        />
+      )}
+    </div>
   );
 }

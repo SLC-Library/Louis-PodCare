@@ -42,42 +42,28 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
   const allCards = showMore ? [...PODCAST_CARDS, ...MORE_PODCAST_CARDS] : PODCAST_CARDS;
 
   // Bookmarked items list
-  const bookmarkedItems = ALL_PODCASTS.filter((item) => item && item.id && bookmarks.has(item.id));
+  const bookmarkedItems = ALL_PODCASTS.filter((item) => bookmarks.has(item.id));
 
   // Filter bookmarked items
   const filteredBookmarks = bookmarkedItems.filter((item) => {
-    if (!item) return false;
-    const cat = item.category || '';
-    const title = item.title || '';
-    const inst = item.institution || item.channel || '';
-    const desc = item.description || '';
-    const q = (searchQuery || '').toLowerCase();
-
     const matchesCategory =
-      selectedCategory === 'All' || cat.toLowerCase() === selectedCategory.toLowerCase();
+      selectedCategory === 'All' ||
+      item.category.toLowerCase() === selectedCategory.toLowerCase();
     const matchesSearch =
-      !q ||
-      title.toLowerCase().includes(q) ||
-      inst.toLowerCase().includes(q) ||
-      desc.toLowerCase().includes(q);
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.institution.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
 
   const filteredCards = allCards.filter((card) => {
-    if (!card) return false;
-    const cat = card.category || '';
-    const title = card.title || '';
-    const inst = card.institution || card.channel || '';
-    const desc = card.description || '';
-    const q = (searchQuery || '').toLowerCase();
-
     const matchesCategory =
-      selectedCategory === 'All' || cat.toLowerCase() === selectedCategory.toLowerCase();
+      selectedCategory === 'All' ||
+      card.category.toLowerCase() === selectedCategory.toLowerCase();
     const matchesSearch =
-      !q ||
-      title.toLowerCase().includes(q) ||
-      inst.toLowerCase().includes(q) ||
-      desc.toLowerCase().includes(q);
+      card.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      card.institution.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (card.description && card.description.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
 
