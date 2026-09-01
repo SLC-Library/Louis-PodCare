@@ -3,7 +3,13 @@ import { AnimatePresence, motion } from 'motion/react';
 import { DiscoveryDashboardDark } from './components/DiscoveryDashboardDark';
 import { DiscoveryDashboardHealthMed } from './components/DiscoveryDashboardHealthMed';
 import { AudioPlayer } from './components/AudioPlayer';
+import { AdminPanelModal } from './components/AdminPanelModal';
 import { MediaMode, PodcastItem, ScreenId, TabId, TransitionType } from './types';
+import {
+  loadSavedEpisodes,
+  saveEpisodesToStorage,
+  resetEpisodesToDefault,
+} from './utils/podcastStorage';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('dark');
@@ -13,6 +19,10 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activePodcast, setActivePodcast] = useState<PodcastItem | null>(null);
   const [activeMediaMode, setActiveMediaMode] = useState<MediaMode>('video');
+  const [isAdminOpen, setIsAdminOpen] = useState<boolean>(false);
+
+  // Dynamic podcasts stored in localStorage
+  const [podcasts, setPodcasts] = useState<PodcastItem[]>(() => loadSavedEpisodes());
 
   const [bookmarks, setBookmarks] = useState<Set<string>>(() => {
     try {
@@ -34,6 +44,16 @@ export default function App() {
   const handlePlayEpisode = (podcast: PodcastItem, mode: MediaMode = 'video') => {
     setActiveMediaMode(mode);
     setActivePodcast(podcast);
+  };
+
+  const handleSaveEpisodes = (newEpisodes: PodcastItem[]) => {
+    setPodcasts(newEpisodes);
+    saveEpisodesToStorage(newEpisodes);
+  };
+
+  const handleResetDefault = () => {
+    const defaults = resetEpisodesToDefault();
+    setPodcasts(defaults);
   };
 
   const handleToggleBookmark = (id: string) => {
@@ -89,6 +109,8 @@ export default function App() {
               onCategoryChange={setSelectedCategory}
               searchQuery={searchQuery}
               onSearchQueryChange={setSearchQuery}
+              podcasts={podcasts}
+              onOpenAdmin={() => setIsAdminOpen(true)}
             />
           </motion.div>
         ) : (
@@ -111,10 +133,22 @@ export default function App() {
               onCategoryChange={setSelectedCategory}
               searchQuery={searchQuery}
               onSearchQueryChange={setSearchQuery}
+              podcasts={podcasts}
+              onOpenAdmin={() => setIsAdminOpen(true)}
             />
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Admin Panel Modal */}
+      <AdminPanelModal
+        isOpen={isAdminOpen}
+        onClose={() => setIsAdminOpen(false)}
+        podcasts={podcasts}
+        onSaveEpisodes={handleSaveEpisodes}
+        onResetDefault={handleResetDefault}
+        isDark={currentScreen === 'dark'}
+      />
 
       {/* Persistent Media Player (Video / Audio) if an episode is selected */}
       {activePodcast && (

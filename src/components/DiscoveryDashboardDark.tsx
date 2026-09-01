@@ -1,12 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  ALL_PODCASTS,
   CATEGORIES,
   FEATURED_PODCAST,
   isAudioOnlyPodcast,
   LOGO_DARK,
-  MORE_PODCAST_CARDS,
-  PODCAST_CARDS,
 } from '../data/podcasts';
 import { MediaMode, PodcastItem, TabId, TransitionType } from '../types';
 import { SaintLouisCommunityHub } from './SaintLouisCommunityHub';
@@ -23,7 +20,11 @@ interface DiscoveryDashboardDarkProps {
   onCategoryChange: (cat: string) => void;
   searchQuery: string;
   onSearchQueryChange: (query: string) => void;
+  podcasts: PodcastItem[];
+  onOpenAdmin: () => void;
 }
+
+const PAGE_SIZE = 6;
 
 export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
   onNavigate,
@@ -36,36 +37,57 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
   onCategoryChange,
   searchQuery,
   onSearchQueryChange,
+  podcasts,
+  onOpenAdmin,
 }) => {
-  const [showMore, setShowMore] = useState(false);
+  const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
 
-  const allCards = showMore ? [...PODCAST_CARDS, ...MORE_PODCAST_CARDS] : PODCAST_CARDS;
+  // Reset pagination when category or search changes
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [selectedCategory, searchQuery]);
+
+  // Dynamic categories including any custom ones added by admin
+  const dynamicCategories = Array.from(
+    new Set([
+      'All',
+      ...CATEGORIES.filter((c) => c !== 'All'),
+      ...podcasts.map((p) => p.category).filter(Boolean),
+    ])
+  ) as string[];
+
+  // All podcasts available for bookmarks/library
+  const allAvailablePodcasts = [FEATURED_PODCAST, ...podcasts];
 
   // Bookmarked items list
-  const bookmarkedItems = ALL_PODCASTS.filter((item) => bookmarks.has(item.id));
+  const bookmarkedItems = allAvailablePodcasts.filter((item) => item.id && bookmarks.has(item.id));
 
   // Filter bookmarked items
   const filteredBookmarks = bookmarkedItems.filter((item) => {
     const matchesCategory =
       selectedCategory === 'All' ||
-      item.category.toLowerCase() === selectedCategory.toLowerCase();
+      (item.category && item.category.toLowerCase() === selectedCategory.toLowerCase());
     const matchesSearch =
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.institution.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ((item.institution || item.channel || '').toLowerCase().includes(searchQuery.toLowerCase())) ||
       (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
 
-  const filteredCards = allCards.filter((card) => {
+  // Filter all cards (newest first from podcasts array)
+  const filteredCards = podcasts.filter((card) => {
     const matchesCategory =
       selectedCategory === 'All' ||
-      card.category.toLowerCase() === selectedCategory.toLowerCase();
+      (card.category && card.category.toLowerCase() === selectedCategory.toLowerCase());
     const matchesSearch =
       card.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      card.institution.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ((card.institution || card.channel || '').toLowerCase().includes(searchQuery.toLowerCase())) ||
       (card.description && card.description.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
+
+  const displayedCards = filteredCards.slice(0, visibleCount);
+  const hasMore = filteredCards.length > visibleCount;
 
   return (
     <div id="discovery-dashboard-dark" className="min-h-screen bg-[#0f172a] text-[#f8fafc] font-sans antialiased selection:bg-blue-500 selection:text-white">
@@ -156,16 +178,16 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
             </a>
           </div>
 
-          {/* Search & Theme Toggle */}
-          <div className="flex items-center gap-3">
+          {/* Search, Admin & Theme Toggle */}
+          <div className="flex items-center gap-2.5">
             <div className="relative hidden sm:block">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8] text-[20px]">
                 search
               </span>
               <input
                 id="dark-search-input"
-                className="pl-10 pr-4 h-10 bg-[#131b2e] border border-[#334155] rounded-full text-[14px] text-[#f8fafc] placeholder:text-[#64748b] focus:ring-2 focus:ring-[#3b82f6] focus:border-transparent w-60 lg:w-72 transition-all outline-none"
-                placeholder={activeTab === 'Library' ? "Search saved library..." : "Search insights..."}
+                className="pl-10 pr-4 h-10 bg-[#131b2e] border border-[#334155] rounded-full text-[14px] text-[#f8fafc] placeholder:text-[#64748b] focus:ring-2 focus:ring-[#3b82f6] focus:border-transparent w-48 lg:w-64 transition-all outline-none"
+                placeholder={activeTab === 'Library' ? "ค้นหาใน Library..." : "ค้นหาตอน, หัวข้อ, ช่อง..."}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => onSearchQueryChange(e.target.value)}
@@ -179,6 +201,17 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                 </button>
               )}
             </div>
+
+            {/* Admin Panel Button */}
+            <button
+              id="dark-admin-btn"
+              onClick={onOpenAdmin}
+              className="h-10 px-3.5 rounded-full bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/40 font-semibold text-xs flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 shadow-sm"
+              title="เปิดแผงควบคุม Admin จัดการตอนพอดแคสต์"
+            >
+              <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+              <span className="font-bold">Admin</span>
+            </button>
 
             {/* Toggle to Light Mode */}
             <button
@@ -540,7 +573,7 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
               aria-label="Category filters"
               className="w-full flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-none snap-x"
             >
-              {CATEGORIES.map((cat) => {
+              {dynamicCategories.map((cat) => {
                 const isActive = selectedCategory === cat;
                 return (
                   <button
@@ -560,177 +593,207 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
             </section>
 
             {/* Content Grid */}
-            <section
-              id="dark-content-grid"
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {filteredCards.map((card) => {
-                const isBookmarked = bookmarks.has(card.id);
-                const isAudio = isAudioOnlyPodcast(card);
+            {filteredCards.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-12 bg-[#060e20] rounded-2xl border border-slate-800 text-center">
+                <span className="material-symbols-outlined text-5xl text-slate-600 mb-3">search_off</span>
+                <h3 className="text-lg font-bold text-white mb-1">ไม่พบรายการพอดแคสต์ที่ตรงกับเงื่อนไข</h3>
+                <p className="text-sm text-slate-400 max-w-md mb-4">
+                  ลองเปลี่ยนคำค้นหา หรือเลือกหมวดหมู่อื่นเพื่อค้นหารายการที่ต้องการ
+                </p>
+                <button
+                  onClick={() => {
+                    onCategoryChange('All');
+                    onSearchQueryChange('');
+                  }}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-full text-xs font-semibold"
+                >
+                  ล้างตัวกรองทั้งหมด
+                </button>
+              </div>
+            ) : (
+              <section
+                id="dark-content-grid"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              >
+                {displayedCards.map((card) => {
+                  const isBookmarked = bookmarks.has(card.id);
+                  const isAudio = isAudioOnlyPodcast(card);
 
-                return (
-                  <article
-                    key={card.id}
-                    id={`dark-card-${card.id}`}
-                    className={`flex flex-col bg-[#060e20] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl border border-[#334155] group transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40 ${
-                      card.span2 ? 'lg:col-span-2' : ''
-                    }`}
-                  >
-                    <div
-                      className={`relative w-full cursor-pointer overflow-hidden ${card.span2 ? 'h-48 md:h-64' : 'aspect-video'}`}
-                      onClick={() => onPlayEpisode(card)}
+                  return (
+                    <article
+                      key={card.id}
+                      id={`dark-card-${card.id}`}
+                      className={`flex flex-col bg-[#060e20] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl border border-[#334155] group transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40 ${
+                        card.span2 ? 'lg:col-span-2' : ''
+                      }`}
                     >
-                      {isAudio ? (
-                        <div className="relative w-full h-full bg-[#030712] flex items-center justify-center overflow-hidden">
-                          {/* Ambient blurred backdrop for Spotify podcast */}
+                      <div
+                        className={`relative w-full cursor-pointer overflow-hidden ${card.span2 ? 'h-48 md:h-64' : 'aspect-video'}`}
+                        onClick={() => onPlayEpisode(card)}
+                      >
+                        {isAudio ? (
+                          <div className="relative w-full h-full bg-[#030712] flex items-center justify-center overflow-hidden">
+                            {/* Ambient blurred backdrop for Spotify podcast */}
+                            <img
+                              className="absolute inset-0 w-full h-full object-cover filter blur-xl scale-125 opacity-35"
+                              src={card.imageUrl}
+                              alt=""
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#060e20] via-transparent to-black/40" />
+                            {/* Complete square cover art presented in natural proportion */}
+                            <img
+                              className="relative z-10 h-full max-w-full aspect-square object-contain rounded-md shadow-2xl group-hover:scale-105 transition-transform duration-500"
+                              data-alt={card.imageAlt}
+                              src={card.imageUrl}
+                              alt={card.title}
+                            />
+                          </div>
+                        ) : (
                           <img
-                            className="absolute inset-0 w-full h-full object-cover filter blur-xl scale-125 opacity-35"
-                            src={card.imageUrl}
-                            alt=""
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#060e20] via-transparent to-black/40" />
-                          {/* Complete square cover art presented in natural proportion */}
-                          <img
-                            className="relative z-10 h-full max-w-full aspect-square object-contain rounded-md shadow-2xl group-hover:scale-105 transition-transform duration-500"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             data-alt={card.imageAlt}
                             src={card.imageUrl}
                             alt={card.title}
-                          />
-                        </div>
-                      ) : (
-                        <img
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          data-alt={card.imageAlt}
-                          src={card.imageUrl}
-                          alt={card.title}
-                          onError={(e) => {
-                            const target = e.currentTarget;
-                            if (card.youtubeId && !target.src.includes('hqdefault')) {
-                              target.src = `https://img.youtube.com/vi/${card.youtubeId}/hqdefault.jpg`;
-                            }
-                          }}
-                        />
-                      )}
-                      <div className="absolute bottom-2.5 right-2.5 bg-black/80 text-white px-2.5 py-1 rounded-md text-[12px] font-medium backdrop-blur-sm z-10">
-                        {card.duration}
-                      </div>
-                      
-                      {/* Format Badge (YouTube vs Spotify) */}
-                      <div className={`absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md text-[12px] backdrop-blur-sm border font-semibold flex items-center gap-1 max-w-[75%] truncate z-10 ${
-                        isAudio
-                          ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500/40 shadow-md'
-                          : 'bg-[#060e20]/90 text-red-300 border-red-500/30'
-                      }`}>
-                        <span className="material-symbols-outlined text-[14px]">
-                          {isAudio ? 'podcasts' : 'smart_display'}
-                        </span>
-                        <span className="truncate">{isAudio ? 'Spotify Podcast' : (card.institution || card.channel)}</span>
-                      </div>
-
-                      {/* Center Hover Action */}
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onPlayEpisode(card);
-                          }}
-                          className={`px-4 py-2 rounded-full text-white text-xs font-bold flex items-center gap-1.5 shadow-lg transform hover:scale-105 transition-all ${
-                            isAudio
-                              ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/40'
-                              : 'bg-red-600 hover:bg-red-500 shadow-red-600/40'
-                          }`}
-                        >
-                          <span className="material-symbols-outlined text-[18px]">
-                            {isAudio ? 'headphones' : 'play_arrow'}
-                          </span>
-                          <span>{isAudio ? 'ฟังเสียง (Spotify)' : 'ดูวิดีโอ (YouTube)'}</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="p-5 flex flex-col flex-grow gap-2">
-                      <h3
-                        onClick={() => onPlayEpisode(card)}
-                        className="text-[20px] font-bold leading-[28px] text-[#f8fafc] group-hover:text-[#3b82f6] transition-colors line-clamp-2 cursor-pointer"
-                      >
-                        {card.title}
-                      </h3>
-
-                      {card.description && (
-                        <p className="text-[14px] text-[#cbd5e1] line-clamp-2 mt-1">
-                          {card.description}
-                        </p>
-                      )}
-
-                      {/* Single Clear Action Button */}
-                      <div className="mt-2">
-                        <button
-                          onClick={() => onPlayEpisode(card)}
-                          className={`w-full py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all border ${
-                            isAudio
-                              ? 'bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-400 border-emerald-500/30'
-                              : 'bg-red-500/10 hover:bg-red-500/25 text-red-400 border-red-500/30'
-                          }`}
-                        >
-                          <span className="material-symbols-outlined text-[18px]">
-                            {isAudio ? 'headphones' : 'movie'}
-                          </span>
-                          <span>{isAudio ? 'ฟังเสียงพอดแคสต์ (Spotify)' : 'ดูวิดีโอ (YouTube)'}</span>
-                        </button>
-                      </div>
-
-                      <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#334155]">
-                        <div className="flex items-center gap-2 text-[#94a3b8] text-[13px] font-medium">
-                          <span className="material-symbols-outlined text-[16px] text-blue-400">
-                            {card.institutionIcon}
-                          </span>
-                          <span className="text-slate-300 font-medium">{card.category}</span>
-                        </div>
-                        <button
-                          aria-label={`Bookmark ${card.title}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleBookmark(card.id);
-                          }}
-                          className={`p-1.5 rounded-full transition-colors ${
-                            isBookmarked
-                              ? 'text-blue-400 bg-blue-500/10'
-                              : 'text-[#cbd5e1] hover:text-[#3b82f6] hover:bg-[#1e293b]'
-                          }`}
-                        >
-                          <span
-                            className="material-symbols-outlined"
-                            style={{
-                              fontVariationSettings: isBookmarked ? "'FILL' 1" : "'FILL' 0",
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              if (card.youtubeId && !target.src.includes('hqdefault')) {
+                                target.src = `https://img.youtube.com/vi/${card.youtubeId}/hqdefault.jpg`;
+                              }
                             }}
-                          >
-                            {isBookmarked ? 'bookmark' : 'bookmark_add'}
+                          />
+                        )}
+                        <div className="absolute bottom-2.5 right-2.5 bg-black/80 text-white px-2.5 py-1 rounded-md text-[12px] font-medium backdrop-blur-sm z-10">
+                          {card.duration}
+                        </div>
+                        
+                        {/* Format Badge (YouTube vs Spotify) */}
+                        <div className={`absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md text-[12px] backdrop-blur-sm border font-semibold flex items-center gap-1 max-w-[75%] truncate z-10 ${
+                          isAudio
+                            ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500/40 shadow-md'
+                            : 'bg-[#060e20]/90 text-red-300 border-red-500/30'
+                        }`}>
+                          <span className="material-symbols-outlined text-[14px]">
+                            {isAudio ? 'podcasts' : 'smart_display'}
                           </span>
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </section>
+                          <span className="truncate">{isAudio ? 'Spotify Podcast' : (card.institution || card.channel)}</span>
+                        </div>
 
-            {/* Load More Button */}
-            <div className="flex justify-center mt-4">
-              <button
-                id="dark-load-more-btn"
-                onClick={() => setShowMore((prev) => !prev)}
-                className="px-8 py-3 rounded-full border border-[#3b82f6] text-[#3b82f6] font-semibold text-[14px] hover:bg-[#3b82f6] hover:text-white transition-all duration-300 flex items-center gap-2 shadow-lg shadow-blue-500/10 hover:shadow-blue-500/25"
-              >
-                <span>{showMore ? 'Show Fewer Insights' : 'Load More Insights'}</span>
-                <span
-                  className={`material-symbols-outlined text-[18px] transition-transform ${
-                    showMore ? 'rotate-180' : ''
-                  }`}
-                >
-                  expand_more
-                </span>
-              </button>
-            </div>
+                        {/* Center Hover Action */}
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onPlayEpisode(card);
+                            }}
+                            className={`px-4 py-2 rounded-full text-white text-xs font-bold flex items-center gap-1.5 shadow-lg transform hover:scale-105 transition-all ${
+                              isAudio
+                                ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/40'
+                                : 'bg-red-600 hover:bg-red-500 shadow-red-600/40'
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-[18px]">
+                              {isAudio ? 'headphones' : 'play_arrow'}
+                            </span>
+                            <span>{isAudio ? 'ฟังเสียง (Spotify)' : 'ดูวิดีโอ (YouTube)'}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="p-5 flex flex-col flex-grow gap-2">
+                        <h3
+                          onClick={() => onPlayEpisode(card)}
+                          className="text-[20px] font-bold leading-[28px] text-[#f8fafc] group-hover:text-[#3b82f6] transition-colors line-clamp-2 cursor-pointer"
+                        >
+                          {card.title}
+                        </h3>
+
+                        {card.description && (
+                          <p className="text-[14px] text-[#cbd5e1] line-clamp-2 mt-1">
+                            {card.description}
+                          </p>
+                        )}
+
+                        {/* Single Clear Action Button */}
+                        <div className="mt-2">
+                          <button
+                            onClick={() => onPlayEpisode(card)}
+                            className={`w-full py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all border ${
+                              isAudio
+                                ? 'bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-400 border-emerald-500/30'
+                                : 'bg-red-500/10 hover:bg-red-500/25 text-red-400 border-red-500/30'
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-[18px]">
+                              {isAudio ? 'headphones' : 'movie'}
+                            </span>
+                            <span>{isAudio ? 'ฟังเสียงพอดแคสต์ (Spotify)' : 'ดูวิดีโอ (YouTube)'}</span>
+                          </button>
+                        </div>
+
+                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#334155]">
+                          <div className="flex items-center gap-2 text-[#94a3b8] text-[13px] font-medium">
+                            <span className="material-symbols-outlined text-[16px] text-blue-400">
+                              {card.institutionIcon}
+                            </span>
+                            <span className="text-slate-300 font-medium">{card.category}</span>
+                          </div>
+                          <button
+                            aria-label={`Bookmark ${card.title}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onToggleBookmark(card.id);
+                            }}
+                            className={`p-1.5 rounded-full transition-colors ${
+                              isBookmarked
+                                ? 'text-blue-400 bg-blue-500/10'
+                                : 'text-[#cbd5e1] hover:text-[#3b82f6] hover:bg-[#1e293b]'
+                            }`}
+                          >
+                            <span
+                              className="material-symbols-outlined"
+                              style={{
+                                fontVariationSettings: isBookmarked ? "'FILL' 1" : "'FILL' 0",
+                              }}
+                            >
+                              {isBookmarked ? 'bookmark' : 'bookmark_add'}
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </section>
+            )}
+
+            {/* Pagination / Load More Button */}
+            {filteredCards.length > 0 && (
+              <div className="flex flex-col items-center justify-center gap-2 mt-4">
+                {hasMore ? (
+                  <button
+                    id="dark-load-more-btn"
+                    onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
+                    className="px-8 py-3 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-[14px] transition-all duration-300 flex items-center gap-2 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:scale-102 active:scale-98"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">expand_circle_down</span>
+                    <span>
+                      โหลดเพิ่มเติม (แสดงอีก {Math.min(PAGE_SIZE, filteredCards.length - visibleCount)} จาก {filteredCards.length} ตอน)
+                    </span>
+                  </button>
+                ) : filteredCards.length > PAGE_SIZE ? (
+                  <div className="flex items-center gap-2 text-xs text-slate-400 bg-[#060e20] px-4 py-2 rounded-full border border-slate-800">
+                    <span className="material-symbols-outlined text-emerald-400 text-[18px]">check_circle</span>
+                    <span>แสดงครบทั้งหมด {filteredCards.length} ตอนแล้ว</span>
+                    <button
+                      onClick={() => setVisibleCount(PAGE_SIZE)}
+                      className="ml-2 text-blue-400 hover:underline"
+                    >
+                      ย่อกลับ
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            )}
           </>
         )}
       </main>
