@@ -223,39 +223,7 @@ export const PODCAST_CARDS: PodcastItem[] = [
 // ➕ 3. รายการวิดีโอเพิ่มเติม (กด Load More)
 // ==========================================
 export const MORE_PODCAST_CARDS: PodcastItem[] = [
-  createPodcast({
-    id: 'crispr-therapeutics',
-    title: 'CRISPR Therapeutics in Rare Pediatric Conditions',
-    category: 'Research',
-    institution: 'Stanford Health Care',
-    duration: '28:40',
-    imageUrl:
-      'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=800&q=80',
-    description: 'How in-vivo gene editing is moving from clinical trials into approved first-line therapies for rare metabolic disorders.',
-    youtubeId: 'UKbrwLDnNIY',
-  }),
-  createPodcast({
-    id: 'neuroplasticity-rehab',
-    title: 'Neuroplasticity Protocols in Post-Stroke Rehabilitation',
-    category: 'Psychology',
-    institution: 'Massachusetts General',
-    duration: '35:20',
-    imageUrl:
-      'https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&w=800&q=80',
-    description: 'Combining non-invasive brain stimulation with repetitive task training for motor recovery in stroke survivors.',
-    youtubeId: 'ELpfYCZa87g',
-  }),
-  createPodcast({
-    id: 'telehealth-pediatrics',
-    title: 'Digital Diagnostics and Telehealth in Rural Pediatrics',
-    category: 'Nursing',
-    institution: 'Emory Healthcare',
-    duration: '19:15',
-    imageUrl:
-      'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80',
-    description: 'Deploying connected otoscopes, digital stethoscopes, and high-speed telemetry to rural community clinics.',
-    youtubeId: '7R5_b8V3X_Q',
-  }),
+
 ];
 
 export const ALL_PODCASTS: PodcastItem[] = [
