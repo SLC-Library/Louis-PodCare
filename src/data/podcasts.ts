@@ -78,6 +78,7 @@ export function getCategoryIcon(category?: string): string {
   if (cat.includes('research') || cat.includes('science')) return 'science';
   if (cat.includes('surg') || cat.includes('robot') || cat.includes('tech')) return 'precision_manufacturing';
   if (cat.includes('hospital') || cat.includes('clinic')) return 'local_hospital';
+  if (cat.includes('general') || cat.includes('health') || cat.includes('disease')) return 'medical_services';
   return 'podcasts';
 }
 
@@ -188,12 +189,12 @@ export const PODCAST_CARDS: PodcastItem[] = [
   }),
   createPodcast({
     id: '0001',
-    title: 'Learn & Share EP.37 เราเป็นคนสะสมความเศร้าอยู่หรือเปล่า',
-    category: 'Psychology',
+    title: 'เราจะรู้ว่าตับของเราเริ่มเสื่อมได้หรือไม่? / 6 Minute Health Talk EP.14',
+    category: 'General Health',
     channel: 'alljit สุขภาพจิตใจ',
-    description: 'ทุกๆอารมณ์ล้วนมีสาเหตุและเหตุผลที่ทำให้อารมณ์นั้นเกิดขึ้น แต่ถ้าเราลองสำรวจตัวเองแล้วมีแต่อารมณ์เศร้าล่ะอาจจะไม่ได้ส่งผลดีกับตัวเราเอง หรือเรากำลังเป็นนักสะสมความเศร้าอยู่หรือเปล่า ? วันนี้เรามาร่วมพูดคุยกันใน Alljit Podcast กับรายการ Learn&Share :)',
-    duration: '23:57',
-    spotifyUrl: 'https://open.spotify.com/episode/5wXPC18ZP8Ztn5VZ1XOghv',
+    description: 'วันนี้เป็น Ep. ที่มาจากคำถามบน Tiktok ที่มีคนถามเกี่ยวกับการทำงานของตับ เราสามารถรู้ได้หรือไม่ว่า ตับของเราเริ่มเสื่อม หรือทำงานได้น้อยลง ? มีสัญญาณหรืออาการเริ่มต้นอะไรบ้างไหมที่ให้เรารู้ตัวก่อน ? มาฟังคำตอบจากพี่หมอเอ้ว ใน 6 Minute Health Talk EP.14 กันค่ะ',
+    duration: '06:03',
+    spotifyUrl: 'https://open.spotify.com/episode/2ciyGBc1YPAGuI6lEAThUT',
   }),
 ];
 
@@ -251,6 +252,7 @@ export const CATEGORIES = [
   'Psychology',
   'Medical Tech',
   'Nursing',
+  'General Health',
   'Research',
   'Oncology',
   'Cardiology',
