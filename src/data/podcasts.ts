@@ -99,10 +99,10 @@ export function createPodcast(item: PodcastItem): PodcastItem {
   const spotifyEmbedUrl = item.spotifyEmbedUrl || spotifyInfo?.embedUrl;
   const spotifyUrl = item.spotifyUrl || spotifyInfo?.webUrl || rawSpotify;
 
-  // Auto YouTube thumbnail if not provided
+  // Auto YouTube thumbnail if not provided (prefer maxresdefault for true 16:9 widescreen without black letterbox bars)
   const imageUrl =
     item.imageUrl ||
-    (ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80');
+    (ytId ? `https://i.ytimg.com/vi/${ytId}/maxresdefault.jpg` : 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80');
 
   const id =
     item.id ||

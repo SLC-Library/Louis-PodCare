@@ -577,23 +577,48 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                     }`}
                   >
                     <div
-                      className={`relative w-full cursor-pointer ${card.span2 ? 'h-48 md:h-64' : 'aspect-video'}`}
+                      className={`relative w-full cursor-pointer overflow-hidden ${card.span2 ? 'h-48 md:h-64' : 'aspect-video'}`}
                       onClick={() => onPlayEpisode(card)}
                     >
-                      <img
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        data-alt={card.imageAlt}
-                        src={card.imageUrl}
-                        alt={card.title}
-                      />
-                      <div className="absolute bottom-2.5 right-2.5 bg-black/80 text-white px-2.5 py-1 rounded-md text-[12px] font-medium backdrop-blur-sm">
+                      {isAudio ? (
+                        <div className="relative w-full h-full bg-[#030712] flex items-center justify-center overflow-hidden">
+                          {/* Ambient blurred backdrop for Spotify podcast */}
+                          <img
+                            className="absolute inset-0 w-full h-full object-cover filter blur-xl scale-125 opacity-35"
+                            src={card.imageUrl}
+                            alt=""
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#060e20] via-transparent to-black/40" />
+                          {/* Complete square cover art presented in natural proportion */}
+                          <img
+                            className="relative z-10 h-full max-w-full aspect-square object-contain rounded-md shadow-2xl group-hover:scale-105 transition-transform duration-500"
+                            data-alt={card.imageAlt}
+                            src={card.imageUrl}
+                            alt={card.title}
+                          />
+                        </div>
+                      ) : (
+                        <img
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          data-alt={card.imageAlt}
+                          src={card.imageUrl}
+                          alt={card.title}
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            if (card.youtubeId && !target.src.includes('hqdefault')) {
+                              target.src = `https://img.youtube.com/vi/${card.youtubeId}/hqdefault.jpg`;
+                            }
+                          }}
+                        />
+                      )}
+                      <div className="absolute bottom-2.5 right-2.5 bg-black/80 text-white px-2.5 py-1 rounded-md text-[12px] font-medium backdrop-blur-sm z-10">
                         {card.duration}
                       </div>
                       
                       {/* Format Badge (YouTube vs Spotify) */}
-                      <div className={`absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md text-[12px] backdrop-blur-sm border font-semibold flex items-center gap-1 max-w-[75%] truncate ${
+                      <div className={`absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md text-[12px] backdrop-blur-sm border font-semibold flex items-center gap-1 max-w-[75%] truncate z-10 ${
                         isAudio
-                          ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500/40'
+                          ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500/40 shadow-md'
                           : 'bg-[#060e20]/90 text-red-300 border-red-500/30'
                       }`}>
                         <span className="material-symbols-outlined text-[14px]">
@@ -603,7 +628,7 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                       </div>
 
                       {/* Center Hover Action */}
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity z-20">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
