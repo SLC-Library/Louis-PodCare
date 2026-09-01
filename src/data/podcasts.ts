@@ -202,7 +202,7 @@ export const PODCAST_CARDS: PodcastItem[] = [
     title: 'น้ําตาลในเลือดสูง อาการเป็นยังไง? | หมอแบงค์ Food Doctor',
     category: 'Nutrition & Diet',
     channel: 'หมอแบงค์ Food Doctor',
-    description: 'น้ำตาลในเลือดสูง อาการเป็นยังไง | หมอแบงค์ food doctor',
+    description: 'น้ำตาลในเลือดสูงอาการเป็นยังไง อันตรายแค่ไหน ไปฟังกันเลย | หมอแบงค์ food doctor',
     duration: '08:43',
     spotifyUrl: 'https://open.spotify.com/episode/38JiRhu1B8vY1VhE7b0rWH',
     imageUrl: 'https://image-cdn-ak.spotifycdn.com/image/ab67656300005f1f5353bffe2566cbd5f328391e',
