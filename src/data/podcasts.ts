@@ -188,14 +188,24 @@ export const PODCAST_CARDS: PodcastItem[] = [
     date: 'OCT 26, 2024',
   }),
   createPodcast({
-    id: '0001',
+    id: '001',
     title: 'เราจะรู้ว่าตับของเราเริ่มเสื่อมได้หรือไม่? / 6 Minute Health Talk EP.14',
     category: 'General Health',
-    channel: 'alljit สุขภาพจิตใจ',
+    channel: '6 Minute Health Talk',
     description: 'วันนี้เป็น Ep. ที่มาจากคำถามบน Tiktok ที่มีคนถามเกี่ยวกับการทำงานของตับ เราสามารถรู้ได้หรือไม่ว่า ตับของเราเริ่มเสื่อม หรือทำงานได้น้อยลง ? มีสัญญาณหรืออาการเริ่มต้นอะไรบ้างไหมที่ให้เรารู้ตัวก่อน ? มาฟังคำตอบจากพี่หมอเอ้ว ใน 6 Minute Health Talk EP.14 กันค่ะ',
     duration: '06:03',
     spotifyUrl: 'https://open.spotify.com/episode/2ciyGBc1YPAGuI6lEAThUT',
     imageUrl: 'https://image-cdn-ak.spotifycdn.com/image/ab67656300005f1f6658ce0ba0ebe3074a703940',
+  }),
+  createPodcast({
+    id: '002',
+    title: 'น้ําตาลในเลือดสูง อาการเป็นยังไง? / หมอแบงค์ Food Doctor',
+    category: 'Nutrition & Diet',
+    channel: 'หมอแบงค์ Food Doctor',
+    description: 'น้ำตาลในเลือดสูง อาการเป็นยังไง | หมอแบงค์ food doctor',
+    duration: '08:43',
+    spotifyUrl: 'https://open.spotify.com/episode/38JiRhu1B8vY1VhE7b0rWH',
+    imageUrl: 'https://image-cdn-ak.spotifycdn.com/image/ab67656300005f1f5353bffe2566cbd5f328391e',
   }),
 ];
 
