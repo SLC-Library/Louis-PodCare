@@ -240,11 +240,8 @@ export const CATEGORIES = [
   'Nutrition & Diet',
   'Psychology',
   'Medical Tech',
-  'Nursing',
   'General Health',
-  'Research',
   'Oncology',
-  'Cardiology',
 ];
 
 export const LOGO_DARK =
