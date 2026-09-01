@@ -110,30 +110,6 @@ export const PODCAST_CARDS: PodcastItem[] = [
     spotifyUrl: 'https://open.spotify.com/genre/wellness',
   }),
   createPodcast({
-    id: 'spotify-gut-microbiome-brain',
-    title: 'Gut-Brain Axis: ลำไส้คือสมองที่สอง จุลินทรีย์กำหนดอารมณ์และภูมิคุ้มกัน | Spotify Medicine',
-    category: 'Nutrition & Diet',
-    channel: 'The Medical Audio Hub (Spotify)',
-    description: 'ฟังเสียงล้วนคุณภาพสูง (Spotify Podcast) ค้นพบผลงานวิจัยความเชื่อมโยงของ Gut Microbiome กับระบบประสาท Vagus Nerve และการผลิต Serotonin ในทางเดินอาหาร',
-    duration: '24:15',
-    date: 'FEB 2026',
-    imageUrl: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80',
-    audioUrl: 'https://actions.google.com/sounds/v1/ambiences/wind_subtle.ogg',
-    spotifyUrl: 'https://open.spotify.com/genre/podcast-charts',
-  }),
-  createPodcast({
-    id: 'spotify-mindfulness-vagus-nerve',
-    title: 'เทคนิคกระตุ้น Vagus Nerve และฝึกสติลดคอร์ติซอล (Mindfulness & Stress Relief) | Spotify Audio',
-    category: 'Psychology',
-    channel: 'Mindful SLC Medical Audio',
-    description: 'แบบฝึกหัดเสียงเพื่อการผ่อนคลายกล้ามเนื้อและระบบประสาทอัตโนมัติ (Parasympathetic Activation) เหมาะสำหรับฟังพักผ่อนหรือก่อนนอน ไม่มีโฆษณากวนใจ',
-    duration: '18:50',
-    date: 'JAN 2026',
-    imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80',
-    audioUrl: 'https://actions.google.com/sounds/v1/ambiences/river_slow.ogg',
-    spotifyUrl: 'https://open.spotify.com/genre/wellness',
-  }),
-  createPodcast({
     youtubeUrl: 'https://www.youtube.com/watch?v=7geqNRcIpEI&t=713s',
     title: 'งดแป้ง งดน้ำตาล อาจทำให้สุขภาพพัง! เป็นมะเร็ง โรคไต ห้ามกินอะไรบ้าง I Doctor’s Talk EP.33',
     category: 'Nutrition & Diet',
@@ -159,41 +135,6 @@ export const PODCAST_CARDS: PodcastItem[] = [
     description: 'Mental Health กับการที่เราต้องเจอ 1 วัน 1000 Situation 😂 ทั้งใจดีหรือใจร้ายหลากหลายเรื่องราวผสมกันไป เลยอยากมาออกกำลังทางใจเพื่อลดแรงปะทะค่ะ (ส่วนเราก็ไม่ได้เป็นคนใจ Tough ขนาดนั้น เป็นผู้หญิงใจบอบบางเหมือนกัน) จะฝึกไปด้วยกันนี้แหล่ะฮึบๆๆ',
     duration: '16:53',
     date: 'OCT 26, 2024',
-  }),
-  createPodcast({
-    id: 'patient-handoff-protocols',
-    title: 'Optimizing Patient Handoff Protocols in Critical Care',
-    category: 'Nursing',
-    institution: 'Johns Hopkins',
-    duration: '08:15',
-    imageUrl:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuBRovgBeCx59I1z68jVtE6P-YBO1DCrCYtA13y7z7NhbdCrDWCNKxIvlWF4kenk-daDrK7h3DttO0__UUyvRRqDMh32rw0boxarDA8uEPCateB6ukg_A9c2nAHfHh_Le_RihIIDyKu18UJEQhOvZ3W1Jv2Ep92mCCzgfdesK_Tm9ZtXpNRcHBNXcYvvgu9sHUwecydDTXiVaHmG-HlP5Wyr9HCebJqlq35XuHLhj-fozOPw1XJmrXv-',
-    description: 'Standardized communication checklists that prevent diagnostic errors during emergency shift transitions.',
-    youtubeId: 'v4E5oE1fF3M',
-  }),
-  createPodcast({
-    id: 'immunotherapy-review',
-    title: 'Targeted Immunotherapy: A Year in Review',
-    category: 'Research',
-    institution: 'Nature Medicine',
-    duration: '55:00',
-    description:
-      'A comprehensive panel discussion with leading oncologists on the efficacy of recent CAR-T and checkpoint inhibitor trials.',
-    imageUrl:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuB14NYz1oy7tUkjwU36q-U1nIlqVUcURgJdRRI7njfTXM46g-Rrf9rVUCKXS-t4Praq1ZTX86zmkST_z0F3qde2zUFVvFemLEIVZgSSNZ1PcmCwE7zZj2qY6dmkvKkA3gpa2HgfgMMpQel9JUwtIaz78b4pQwXuT7MAb20o6jdD2w8cB7N_W1O3AlTC_Ekapp7o_px5NAk-at5JHIHaMsw0qp7j-is646grg3b7Tt0DXIaDUGAKtuKK',
-    span2: true,
-    youtubeId: 'Ub_o06bQ8gE',
-  }),
-  createPodcast({
-    id: 'arrhythmia-detection',
-    title: 'Wearable Tech in Arrhythmia Detection & Prevention',
-    category: 'Cardiology',
-    institution: 'Cleveland Clinic',
-    duration: '22:15',
-    imageUrl:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuBAwpg57QloUdbhWVwdpOhswYuswt6zq-3Ts5eWD5VJV2Ia9y_HC-IJD2jGTbCFSXlamRSUBUFlwLMEpbbPo6dull6wKLIqV2FkdBYfl-l5hYqHniM1LW1qNquWZL9OKQBACVj8i3pD_WTAIFUw7hUyGrI8D0J7ucEJLLqgVORhIKvReqKbZueGjY9Xjlpkk517VnIttQttibrM8QKNxkuBTW8HO4ZpRlc12C1i_TO9lX657aZqBZod',
-    description: 'Continuous smartwatch ECG monitoring and its impact on early atrial fibrillation diagnosis in outpatient care.',
-    youtubeId: 'e8v3m32eMko',
   }),
 ];
 
