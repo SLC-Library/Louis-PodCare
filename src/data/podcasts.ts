@@ -126,6 +126,7 @@ export function createPodcast(item: PodcastItem): PodcastItem {
     imageUrl,
     imageAlt: item.imageAlt || title,
     youtubeId: ytId,
+    isFeatured: item.isFeatured ?? false,
     description:
       item.description ||
       `Watch and listen to "${title}" curated by ${channel}. Available in high-definition video and audio streaming modes.`,
@@ -162,6 +163,7 @@ export const FEATURED_PODCAST = createPodcast({
   description: 'มาทำความเข้าใจกับ “พีระมิดแห่งความสุข” โดย “หมอกลาง นพ.ณัฐณกัณฑ์ พิชยะวงศ์ภัค” (ว. 44236) หรือ “พี่กลาง หอสมุดแห่งชาติ” ที่หลาย ๆ คนรู้จัก',
   duration: '35:53',
   date: 'Nov 24, 2025',
+  isFeatured: true,
 });
 
 // ==========================================

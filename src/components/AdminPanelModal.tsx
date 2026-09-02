@@ -9,6 +9,7 @@ interface AdminPanelModalProps {
   podcasts: PodcastItem[];
   onSaveEpisodes: (episodes: PodcastItem[], singleUpdatedItem?: PodcastItem) => void;
   onDeleteEpisode?: (id: string) => void;
+  onSetFeaturedEpisode?: (id: string) => void;
   onResetDefault: () => void;
   isDark?: boolean;
 }
@@ -31,6 +32,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   podcasts,
   onSaveEpisodes,
   onDeleteEpisode,
+  onSetFeaturedEpisode,
   onResetDefault,
   isDark = true,
 }) => {
@@ -64,6 +66,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [spotifyUrl, setSpotifyUrl] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [isFeatured, setIsFeatured] = useState<boolean>(false);
   
   // Feedback / Status
   const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
@@ -175,6 +178,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     setYoutubeUrl('');
     setSpotifyUrl('');
     setImageUrl('');
+    setIsFeatured(false);
     setSaveSuccessMessage(null);
   };
 
@@ -200,6 +204,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     setYoutubeUrl(item.youtubeUrl || (item.youtubeId ? `https://www.youtube.com/watch?v=${item.youtubeId}` : ''));
     setSpotifyUrl(item.spotifyUrl || '');
     setImageUrl(item.imageUrl || '');
+    setIsFeatured(item.isFeatured ?? false);
     setActiveTab('create');
     setSaveSuccessMessage(null);
   };
@@ -231,6 +236,26 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     onSaveEpisodes(updated, target);
   };
 
+  // Set as Featured Podcast / Video of the Week
+  const handleSetFeatured = (id?: string) => {
+    if (!id) return;
+    if (onSetFeaturedEpisode) {
+      onSetFeaturedEpisode(id);
+    } else {
+      const updated = podcasts.map((p) => ({
+        ...p,
+        isFeatured: p.id === id,
+      }));
+      const featuredItem = updated.find((p) => p.id === id);
+      onSaveEpisodes(updated, featuredItem);
+    }
+    const target = podcasts.find((p) => p.id === id);
+    setSaveSuccessMessage(`⭐ ตั้ง "${target?.title || 'ตอนที่เลือก'}" เป็น Podcast of the Week เรียบร้อยแล้ว!`);
+    setTimeout(() => {
+      setSaveSuccessMessage(null);
+    }, 4000);
+  };
+
   // Submit Save
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -254,6 +279,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
       imageUrl: imageUrl.trim() || undefined,
       youtubeUrl: platform === 'youtube' ? youtubeUrl.trim() : undefined,
       spotifyUrl: platform === 'spotify' ? spotifyUrl.trim() : undefined,
+      isFeatured: isFeatured,
     };
 
     const normalized = createPodcast(newItemData);
@@ -267,6 +293,14 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
       // Add as newest at the top
       updatedList = [normalized, ...podcasts];
       setSaveSuccessMessage('🎉 บันทึกตอนใหม่ขึ้น Cloud Database เรียบร้อย ผู้ใช้ทุกคนจะเห็นทันที!');
+    }
+
+    // If this item is marked as featured, ensure all other items have isFeatured = false
+    if (isFeatured) {
+      updatedList = updatedList.map((p) => ({
+        ...p,
+        isFeatured: p.id === normalized.id,
+      }));
     }
 
     onSaveEpisodes(updatedList, normalized);
@@ -729,6 +763,33 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                         />
                       </div>
 
+                      {/* Podcast of the Week Featured Toggle */}
+                      <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent border border-amber-500/30 flex items-center justify-between gap-4">
+                        <div className="flex items-start gap-3">
+                          <span className="material-symbols-outlined text-amber-400 text-[26px] mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>
+                            hotel_class
+                          </span>
+                          <div>
+                            <label htmlFor="is-featured-checkbox" className="text-sm font-bold text-amber-300 block cursor-pointer">
+                              ตั้งเป็น "Podcast & Video of the Week" (แบนเนอร์เด่นด้านบนสุด)
+                            </label>
+                            <p className="text-xs text-slate-300 mt-0.5">
+                              เมื่อเปิดใช้งาน ตอนนี้จะถูกแสดงเป็นแบนเนอร์หลักประจำสัปดาห์ด้านบนสุดของหน้าแรก และไม่แสดงซ้ำในตารางด้านล่าง
+                            </p>
+                          </div>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                          <input
+                            id="is-featured-checkbox"
+                            type="checkbox"
+                            checked={isFeatured}
+                            onChange={(e) => setIsFeatured(e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-12 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                        </label>
+                      </div>
+
                       {/* Action Buttons */}
                       <div className="flex items-center gap-3 pt-2">
                         <button
@@ -759,13 +820,21 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                         <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
                           👁️ แสดงตัวอย่างการแสดงผลจริง (Live Card Preview)
                         </span>
-                        <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                          {platform.toUpperCase()}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          {isFeatured && (
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>hotel_class</span>
+                              FEATURED
+                            </span>
+                          )}
+                          <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                            {platform.toUpperCase()}
+                          </span>
+                        </div>
                       </div>
 
                       {/* Render simulated card */}
-                      <div className="bg-[#060e20] rounded-2xl overflow-hidden border border-[#334155] shadow-xl">
+                      <div className={`bg-[#060e20] rounded-2xl overflow-hidden border ${isFeatured ? 'border-amber-500/50 shadow-amber-500/10' : 'border-[#334155]'} shadow-xl`}>
                         <div className="relative w-full aspect-video overflow-hidden bg-slate-950">
                           {isPreviewSpotify ? (
                             <div className="relative w-full h-full bg-[#030712] flex items-center justify-center overflow-hidden">
@@ -814,6 +883,12 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                         </div>
 
                         <div className="p-4 flex flex-col gap-2">
+                          {isFeatured && (
+                            <div className="flex items-center gap-1 text-[11px] font-bold text-amber-400">
+                              <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>hotel_class</span>
+                              <span>Podcast & Video of the Week</span>
+                            </div>
+                          )}
                           <h4 className="text-[16px] font-bold leading-snug text-white line-clamp-2">
                             {previewItem.title}
                           </h4>
@@ -838,7 +913,9 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
 
                       <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400">
                         <span className="font-semibold text-slate-300">📌 หมายเหตุ:</span>{' '}
-                        ตอนพอดแคสต์ที่เพิ่มเข้ามาใหม่จะถูกจัดวางเป็น <strong className="text-white">"ตอนล่าสุด (Newest First)"</strong> ที่ด้านบนสุดของ Discovery Grid และหน้าแรกทันที
+                        {isFeatured
+                          ? 'ตอนนี้ถูกเลือกเป็น Podcast of the Week จะถูกปักหมุดไว้ที่แบนเนอร์ด้านบนสุด'
+                          : 'ตอนพอดแคสต์ที่เพิ่มเข้ามาใหม่จะถูกจัดวางเป็น "ตอนล่าสุด" ในตาราง Discovery'}
                       </div>
                     </div>
                   </div>
@@ -847,6 +924,45 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                 {/* TAB 2: MANAGE ALL EPISODES */}
                 {activeTab === 'list' && (
                   <div className="flex flex-col gap-4">
+                    {/* Current Featured Podcast Highlight */}
+                    {(() => {
+                      const currentFeatured = podcasts.find((p) => p.isFeatured) || podcasts[0];
+                      return (
+                        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-slate-900 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 flex-shrink-0">
+                              <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                                hotel_class
+                              </span>
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">
+                                  Podcast of the Week ปัจจุบัน
+                                </span>
+                                <span className="px-1.5 py-0.2 rounded text-[10px] bg-amber-400/20 text-amber-300 font-bold">
+                                  แบนเนอร์บนสุด
+                                </span>
+                              </div>
+                              <p className="text-sm font-bold text-white line-clamp-1 mt-0.5">
+                                {currentFeatured ? currentFeatured.title : 'ยังไม่มีการกำหนด (ใช้ค่าเริ่มต้น)'}
+                              </p>
+                            </div>
+                          </div>
+
+                          {currentFeatured && (
+                            <button
+                              onClick={() => handleStartEdit(currentFeatured)}
+                              className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-black border border-amber-500/40 text-xs font-bold transition-all flex items-center gap-1.5 flex-shrink-0"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">edit</span>
+                              <span>แก้ไข Podcast of the Week</span>
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
+
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
                       <div className="relative flex-1 max-w-md">
                         <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">
@@ -854,7 +970,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                         </span>
                         <input
                           type="text"
-                          placeholder="ค้นหาตอนพอดแคสต์ที่ต้องการแก้ไข..."
+                          placeholder="ค้นหาตอนพอดแคสต์ที่ต้องการแก้ไขหรือตั้งค่า..."
                           value={searchManageQuery}
                           onChange={(e) => setSearchManageQuery(e.target.value)}
                           className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -862,7 +978,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                       </div>
 
                       <span className="text-xs text-slate-400">
-                        พบทั้งหมด {podcasts.length} รายการ (เรียงตามลำดับจากบนลงล่าง)
+                        พบทั้งหมด {podcasts.length} รายการ
                       </span>
                     </div>
 
@@ -880,11 +996,16 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                         })
                         .map((item, idx) => {
                           const isAudio = isAudioOnlyPodcast(item);
+                          const isItemFeatured = !!item.isFeatured;
 
                           return (
                             <div
                               key={item.id || idx}
-                              className="p-3.5 bg-slate-900/70 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-all"
+                              className={`p-3.5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-all ${
+                                isItemFeatured
+                                  ? 'bg-amber-950/20 border-2 border-amber-500/50 shadow-md shadow-amber-500/5'
+                                  : 'bg-slate-900/70 hover:bg-slate-900 border border-slate-800 hover:border-slate-700'
+                              }`}
                             >
                               <div className="flex items-center gap-3 min-w-0 flex-1">
                                 <span className="text-xs font-mono text-slate-500 w-6 flex-shrink-0 text-center">
@@ -909,7 +1030,13 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
 
                                 {/* Details */}
                                 <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-2 mb-0.5">
+                                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                                    {isItemFeatured && (
+                                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>hotel_class</span>
+                                        Podcast of the Week
+                                      </span>
+                                    )}
                                     <span className="text-[11px] text-slate-400">{item.category}</span>
                                     <span className="text-[11px] text-slate-500">• {item.channel}</span>
                                   </div>
@@ -920,7 +1047,20 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                               </div>
 
                               {/* Actions */}
-                              <div className="flex items-center gap-1.5 self-end sm:self-center flex-shrink-0">
+                              <div className="flex items-center gap-1.5 self-end sm:self-center flex-shrink-0 flex-wrap">
+                                {!isItemFeatured && (
+                                  <button
+                                    onClick={() => handleSetFeatured(item.id)}
+                                    className="p-1.5 px-2.5 rounded-lg bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-black border border-amber-500/30 transition-colors text-xs flex items-center gap-1 font-medium"
+                                    title="ตั้งเป็น Podcast & Video of the Week (แบนเนอร์เด่น)"
+                                  >
+                                    <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                                      hotel_class
+                                    </span>
+                                    <span className="text-[11px]">ตั้งเป็นประจำสัปดาห์</span>
+                                  </button>
+                                )}
+
                                 {idx > 0 && (
                                   <button
                                     onClick={() => handleMoveToTop(item.id)}
@@ -934,7 +1074,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
 
                                 <button
                                   onClick={() => handleStartEdit(item)}
-                                  className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-amber-600 hover:text-white text-slate-300 transition-colors text-xs flex items-center gap-1"
+                                  className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-blue-600 hover:text-white text-slate-300 transition-colors text-xs flex items-center gap-1"
                                   title="แก้ไขข้อมูล (Edit)"
                                 >
                                   <span className="material-symbols-outlined text-[16px]">edit</span>

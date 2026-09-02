@@ -56,8 +56,17 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
     ])
   ) as string[];
 
+  // Determine Featured Podcast of the Week (dynamically selected by Admin)
+  const featuredEpisode =
+    podcasts.find((p) => p.isFeatured) ||
+    podcasts[0] ||
+    FEATURED_PODCAST;
+
+  // Podcasts excluding the featured episode so it doesn't duplicate in the grid
+  const standardPodcasts = podcasts.filter((p) => p.id !== featuredEpisode.id);
+
   // All podcasts available for bookmarks/library
-  const allAvailablePodcasts = [FEATURED_PODCAST, ...podcasts];
+  const allAvailablePodcasts = podcasts.length > 0 ? podcasts : [FEATURED_PODCAST];
 
   // Bookmarked items list
   const bookmarkedItems = allAvailablePodcasts.filter((item) => item.id && bookmarks.has(item.id));
@@ -74,8 +83,8 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
     return matchesCategory && matchesSearch;
   });
 
-  // Filter all cards (newest first from podcasts array)
-  const filteredCards = podcasts.filter((card) => {
+  // Filter cards for browse grid (excluding featured item to avoid duplication)
+  const filteredCards = standardPodcasts.filter((card) => {
     const matchesCategory =
       selectedCategory === 'All' ||
       (card.category && card.category.toLowerCase() === selectedCategory.toLowerCase());
@@ -470,47 +479,47 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
               {/* Thumbnail Side */}
               <div
                 className="w-full md:w-3/5 h-64 md:h-[420px] relative overflow-hidden cursor-pointer"
-                onClick={() => onPlayEpisode(FEATURED_PODCAST)}
+                onClick={() => onPlayEpisode(featuredEpisode)}
               >
                 <div
                   className="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                  data-alt={FEATURED_PODCAST.imageAlt}
-                  style={{ backgroundImage: `url('${FEATURED_PODCAST.imageUrl}')` }}
+                  data-alt={featuredEpisode.imageAlt || featuredEpisode.title}
+                  style={{ backgroundImage: `url('${featuredEpisode.imageUrl}')` }}
                 />
 
                 {/* Gentle Default Gradient & Subtle Play Hint when not hovered */}
                 <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-[#060e20]/80 via-transparent to-transparent flex items-center justify-center pointer-events-none group-hover:opacity-0 transition-opacity duration-300">
-                  <div className="w-16 h-16 rounded-full bg-red-600/80 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-xl">
+                  <div className={`w-16 h-16 rounded-full ${isAudioOnlyPodcast(featuredEpisode) ? 'bg-emerald-600/90' : 'bg-red-600/90'} backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-xl`}>
                     <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-                      play_arrow
+                      {isAudioOnlyPodcast(featuredEpisode) ? 'headphones' : 'play_arrow'}
                     </span>
                   </div>
                 </div>
 
-                {/* Hover Overlay: Shows Video Selection */}
+                {/* Hover Overlay: Shows Media Selection */}
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 opacity-0 group-hover:opacity-100 transition-all duration-300">
                   <button
                     id="hero-play-video-button"
                     aria-label="Play Featured Video"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onPlayEpisode(FEATURED_PODCAST);
+                      onPlayEpisode(featuredEpisode);
                     }}
-                    className="h-14 sm:h-16 px-8 bg-red-600 hover:bg-red-500 text-white rounded-full flex items-center gap-3 shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 ring-4 ring-red-500/30 font-bold text-base"
+                    className={`h-14 sm:h-16 px-8 ${isAudioOnlyPodcast(featuredEpisode) ? 'bg-emerald-600 hover:bg-emerald-500 ring-emerald-500/30' : 'bg-red-600 hover:bg-red-500 ring-red-500/30'} text-white rounded-full flex items-center gap-3 shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 ring-4 font-bold text-base`}
                   >
                     <span
                       className="material-symbols-outlined"
                       style={{ fontVariationSettings: "'FILL' 1", fontSize: '28px' }}
                     >
-                      play_arrow
+                      {isAudioOnlyPodcast(featuredEpisode) ? 'headphones' : 'play_arrow'}
                     </span>
-                    <span>ดูวิดีโอ (Watch on YouTube)</span>
+                    <span>{isAudioOnlyPodcast(featuredEpisode) ? 'ฟังเสียงพอดแคสต์ (Spotify)' : 'ดูวิดีโอ (Watch on YouTube)'}</span>
                   </button>
                 </div>
 
-                <div className="absolute top-4 left-4 bg-red-600/90 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[12px] font-bold text-white flex items-center gap-1.5 border border-red-400/40 z-10 shadow-lg">
-                  <span className="material-symbols-outlined text-[16px]">smart_display</span>
-                  <span>Featured YouTube Episode</span>
+                <div className={`absolute top-4 left-4 ${isAudioOnlyPodcast(featuredEpisode) ? 'bg-emerald-600/90 border-emerald-400/40' : 'bg-red-600/90 border-red-400/40'} backdrop-blur-md px-3.5 py-1.5 rounded-full text-[12px] font-bold text-white flex items-center gap-1.5 border z-10 shadow-lg`}>
+                  <span className="material-symbols-outlined text-[16px]">{isAudioOnlyPodcast(featuredEpisode) ? 'podcasts' : 'smart_display'}</span>
+                  <span>{isAudioOnlyPodcast(featuredEpisode) ? 'Featured Spotify Podcast' : 'Featured YouTube Episode'}</span>
                 </div>
               </div>
 
@@ -522,23 +531,23 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                     <span>Podcast & Video of the Week</span>
                   </span>
                   <h1 className="text-[28px] md:text-[32px] leading-[36px] md:leading-[40px] font-bold text-[#f8fafc] tracking-tight">
-                    {FEATURED_PODCAST.title}
+                    {featuredEpisode.title}
                   </h1>
                 </div>
 
                 <p className="text-[15px] leading-[24px] text-[#cbd5e1] line-clamp-3">
-                  {FEATURED_PODCAST.description}
+                  {featuredEpisode.description}
                 </p>
 
                 <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#334155]">
                   <div className="flex items-center gap-4 text-[#94a3b8] text-[13px] font-medium">
                     <div className="flex items-center gap-1.5">
                       <span className="material-symbols-outlined text-[16px]">schedule</span>
-                      <span>{FEATURED_PODCAST.duration}</span>
+                      <span>{featuredEpisode.duration}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="material-symbols-outlined text-[16px]">today</span>
-                      <span>{FEATURED_PODCAST.date}</span>
+                      <span>{featuredEpisode.date}</span>
                     </div>
                   </div>
                   <button
@@ -546,10 +555,10 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                     aria-label="Bookmark featured episode"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onToggleBookmark(FEATURED_PODCAST.id);
+                      if (featuredEpisode.id) onToggleBookmark(featuredEpisode.id);
                     }}
                     className={`p-2 rounded-full transition-colors ${
-                      bookmarks.has(FEATURED_PODCAST.id)
+                      featuredEpisode.id && bookmarks.has(featuredEpisode.id)
                         ? 'text-blue-400 bg-blue-500/10'
                         : 'text-[#cbd5e1] hover:text-[#3b82f6] hover:bg-[#1e293b]'
                     }`}
@@ -557,12 +566,12 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                     <span
                       className="material-symbols-outlined"
                       style={{
-                        fontVariationSettings: bookmarks.has(FEATURED_PODCAST.id)
+                        fontVariationSettings: featuredEpisode.id && bookmarks.has(featuredEpisode.id)
                           ? "'FILL' 1"
                           : "'FILL' 0",
                       }}
                     >
-                      {bookmarks.has(FEATURED_PODCAST.id) ? 'bookmark' : 'bookmark_add'}
+                      {featuredEpisode.id && bookmarks.has(featuredEpisode.id) ? 'bookmark' : 'bookmark_add'}
                     </span>
                   </button>
                 </div>

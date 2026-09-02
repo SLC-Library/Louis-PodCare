@@ -132,6 +132,28 @@ export async function savePodcastToFirestore(item: PodcastItem): Promise<Podcast
 }
 
 /**
+ * Set a specific podcast as the featured 'Podcast of the Week' in Firestore
+ */
+export async function setFeaturedPodcastInFirestore(featuredId: string): Promise<void> {
+  const colRef = collection(db, PODCASTS_COLLECTION);
+  const snap = await getDocs(colRef);
+
+  const batch = writeBatch(db);
+  snap.docs.forEach((d) => {
+    if (d.id === featuredId) {
+      batch.update(d.ref, { isFeatured: true, updatedAt: new Date().toISOString() });
+    } else {
+      const data = d.data();
+      if (data.isFeatured) {
+        batch.update(d.ref, { isFeatured: false, updatedAt: new Date().toISOString() });
+      }
+    }
+  });
+
+  await batch.commit();
+}
+
+/**
  * Delete a podcast episode from Firestore
  */
 export async function deletePodcastFromFirestore(id: string): Promise<void> {

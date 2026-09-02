@@ -9,6 +9,7 @@ import {
   subscribeToPodcasts,
   savePodcastToFirestore,
   deletePodcastFromFirestore,
+  setFeaturedPodcastInFirestore,
   resetPodcastsToDefaultInFirestore,
   initializeFirestorePodcastsIfEmpty,
 } from './services/podcastService';
@@ -96,6 +97,20 @@ export default function App() {
       await deletePodcastFromFirestore(id);
     } catch (err) {
       console.error('Failed to delete episode from Firestore:', err);
+    }
+  };
+
+  const handleSetFeaturedEpisode = async (id: string) => {
+    setPodcasts((prev) =>
+      prev.map((p) => ({
+        ...p,
+        isFeatured: p.id === id,
+      }))
+    );
+    try {
+      await setFeaturedPodcastInFirestore(id);
+    } catch (err) {
+      console.error('Failed to set featured episode in Firestore:', err);
     }
   };
 
@@ -199,6 +214,7 @@ export default function App() {
         podcasts={podcasts}
         onSaveEpisodes={handleSaveEpisodes}
         onDeleteEpisode={handleDeleteEpisode}
+        onSetFeaturedEpisode={handleSetFeaturedEpisode}
         onResetDefault={handleResetDefault}
         isDark={currentScreen === 'dark'}
       />

@@ -25,6 +25,7 @@ export interface PodcastItem {
   youtubeUrl?: string;
   spotifyUrl?: string;
   spotifyEmbedUrl?: string;
+  isFeatured?: boolean;
   createdAt?: string;
   updatedAt?: string;
   order?: number;
