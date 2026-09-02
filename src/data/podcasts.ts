@@ -112,7 +112,7 @@ export function createPodcast(item: PodcastItem): PodcastItem {
       ? `spotify-${spotifyInfo.id}`
       : title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
 
-  return {
+  const result: PodcastItem = {
     ...item,
     id,
     title,
@@ -126,13 +126,22 @@ export function createPodcast(item: PodcastItem): PodcastItem {
     imageUrl,
     imageAlt: item.imageAlt || title,
     youtubeId: ytId,
-    youtubeUrl: item.youtubeUrl || (ytId ? `https://www.youtube.com/watch?v=${ytId}` : undefined),
-    spotifyUrl,
-    spotifyEmbedUrl,
     description:
       item.description ||
       `Watch and listen to "${title}" curated by ${channel}. Available in high-definition video and audio streaming modes.`,
   };
+
+  if (item.youtubeUrl || ytId) {
+    result.youtubeUrl = item.youtubeUrl || `https://www.youtube.com/watch?v=${ytId}`;
+  }
+  if (spotifyUrl) {
+    result.spotifyUrl = spotifyUrl;
+  }
+  if (spotifyEmbedUrl) {
+    result.spotifyEmbedUrl = spotifyEmbedUrl;
+  }
+
+  return result;
 }
 
 /**

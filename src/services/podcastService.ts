@@ -22,6 +22,24 @@ import {
 const PODCASTS_COLLECTION = 'podcasts';
 
 /**
+ * Clean object of undefined fields before writing to Firestore
+ * Firestore throws error when encountering `undefined` field values.
+ */
+function cleanForFirestore<T extends Record<string, any>>(obj: T): T {
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        result[key] = cleanForFirestore(value);
+      } else {
+        result[key] = value;
+      }
+    }
+  }
+  return result as T;
+}
+
+/**
  * Seed initial podcasts from local static list if Firestore collection is empty
  */
 export async function initializeFirestorePodcastsIfEmpty(): Promise<void> {
@@ -41,11 +59,14 @@ export async function initializeFirestorePodcastsIfEmpty(): Promise<void> {
       allInitial.forEach((item, index) => {
         const normalized = createPodcast(item);
         const itemDocRef = doc(db, PODCASTS_COLLECTION, normalized.id);
-        batch.set(itemDocRef, {
-          ...normalized,
-          order: index,
-          createdAt: new Date().toISOString(),
-        });
+        batch.set(
+          itemDocRef,
+          cleanForFirestore({
+            ...normalized,
+            order: index,
+            createdAt: new Date().toISOString(),
+          })
+        );
       });
 
       await batch.commit();
@@ -100,11 +121,11 @@ export async function savePodcastToFirestore(item: PodcastItem): Promise<Podcast
   const docRef = doc(db, PODCASTS_COLLECTION, normalized.id);
   await setDoc(
     docRef,
-    {
+    cleanForFirestore({
       ...normalized,
       updatedAt: new Date().toISOString(),
       createdAt: item.createdAt || new Date().toISOString(),
-    },
+    }),
     { merge: true }
   );
   return normalized;
@@ -139,11 +160,14 @@ export async function resetPodcastsToDefaultInFirestore(): Promise<void> {
   allInitial.forEach((item, index) => {
     const normalized = createPodcast(item);
     const itemDocRef = doc(db, PODCASTS_COLLECTION, normalized.id);
-    batch.set(itemDocRef, {
-      ...normalized,
-      order: index,
-      createdAt: new Date().toISOString(),
-    });
+    batch.set(
+      itemDocRef,
+      cleanForFirestore({
+        ...normalized,
+        order: index,
+        createdAt: new Date().toISOString(),
+      })
+    );
   });
 
   await batch.commit();
