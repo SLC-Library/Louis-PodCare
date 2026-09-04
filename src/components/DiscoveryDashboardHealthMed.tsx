@@ -8,6 +8,7 @@ import {
 import { MediaMode, PodcastItem, TabId, TransitionType } from '../types';
 import { SaintLouisCommunityHub } from './SaintLouisCommunityHub';
 import { Footer } from './Footer';
+import { Pagination } from './Pagination';
 
 interface DiscoveryDashboardHealthMedProps {
   onNavigate: (to: 'healthmed' | 'dark', transition: TransitionType) => void;
@@ -24,7 +25,8 @@ interface DiscoveryDashboardHealthMedProps {
   onOpenAdmin: () => void;
 }
 
-const PAGE_SIZE = 6;
+const INITIAL_PAGE_SIZE = 6;
+const MAX_PAGE_SIZE = 9;
 
 export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedProps> = ({
   onNavigate,
@@ -40,11 +42,13 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
   podcasts,
   onOpenAdmin,
 }) => {
-  const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [currentDisplayCount, setCurrentDisplayCount] = useState<number>(INITIAL_PAGE_SIZE);
 
-  // Reset pagination when category or search changes
+  // Reset pagination when category, search, or page changes
   useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
+    setCurrentPage(1);
+    setCurrentDisplayCount(INITIAL_PAGE_SIZE);
   }, [selectedCategory, searchQuery]);
 
   // Dynamic categories including any custom ones added by admin
@@ -95,8 +99,21 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
     return matchesCategory && matchesSearch;
   });
 
-  const displayedCards = filteredCards.slice(0, visibleCount);
-  const hasMore = filteredCards.length > visibleCount;
+  const totalItems = filteredCards.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / MAX_PAGE_SIZE));
+  const validPage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (validPage - 1) * MAX_PAGE_SIZE;
+  // Items belonging to the current page (up to 9 items)
+  const currentPageAllItems = filteredCards.slice(startIndex, startIndex + MAX_PAGE_SIZE);
+  // Show either 6 items or expanded 9 items on the current page
+  const displayedCards = currentPageAllItems.slice(0, currentDisplayCount);
+  // Can load more if current page has more than currentDisplayCount items and currentDisplayCount < MAX_PAGE_SIZE
+  const canLoadMoreInPage = currentPageAllItems.length > currentDisplayCount && currentDisplayCount < MAX_PAGE_SIZE;
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    setCurrentDisplayCount(INITIAL_PAGE_SIZE);
+  };
 
   return (
     <div id="discovery-dashboard-healthmed" className="min-h-screen bg-[#f8fafc] text-[#0f172a] font-sans antialiased selection:bg-blue-600 selection:text-white">
@@ -578,6 +595,9 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
               </div>
             </section>
 
+            {/* Filter Chips Anchor for Smooth Pagination Scrolling */}
+            <div id="healthmed-catalog-grid-top" className="scroll-mt-24" />
+
             {/* Filter Chips */}
             <section
               id="healthmed-filter-chips"
@@ -779,33 +799,20 @@ export const DiscoveryDashboardHealthMed: React.FC<DiscoveryDashboardHealthMedPr
               </section>
             )}
 
-            {/* Pagination / Load More Button */}
+            {/* Pagination Controls */}
             {filteredCards.length > 0 && (
-              <div className="flex flex-col items-center justify-center gap-2 mt-4">
-                {hasMore ? (
-                  <button
-                    id="healthmed-load-more-btn"
-                    onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
-                    className="px-8 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[14px] transition-all duration-300 flex items-center gap-2 shadow-md shadow-blue-600/20 hover:shadow-blue-600/35 hover:scale-102 active:scale-98"
-                  >
-                    <span className="material-symbols-outlined text-[20px]">expand_circle_down</span>
-                    <span>
-                      โหลดเพิ่มเติม (แสดงอีก {Math.min(PAGE_SIZE, filteredCards.length - visibleCount)} จาก {filteredCards.length} ตอน)
-                    </span>
-                  </button>
-                ) : filteredCards.length > PAGE_SIZE ? (
-                  <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-100 px-4 py-2 rounded-full border border-slate-200">
-                    <span className="material-symbols-outlined text-emerald-600 text-[18px]">check_circle</span>
-                    <span>แสดงครบทั้งหมด {filteredCards.length} ตอนแล้ว</span>
-                    <button
-                      onClick={() => setVisibleCount(PAGE_SIZE)}
-                      className="ml-2 text-blue-600 hover:underline font-semibold"
-                    >
-                      ย่อกลับ
-                    </button>
-                  </div>
-                ) : null}
-              </div>
+              <Pagination
+                currentPage={validPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                totalItems={totalItems}
+                currentDisplayCount={displayedCards.length}
+                maxPageSize={MAX_PAGE_SIZE}
+                canLoadMoreInPage={canLoadMoreInPage}
+                onLoadMoreInPage={() => setCurrentDisplayCount(MAX_PAGE_SIZE)}
+                theme="light"
+                targetScrollId="healthmed-catalog-grid-top"
+              />
             )}
           </>
         )}

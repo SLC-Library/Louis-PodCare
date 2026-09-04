@@ -8,6 +8,7 @@ import {
 import { MediaMode, PodcastItem, TabId, TransitionType } from '../types';
 import { SaintLouisCommunityHub } from './SaintLouisCommunityHub';
 import { Footer } from './Footer';
+import { Pagination } from './Pagination';
 
 interface DiscoveryDashboardDarkProps {
   onNavigate: (to: 'healthmed' | 'dark', transition: TransitionType) => void;
@@ -24,7 +25,8 @@ interface DiscoveryDashboardDarkProps {
   onOpenAdmin: () => void;
 }
 
-const PAGE_SIZE = 6;
+const INITIAL_PAGE_SIZE = 6;
+const MAX_PAGE_SIZE = 9;
 
 export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
   onNavigate,
@@ -40,11 +42,13 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
   podcasts,
   onOpenAdmin,
 }) => {
-  const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [currentDisplayCount, setCurrentDisplayCount] = useState<number>(INITIAL_PAGE_SIZE);
 
-  // Reset pagination when category or search changes
+  // Reset pagination when category, search, or page changes
   useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
+    setCurrentPage(1);
+    setCurrentDisplayCount(INITIAL_PAGE_SIZE);
   }, [selectedCategory, searchQuery]);
 
   // Dynamic categories including any custom ones added by admin
@@ -95,8 +99,21 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
     return matchesCategory && matchesSearch;
   });
 
-  const displayedCards = filteredCards.slice(0, visibleCount);
-  const hasMore = filteredCards.length > visibleCount;
+  const totalItems = filteredCards.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / MAX_PAGE_SIZE));
+  const validPage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (validPage - 1) * MAX_PAGE_SIZE;
+  // Items belonging to the current page (up to 9 items)
+  const currentPageAllItems = filteredCards.slice(startIndex, startIndex + MAX_PAGE_SIZE);
+  // Show either 6 items or expanded 9 items on the current page
+  const displayedCards = currentPageAllItems.slice(0, currentDisplayCount);
+  // Can load more if current page has more than currentDisplayCount items and currentDisplayCount < MAX_PAGE_SIZE
+  const canLoadMoreInPage = currentPageAllItems.length > currentDisplayCount && currentDisplayCount < MAX_PAGE_SIZE;
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    setCurrentDisplayCount(INITIAL_PAGE_SIZE);
+  };
 
   return (
     <div id="discovery-dashboard-dark" className="min-h-screen bg-[#0f172a] text-[#f8fafc] font-sans antialiased selection:bg-blue-500 selection:text-white">
@@ -578,6 +595,9 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
               </div>
             </section>
 
+            {/* Filter Chips Anchor for Smooth Pagination Scrolling */}
+            <div id="dark-catalog-grid-top" className="scroll-mt-24" />
+
             {/* Filter Chips */}
             <section
               id="dark-filter-chips"
@@ -779,33 +799,20 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
               </section>
             )}
 
-            {/* Pagination / Load More Button */}
+            {/* Pagination Controls */}
             {filteredCards.length > 0 && (
-              <div className="flex flex-col items-center justify-center gap-2 mt-4">
-                {hasMore ? (
-                  <button
-                    id="dark-load-more-btn"
-                    onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
-                    className="px-8 py-3 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-[14px] transition-all duration-300 flex items-center gap-2 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:scale-102 active:scale-98"
-                  >
-                    <span className="material-symbols-outlined text-[20px]">expand_circle_down</span>
-                    <span>
-                      โหลดเพิ่มเติม (แสดงอีก {Math.min(PAGE_SIZE, filteredCards.length - visibleCount)} จาก {filteredCards.length} ตอน)
-                    </span>
-                  </button>
-                ) : filteredCards.length > PAGE_SIZE ? (
-                  <div className="flex items-center gap-2 text-xs text-slate-400 bg-[#060e20] px-4 py-2 rounded-full border border-slate-800">
-                    <span className="material-symbols-outlined text-emerald-400 text-[18px]">check_circle</span>
-                    <span>แสดงครบทั้งหมด {filteredCards.length} ตอนแล้ว</span>
-                    <button
-                      onClick={() => setVisibleCount(PAGE_SIZE)}
-                      className="ml-2 text-blue-400 hover:underline"
-                    >
-                      ย่อกลับ
-                    </button>
-                  </div>
-                ) : null}
-              </div>
+              <Pagination
+                currentPage={validPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                totalItems={totalItems}
+                currentDisplayCount={displayedCards.length}
+                maxPageSize={MAX_PAGE_SIZE}
+                canLoadMoreInPage={canLoadMoreInPage}
+                onLoadMoreInPage={() => setCurrentDisplayCount(MAX_PAGE_SIZE)}
+                theme="dark"
+                targetScrollId="dark-catalog-grid-top"
+              />
             )}
           </>
         )}
