@@ -201,25 +201,36 @@ export async function fetchSaintLouisArticles(forceRefresh = false): Promise<Fet
   }
 
   try {
-    // 2. Fetch live data from Saint Louis Hospital public API
-    const [contentsRes, recommendRes, catRes] = await Promise.all([
-      fetch(`${BASE_API}/contents?page=1&limit=30`, {
-        headers: { 'Content-Type': 'application/json' },
-      }),
-      fetch(`${BASE_API}/recommend_contents`, {
-        headers: { 'Content-Type': 'application/json' },
-      }).catch(() => null),
-      fetch(`${BASE_API}/content_categories`, {
-        headers: { 'Content-Type': 'application/json' },
-      }).catch(() => null),
-    ]);
+    // เริ่มดึง recommend/categories พร้อมกันไปเลยตั้งแต่ตอนนี้ (ไม่ต้องรอ pagination loop ด้านล่างจบก่อน)
+    const recommendPromise = fetch(`${BASE_API}/recommend_contents`, {
+      headers: { 'Content-Type': 'application/json' },
+    }).catch(() => null);
+    const catPromise = fetch(`${BASE_API}/content_categories`, {
+      headers: { 'Content-Type': 'application/json' },
+    }).catch(() => null);
 
-    if (!contentsRes.ok) {
-      throw new Error(`API responded with status ${contentsRes.status}`);
+    // ดึงบทความทุกหน้า ไม่ใช่แค่หน้าแรก — วนดึงไปเรื่อยๆ จนกว่าจะได้หน้าที่มีรายการน้อยกว่า PAGE_SIZE
+    // (แปลว่าถึงหน้าสุดท้ายแล้ว) หรือครบจำนวนหน้าสูงสุดที่กันไว้เพื่อความปลอดภัย
+    const PAGE_SIZE = 30;
+    const MAX_PAGES = 20; // กันไว้ไม่ให้วนอนันต์ถ้า API เปลี่ยนพฤติกรรม (สูงสุด 600 รายการ)
+
+    const rawAllItems: RawContentItem[] = [];
+    for (let page = 1; page <= MAX_PAGES; page++) {
+      const pageRes = await fetch(`${BASE_API}/contents?page=${page}&limit=${PAGE_SIZE}`, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!pageRes.ok) {
+        if (page === 1) throw new Error(`API responded with status ${pageRes.status}`);
+        break; // ดึงมาได้บ้างแล้ว หน้าถัดไปพังก็หยุดแค่นี้พอ ไม่ต้อง throw ทิ้งของที่ได้มาแล้ว
+      }
+      const pageJson = await pageRes.json();
+      const pageItems: RawContentItem[] = pageJson.data || [];
+      rawAllItems.push(...pageItems);
+      if (pageItems.length < PAGE_SIZE) break; // หน้านี้มาไม่เต็ม แปลว่าหมดแล้ว
     }
 
-    const contentsJson = await contentsRes.json();
-    const rawAllItems: RawContentItem[] = contentsJson.data || [];
+    const [recommendRes, catRes] = await Promise.all([recommendPromise, catPromise]);
+
     // Filter strictly for knowledge & health education articles (excluding closure/holiday/administrative news)
     const rawItems: RawContentItem[] = rawAllItems.filter(isKnowledgeArticle);
 
