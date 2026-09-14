@@ -18,6 +18,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('ทั้งหมด');
+  const [activeSpecialty, setActiveSpecialty] = useState<{ name: string; keywords: string[] } | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedArticleModal, setSelectedArticleModal] = useState<ArticleItem | null>(null);
 
@@ -54,8 +55,15 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
 
   const filteredArticles = useMemo(() => {
     return articles.filter((article) => {
-      const matchCat =
-        selectedCategory === 'ทั้งหมด' || article.category === selectedCategory;
+      let matchCat: boolean;
+      if (activeSpecialty) {
+        // จับคู่แบบใช้คำสำคัญ (keyword) กับ หมวดหมู่/ชื่อเรื่อง/สรุป/แท็ก แทนการเทียบชื่อหมวดหมู่ตรงตัว
+        // เพราะชื่อหมวดหมู่จริงจากเว็บต้นทางอาจไม่ตรงกับชื่อศูนย์เฉพาะทางที่เรากำหนดเอง
+        const haystack = `${article.category} ${article.title} ${article.summary} ${(article.tags || []).join(' ')}`.toLowerCase();
+        matchCat = activeSpecialty.keywords.some((kw) => haystack.includes(kw.toLowerCase()));
+      } else {
+        matchCat = selectedCategory === 'ทั้งหมด' || article.category === selectedCategory;
+      }
       const matchSearch =
         !searchQuery.trim() ||
         article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -64,7 +72,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
         article.tags?.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
       return matchCat && matchSearch;
     });
-  }, [articles, selectedCategory, searchQuery]);
+  }, [articles, selectedCategory, activeSpecialty, searchQuery]);
 
   return (
     <div
@@ -176,7 +184,10 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
             return (
               <button
                 key={cat}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => {
+                  setSelectedCategory(cat);
+                  setActiveSpecialty(null);
+                }}
                 className={`snap-start flex-shrink-0 px-4 py-2 rounded-full text-xs sm:text-[13px] font-medium transition-all ${
                   isActive
                     ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20 font-semibold'
@@ -367,7 +378,10 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
               >
                 <span className="material-symbols-outlined text-blue-500">feed</span>
                 <span>
-                  บทความสาระความรู้ล่าสุด {selectedCategory !== 'ทั้งหมด' && `(${selectedCategory})`}
+                  บทความสาระความรู้ล่าสุด{' '}
+                  {activeSpecialty
+                    ? `(${activeSpecialty.name})`
+                    : selectedCategory !== 'ทั้งหมด' && `(${selectedCategory})`}
                 </span>
                 <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-semibold">
                   {filteredArticles.length} รายการ
@@ -402,6 +416,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
                   onClick={() => {
                     setSearchQuery('');
                     setSelectedCategory('ทั้งหมด');
+                    setActiveSpecialty(null);
                   }}
                   className="mt-4 px-4 py-1.5 rounded-full bg-blue-600 text-white text-xs font-medium"
                 >
@@ -544,41 +559,42 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
                     desc: 'ความรู้โรคหัวใจ & CT Calcium Score',
                     icon: 'favorite',
                     color: 'text-red-500',
-                    category: 'สาระสุขภาพ',
+                    keywords: ['หัวใจ', 'หลอดเลือด', 'คอเลสเตอรอล', 'ความดันโลหิต', 'หัวใจเต้น'],
                   },
                   {
                     name: 'ศูนย์เบาหวานและโภชนาการ',
                     desc: 'การดูแลระดับน้ำตาล & ปรับอาหาร',
                     icon: 'nutrition',
                     color: 'text-emerald-500',
-                    category: 'โภชนาการและไลฟ์สไตล์',
+                    keywords: ['เบาหวาน', 'โภชนาการ', 'น้ำตาลในเลือด', 'อาหาร', 'น้ำหนัก'],
                   },
                   {
                     name: 'ศูนย์ศัลยกรรมส่องกล้อง (MIS)',
                     desc: 'นวัตกรรมผ่าตัดแผลเล็กฟื้นตัวไว',
                     icon: 'biotech',
                     color: 'text-blue-500',
-                    category: 'นวัตกรรมทางการแพทย์',
+                    keywords: ['ส่องกล้อง', 'ผ่าตัด', 'ศัลยกรรม', 'MIS', 'นวัตกรรม'],
                   },
                   {
                     name: 'ศูนย์เวชศาสตร์เชิงป้องกัน & วัคซีน',
                     desc: 'คู่มือวัคซีน & ตรวจคัดกรองตามวัย',
                     icon: 'vaccines',
                     color: 'text-purple-500',
-                    category: 'เวชศาสตร์เชิงป้องกัน',
+                    keywords: ['วัคซีน', 'ตรวจคัดกรอง', 'ป้องกันโรค', 'ตรวจสุขภาพ', 'ภูมิคุ้มกัน'],
                   },
                   {
                     name: 'ศูนย์เวชศาสตร์ฟื้นฟู & กายภาพ',
                     desc: 'สรีรศาสตร์โต๊ะทำงาน & Office Syndrome',
                     icon: 'accessibility_new',
                     color: 'text-amber-500',
-                    category: 'ศูนย์เฉพาะทาง',
+                    keywords: ['กายภาพ', 'ฟื้นฟู', 'ออฟฟิศซินโดรม', 'Office Syndrome', 'ปวดหลัง', 'ปวดเมื่อย'],
                   },
                 ].map((item, idx) => (
                   <button
                     key={idx}
                     onClick={() => {
-                      setSelectedCategory(item.category);
+                      setActiveSpecialty({ name: item.name, keywords: item.keywords });
+                      setSelectedCategory('ทั้งหมด');
                       window.scrollTo({ top: 300, behavior: 'smooth' });
                     }}
                     className={`p-3 rounded-xl border flex items-center justify-between text-left transition-all ${
