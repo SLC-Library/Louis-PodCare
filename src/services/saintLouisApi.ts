@@ -2,67 +2,36 @@ import { ArticleItem } from '../types';
 import { SAINT_LOUIS_ARTICLES, FEATURED_ARTICLE } from '../data/articles';
 
 const BASE_API = 'https://public-api.saintlouis.or.th/user-api';
-const CACHE_KEY = 'slh_contents_cache_v2';
-const CACHE_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+const CACHE_KEY = 'slh_contents_cache_v3'; // เปลี่ยนเวอร์ชัน cache
+const CACHE_DURATION_MS = 15 * 60 * 1000;
 
-// Exclude administrative news, closure notices, holiday schedules, PR events, and service interruptions
+// ปรับคีย์เวิร์ดให้แคบลง Focus เฉพาะหัวข้อข่าวประกาศจริงๆ ไม่ตัดคำทั่วไปที่อาจเจอบ่อยในบทความ
 const EXCLUDED_ANNOUNCEMENT_KEYWORDS = [
   'ปิดทำการ',
-  'วันหยุด',
   'งดให้บริการ',
   'แจ้งปิด',
   'ประกาศปิด',
   'ตารางแพทย์งด',
-  'ปรับเปลี่ยนเวลา',
   'วันหยุดราชการ',
   'ปิดบริการ',
-  'เวลาทำการ',
-  'วันสงกรานต์',
-  'วันปีใหม่',
-  'วันแรงงาน',
-  'วันเฉลิม',
   'ประกาศโรงพยาบาล',
-  'ชั่วคราว',
   'ปิดระบบ',
   'งดรับ',
-  'ย้ายจุด',
-  'ขออภัย',
-  'ปิดให้บริการ',
   'แจ้งเวลาเปิด-ปิด',
-  'แจ้งเปลี่ยนแปลง',
   'หยุดให้บริการ',
-  'ข่าวสาร',
-  'ประชาสัมพันธ์',
-  'ข่าวประชาสัมพันธ์',
-  'กิจกรรม',
-  'รับสมัคร',
   'รับสมัครงาน',
-  'ตารางแพทย์',
-  'บริจาคโลหิต',
-  'เชิญชวน',
-  'พิธี',
-  'ทำบุญ',
   'ประกวดราคา',
   'จัดซื้อจัดจ้าง',
-  'โปรโมชั่น',
-  'ราคาพิเศษ',
-  'งานสัมมนา',
-  'งานแถลงข่าว',
-  'งดตรวจ',
-  'ขออภัยในความไม่สะดวก',
   'แจ้งย้ายแผนก',
   'แจ้งเปิดให้บริการ',
   'แจ้งหยุด',
-  'วันคล้ายวันสถาปนา',
-  'ถวายพระพร',
-  'ต้อนรับคณะ',
-  'มอบทุน',
-  'พิธีเปิด',
-  'ลงนาม',
+  'ขออภัยในความไม่สะดวก'
 ];
 
 function isKnowledgeArticle(item: RawContentItem): boolean {
-  const text = `${item.topic_th || ''} ${item.topic_en || ''} ${item.description_th || ''} ${item.category?.name_th || ''}`.toLowerCase();
+  // เช็คเฉพาะ หัวข้อ (Topic) และ ชื่อหมวดหมู่ พอครับ ไม่ต้องเช็ค description เพื่อป้องกันการกรองบทความสุขภาพดีๆ ทิ้ง
+  const text = `${item.topic_th || ''} ${item.topic_en || ''} ${item.category?.name_th || ''}`.toLowerCase();
+  
   for (const kw of EXCLUDED_ANNOUNCEMENT_KEYWORDS) {
     if (text.includes(kw.toLowerCase())) {
       return false;
@@ -99,22 +68,9 @@ function formatThaiDate(dateStr: string): string {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return dateStr;
     const day = d.getDate();
-    const months = [
-      'ม.ค.',
-      'ก.พ.',
-      'มี.ค.',
-      'เม.ย.',
-      'พ.ค.',
-      'มิ.ย.',
-      'ก.ค.',
-      'ส.ค.',
-      'ก.ย.',
-      'ต.ค.',
-      'พ.ย.',
-      'ธ.ค.',
-    ];
+    const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
     const month = months[d.getMonth()];
-    const year = d.getFullYear() + 543; // พ.ศ.
+    const year = d.getFullYear() + 543;
     return `${day} ${month} ${year}`;
   } catch {
     return dateStr;
@@ -123,28 +79,17 @@ function formatThaiDate(dateStr: string): string {
 
 function transformRawToArticle(raw: RawContentItem, isFeatured = false): ArticleItem {
   const title = raw.topic_th || raw.topic_en || 'บทความสุขภาพ โรงพยาบาลเซนต์หลุยส์';
-  const summary =
-    raw.description_th ||
-    raw.description_en ||
-    'ข้อมูลสุขภาพและสาระความรู้ทางการแพทย์จากคณะแพทย์ โรงพยาบาลเซนต์หลุยส์';
+  const summary = raw.description_th || raw.description_en || 'ข้อมูลสุขภาพและสาระความรู้ทางการแพทย์จากคณะแพทย์ โรงพยาบาลเซนต์หลุยส์';
 
-  // Extract cover image
   const coverTh = raw.covers?.find((c) => c.lang === 'th')?.media_uri;
   const coverAny = raw.covers?.[0]?.media_uri;
   const featureTh = raw.features?.find((f) => f.lang === 'th')?.media_uri;
   const featureAny = raw.features?.[0]?.media_uri;
 
-  const imageUrl =
-    coverTh ||
-    coverAny ||
-    featureTh ||
-    featureAny ||
-    'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800&auto=format&fit=crop';
+  const imageUrl = coverTh || coverAny || featureTh || featureAny || 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800&auto=format&fit=crop';
 
-  // Category name
   const catName = raw.category?.name_th || 'สาระสุขภาพ';
 
-  // Department / Clinic name
   let department = 'โรงพยาบาลเซนต์หลุยส์ (Saint Louis Hospital)';
   if (raw.clinics && raw.clinics.length > 0) {
     const cName = raw.clinics[0]?.clinic?.name_th || raw.clinics[0]?.name_th;
@@ -153,7 +98,6 @@ function transformRawToArticle(raw: RawContentItem, isFeatured = false): Article
     department = `${raw.clinic.name_th} รพ.เซนต์หลุยส์`;
   }
 
-  // Generate official URL
   const slug = encodeURIComponent(title.replace(/\s+/g, '-'));
   const url = `https://www.saintlouis.or.th/contents/${slug}/${raw.id}`;
 
@@ -201,37 +145,49 @@ export async function fetchSaintLouisArticles(forceRefresh = false): Promise<Fet
   }
 
   try {
-    // เริ่มดึง recommend/categories พร้อมกันไปเลยตั้งแต่ตอนนี้ (ไม่ต้องรอ pagination loop ด้านล่างจบก่อน)
     const recommendPromise = fetch(`${BASE_API}/recommend_contents`, {
       headers: { 'Content-Type': 'application/json' },
     }).catch(() => null);
+    
     const catPromise = fetch(`${BASE_API}/content_categories`, {
       headers: { 'Content-Type': 'application/json' },
     }).catch(() => null);
 
-    // ดึงบทความทุกหน้า ไม่ใช่แค่หน้าแรก — วนดึงไปเรื่อยๆ จนกว่าจะได้หน้าที่มีรายการน้อยกว่า PAGE_SIZE
-    // (แปลว่าถึงหน้าสุดท้ายแล้ว) หรือครบจำนวนหน้าสูงสุดที่กันไว้เพื่อความปลอดภัย
-    const PAGE_SIZE = 30;
-    const MAX_PAGES = 20; // กันไว้ไม่ให้วนอนันต์ถ้า API เปลี่ยนพฤติกรรม (สูงสุด 600 รายการ)
+    // ดึงทีละ Batch แบบ Parallel (เช่น รอบละ 5 หน้า หน้าละ 50 รายการ = 250 รายการ/Batch)
+    const PAGE_SIZE = 50; 
+    const BATCH_SIZE = 5; 
+    const MAX_PAGES = 15; // ดึงสูงสุด 15 หน้า (รวมเป็น 750 รายการ)
 
     const rawAllItems: RawContentItem[] = [];
-    for (let page = 1; page <= MAX_PAGES; page++) {
-      const pageRes = await fetch(`${BASE_API}/contents?page=${page}&limit=${PAGE_SIZE}`, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!pageRes.ok) {
-        if (page === 1) throw new Error(`API responded with status ${pageRes.status}`);
-        break; // ดึงมาได้บ้างแล้ว หน้าถัดไปพังก็หยุดแค่นี้พอ ไม่ต้อง throw ทิ้งของที่ได้มาแล้ว
+
+    for (let p = 1; p <= MAX_PAGES; p += BATCH_SIZE) {
+      const pagePromises = [];
+      for (let offset = 0; offset < BATCH_SIZE && (p + offset) <= MAX_PAGES; offset++) {
+        const pageNum = p + offset;
+        pagePromises.push(
+          fetch(`${BASE_API}/contents?page=${pageNum}&limit=${PAGE_SIZE}`, {
+            headers: { 'Content-Type': 'application/json' },
+          }).then(res => res.ok ? res.json() : { data: [] }).catch(() => ({ data: [] }))
+        );
       }
-      const pageJson = await pageRes.json();
-      const pageItems: RawContentItem[] = pageJson.data || [];
-      rawAllItems.push(...pageItems);
-      if (pageItems.length < PAGE_SIZE) break; // หน้านี้มาไม่เต็ม แปลว่าหมดแล้ว
+
+      const pagesResults = await Promise.all(pagePromises);
+      let reachedEnd = false;
+
+      for (const res of pagesResults) {
+        const items: RawContentItem[] = res.data || [];
+        rawAllItems.push(...items);
+        if (items.length < PAGE_SIZE) {
+          reachedEnd = true;
+        }
+      }
+
+      if (reachedEnd) break; // ถ้าเจอหน้าที่ข้อมูลไม่เต็ม แปลว่าหมดแล้ว สั่งหยุดลูปใหญ่ทันที
     }
 
     const [recommendRes, catRes] = await Promise.all([recommendPromise, catPromise]);
 
-    // Filter strictly for knowledge & health education articles (excluding closure/holiday/administrative news)
+    // กรองข้อมูลบทความ
     const rawItems: RawContentItem[] = rawAllItems.filter(isKnowledgeArticle);
 
     let rawRecommend: RawContentItem[] = [];
@@ -247,22 +203,14 @@ export async function fetchSaintLouisArticles(forceRefresh = false): Promise<Fet
       const rawCats: Array<{ name_th: string }> = catJson.data || [];
       const catNames = rawCats
         .map((c) => c.name_th)
-        .filter(
-          (name) =>
-            Boolean(name) &&
-            !['ข่าวสาร', 'ข่าวประชาสัมพันธ์', 'ประกาศ', 'กิจกรรม'].includes(name)
-        );
+        .filter((name) => Boolean(name) && !['ข่าวสาร', 'ข่าวประชาสัมพันธ์', 'ประกาศ', 'กิจกรรม'].includes(name));
       categoriesList = ['ทั้งหมด', ...catNames];
     } else {
       const uniqueCats = Array.from(
         new Set(
           rawItems
             .map((item) => item.category?.name_th)
-            .filter(
-              (name) =>
-                Boolean(name) &&
-                !['ข่าวสาร', 'ข่าวประชาสัมพันธ์', 'ประกาศ', 'กิจกรรม'].includes(name as string)
-            ) as string[]
+            .filter((name) => Boolean(name) && !['ข่าวสาร', 'ข่าวประชาสัมพันธ์', 'ประกาศ', 'กิจกรรม'].includes(name as string)) as string[]
         )
       );
       categoriesList = ['ทั้งหมด', ...uniqueCats];
@@ -278,7 +226,7 @@ export async function fetchSaintLouisArticles(forceRefresh = false): Promise<Fet
       featuredItem = FEATURED_ARTICLE;
     }
 
-    // Transform article list (skip the featured one if duplicate)
+    // Transform article list (ตัดรายการที่ซ้ำกับ featured)
     const articlesList: ArticleItem[] = rawItems
       .filter((item) => !featuredItem || item.id.toString() !== featuredItem.id.replace('slh-live-', ''))
       .map((item) => transformRawToArticle(item, false));
@@ -309,7 +257,6 @@ export async function fetchSaintLouisArticles(forceRefresh = false): Promise<Fet
     return result;
   } catch (error) {
     console.error('Error fetching live Saint Louis Hospital contents:', error);
-    // Fallback to local curated data
     return {
       featured: FEATURED_ARTICLE,
       articles: SAINT_LOUIS_ARTICLES,
