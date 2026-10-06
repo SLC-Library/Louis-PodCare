@@ -44,6 +44,8 @@ const SPECIALTY_CENTERS: SpecialtyFilter[] = [
   },
 ];
 
+const ARTICLES_PER_PAGE = 6;
+
 function matchesSpecialty(article: ArticleItem, specialty: SpecialtyFilter): boolean {
   const haystack = `${article.category} ${article.title} ${article.summary} ${(article.tags || []).join(' ')}`.toLowerCase();
   return specialty.keywords.some((keyword) => haystack.includes(keyword.toLowerCase()));
@@ -64,6 +66,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('ทั้งหมด');
   const [activeSpecialty, setActiveSpecialty] = useState<SpecialtyFilter | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [currentArticlePage, setCurrentArticlePage] = useState(1);
   const [selectedArticleModal, setSelectedArticleModal] = useState<ArticleItem | null>(null);
 
   const isDark = theme === 'dark';
@@ -136,6 +139,15 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
     }
     return matches;
   }, [articles, featured, selectedCategory, activeSpecialty, searchQuery]);
+  useEffect(() => {
+    setCurrentArticlePage(1);
+  }, [selectedCategory, activeSpecialty, searchQuery]);
+  const totalArticlePages = Math.max(1, Math.ceil(filteredArticles.length / ARTICLES_PER_PAGE));
+  const validArticlePage = Math.min(currentArticlePage, totalArticlePages);
+  const pageArticles = filteredArticles.slice(
+    (validArticlePage - 1) * ARTICLES_PER_PAGE,
+    validArticlePage * ARTICLES_PER_PAGE
+  );
   const showFeatured =
     !isLoading &&
     featured &&
@@ -494,7 +506,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {filteredArticles.map((article) => (
+                {pageArticles.map((article) => (
                   <div
                     key={article.id}
                     className={`group rounded-2xl border flex flex-col justify-between overflow-hidden transition-all duration-300 hover:shadow-lg ${
@@ -595,6 +607,50 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
                   </div>
                 ))}
               </div>
+            )}
+            {totalArticlePages > 1 && (
+              <nav
+                aria-label="หน้าบทความ"
+                className={`flex items-center justify-between gap-3 mt-2 pt-5 border-t ${
+                  isDark ? 'border-slate-800' : 'border-slate-200'
+                }`}
+              >
+                <span className={`text-xs sm:text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  แสดง {(validArticlePage - 1) * ARTICLES_PER_PAGE + 1}–
+                  {Math.min(validArticlePage * ARTICLES_PER_PAGE, filteredArticles.length)} จาก {filteredArticles.length} บทความ
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentArticlePage((page) => Math.max(1, page - 1))}
+                    disabled={validArticlePage === 1}
+                    aria-label="หน้าก่อนหน้า"
+                    className={`px-3 py-2 rounded-lg text-xs font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                      isDark
+                        ? 'bg-slate-800 text-slate-200 hover:bg-slate-700'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    ก่อนหน้า
+                  </button>
+                  <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    {validArticlePage} / {totalArticlePages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentArticlePage((page) => Math.min(totalArticlePages, page + 1))}
+                    disabled={validArticlePage === totalArticlePages}
+                    aria-label="หน้าถัดไป"
+                    className={`px-3 py-2 rounded-lg text-xs font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                      isDark
+                        ? 'bg-slate-800 text-slate-200 hover:bg-slate-700'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    ถัดไป
+                  </button>
+                </div>
+              </nav>
             )}
           </div>
 
