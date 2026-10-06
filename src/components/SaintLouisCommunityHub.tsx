@@ -7,8 +7,42 @@ import { fetchSaintLouisArticles, FetchArticlesResult } from '../services/saintL
 
 interface SpecialtyFilter {
   name: string;
+  desc: string;
+  icon: string;
+  color: string;
   keywords: string[];
 }
+
+const SPECIALTY_CENTERS: SpecialtyFilter[] = [
+  {
+    name: 'ศูนย์หัวใจและหลอดเลือด',
+    desc: 'โรคหลอดเลือดหัวใจและการตรวจคัดกรอง',
+    icon: 'favorite',
+    color: 'text-red-500',
+    keywords: ['หัวใจ', 'หลอดเลือด', 'coronary', 'calcium score', 'คอเลสเตอรอล'],
+  },
+  {
+    name: 'ศูนย์กระดูกและข้อ',
+    desc: 'ข้อเข่าเสื่อมและโรคกระดูกพรุน',
+    icon: 'orthopedics',
+    color: 'text-blue-500',
+    keywords: ['กระดูก', 'ข้อเข่า', 'ข้อเข่าเทียม', 'bone check', 'knee replacement'],
+  },
+  {
+    name: 'ศูนย์สุขภาพจิต',
+    desc: 'ภาวะซึมเศร้า ความเครียด และ PTSD',
+    icon: 'psychology',
+    color: 'text-purple-500',
+    keywords: ['สุขภาพจิต', 'ซึมเศร้า', 'depression', 'ptsd', 'จิตใจ', 'วิตกกังวล'],
+  },
+  {
+    name: 'ศูนย์สุขภาพเด็กและพัฒนาการ',
+    desc: 'พัฒนาการ การนอน และสุขภาพทารก',
+    icon: 'child_care',
+    color: 'text-emerald-500',
+    keywords: ['เด็ก', 'ทารก', 'พัฒนาการ', 'ตัวเหลือง', 'child', 'infant'],
+  },
+];
 
 function matchesSpecialty(article: ArticleItem, specialty: SpecialtyFilter): boolean {
   const haystack = `${article.category} ${article.title} ${article.summary} ${(article.tags || []).join(' ')}`.toLowerCase();
@@ -62,9 +96,13 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
   const featured = dataState?.featured;
   const articles = dataState?.articles || [];
   const categories = dataState?.categories || ['ทั้งหมด', 'สาระสุขภาพ', 'ข่าวสาร'];
+  const availableSpecialties = SPECIALTY_CENTERS.filter((specialty) =>
+    articles.some((article) => matchesSpecialty(article, specialty)) ||
+    Boolean(featured && matchesSpecialty(featured, specialty))
+  );
 
   const filteredArticles = useMemo(() => {
-    return articles.filter((article) => {
+    const matches = articles.filter((article) => {
       let matchCat: boolean;
       if (activeSpecialty) {
         // จับคู่แบบใช้คำสำคัญ (keyword) กับ หมวดหมู่/ชื่อเรื่อง/สรุป/แท็ก แทนการเทียบชื่อหมวดหมู่ตรงตัว
@@ -81,13 +119,29 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
         article.tags?.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
       return matchCat && matchSearch;
     });
-  }, [articles, selectedCategory, activeSpecialty, searchQuery]);
+    const featuredMatchesSearch =
+      !searchQuery.trim() ||
+      featured?.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      featured?.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      featured?.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      featured?.tags?.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    if (
+      activeSpecialty &&
+      featured &&
+      featuredMatchesSearch &&
+      matchesSpecialty(featured, activeSpecialty) &&
+      !matches.some((article) => article.id === featured.id)
+    ) {
+      matches.unshift(featured);
+    }
+    return matches;
+  }, [articles, featured, selectedCategory, activeSpecialty, searchQuery]);
   const showFeatured =
     !isLoading &&
     featured &&
     !searchQuery.trim() &&
     selectedCategory === 'ทั้งหมด' &&
-    (!activeSpecialty || matchesSpecialty(featured, activeSpecialty));
+    !activeSpecialty;
 
   return (
     <div
@@ -547,93 +601,59 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
           {/* Right 1 Column: Specialized Health Knowledge Centers & Learning Resources */}
           <div className="flex flex-col gap-6">
             {/* Specialized Medical Centers Knowledge Box */}
-            <div
-              className={`p-6 rounded-2xl border ${
-                isDark
-                  ? 'bg-[#060e20] border-[#1e293b] shadow-md'
-                  : 'bg-white border-slate-200 shadow-sm'
-              }`}
-            >
-              <div className="flex items-center gap-2.5 mb-4">
-                <span className="material-symbols-outlined text-blue-500 text-2xl">
-                  menu_book
-                </span>
-                <h4
-                  className={`font-bold text-base ${
-                    isDark ? 'text-white' : 'text-slate-900'
-                  }`}
-                >
-                  ศูนย์ความรู้เฉพาะทาง
-                </h4>
-              </div>
-
-              <div className="flex flex-col gap-2.5">
-                {[
-                  {
-                    name: 'ศูนย์หัวใจและหลอดเลือด',
-                    desc: 'ความรู้โรคหัวใจ & CT Calcium Score',
-                    icon: 'favorite',
-                    color: 'text-red-500',
-                    keywords: ['หัวใจ', 'หลอดเลือด', 'คอเลสเตอรอล', 'ความดันโลหิต', 'หัวใจเต้น'],
-                  },
-                  {
-                    name: 'ศูนย์เบาหวานและโภชนาการ',
-                    desc: 'การดูแลระดับน้ำตาล & ปรับอาหาร',
-                    icon: 'nutrition',
-                    color: 'text-emerald-500',
-                    keywords: ['เบาหวาน', 'โภชนาการ', 'น้ำตาลในเลือด', 'อาหาร', 'น้ำหนัก'],
-                  },
-                  {
-                    name: 'ศูนย์ศัลยกรรมส่องกล้อง (MIS)',
-                    desc: 'นวัตกรรมผ่าตัดแผลเล็กฟื้นตัวไว',
-                    icon: 'biotech',
-                    color: 'text-blue-500',
-                    keywords: ['ส่องกล้อง', 'ผ่าตัด', 'ศัลยกรรม', 'MIS', 'นวัตกรรม'],
-                  },
-                  {
-                    name: 'ศูนย์เวชศาสตร์เชิงป้องกัน & วัคซีน',
-                    desc: 'คู่มือวัคซีน & ตรวจคัดกรองตามวัย',
-                    icon: 'vaccines',
-                    color: 'text-purple-500',
-                    keywords: ['วัคซีน', 'ตรวจคัดกรอง', 'ป้องกันโรค', 'ตรวจสุขภาพ', 'ภูมิคุ้มกัน'],
-                  },
-                  {
-                    name: 'ศูนย์เวชศาสตร์ฟื้นฟู & กายภาพ',
-                    desc: 'สรีรศาสตร์โต๊ะทำงาน & Office Syndrome',
-                    icon: 'accessibility_new',
-                    color: 'text-amber-500',
-                    keywords: ['กายภาพ', 'ฟื้นฟู', 'ออฟฟิศซินโดรม', 'Office Syndrome', 'ปวดหลัง', 'ปวดเมื่อย'],
-                  },
-                ].map((item, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setActiveSpecialty({ name: item.name, keywords: item.keywords });
-                      setSelectedCategory('ทั้งหมด');
-                      window.scrollTo({ top: 300, behavior: 'smooth' });
-                    }}
-                    className={`p-3 rounded-xl border flex items-center justify-between text-left transition-all ${
-                      isDark
-                        ? 'bg-slate-900/80 border-slate-800 hover:border-blue-500 text-slate-200 hover:text-white'
-                        : 'bg-slate-50 border-slate-200 hover:border-blue-300 text-slate-800 hover:text-blue-700'
+            {availableSpecialties.length > 0 && (
+              <div
+                className={`p-6 rounded-2xl border ${
+                  isDark
+                    ? 'bg-[#060e20] border-[#1e293b] shadow-md'
+                    : 'bg-white border-slate-200 shadow-sm'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 mb-4">
+                  <span className="material-symbols-outlined text-blue-500 text-2xl">
+                    menu_book
+                  </span>
+                  <h4
+                    className={`font-bold text-base ${
+                      isDark ? 'text-white' : 'text-slate-900'
                     }`}
                   >
-                    <div className="flex items-center gap-2.5">
-                      <span className={`material-symbols-outlined ${item.color} text-lg`}>
-                        {item.icon}
-                      </span>
-                      <div>
-                        <div className="text-xs font-bold">{item.name}</div>
-                        <div className="text-[11px] text-slate-400">{item.desc}</div>
+                    ศูนย์ความรู้เฉพาะทาง
+                  </h4>
+                </div>
+
+                <div className="flex flex-col gap-2.5">
+                  {availableSpecialties.map((item) => (
+                    <button
+                      key={item.name}
+                      onClick={() => {
+                        setActiveSpecialty(item);
+                        setSelectedCategory('ทั้งหมด');
+                        window.scrollTo({ top: 300, behavior: 'smooth' });
+                      }}
+                      className={`p-3 rounded-xl border flex items-center justify-between text-left transition-all ${
+                        isDark
+                          ? 'bg-slate-900/80 border-slate-800 hover:border-blue-500 text-slate-200 hover:text-white'
+                          : 'bg-slate-50 border-slate-200 hover:border-blue-300 text-slate-800 hover:text-blue-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className={`material-symbols-outlined ${item.color} text-lg`}>
+                          {item.icon}
+                        </span>
+                        <div>
+                          <div className="text-xs font-bold">{item.name}</div>
+                          <div className="text-[11px] text-slate-400">{item.desc}</div>
+                        </div>
                       </div>
-                    </div>
-                    <span className="material-symbols-outlined text-[16px] text-slate-400">
-                      chevron_right
-                    </span>
-                  </button>
-                ))}
+                      <span className="material-symbols-outlined text-[16px] text-slate-400">
+                        chevron_right
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Evidence-Based Knowledge Quality Card */}
             <div
