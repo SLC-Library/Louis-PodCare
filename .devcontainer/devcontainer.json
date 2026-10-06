@@ -1,4 +1,5 @@
 {
-  "name": "Node.js & TypeScript",
-  "image": "mcr.microsoft.com/devcontainers/typescript-node:20-bullseye"
+  "name": "Node.js Environment for Copilot",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:20-bullseye",
+  "postCreateCommand": "npm install"
 }
