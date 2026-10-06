@@ -5,6 +5,16 @@ import {
 import { ArticleItem } from '../types';
 import { fetchSaintLouisArticles, FetchArticlesResult } from '../services/saintLouisApi';
 
+interface SpecialtyFilter {
+  name: string;
+  keywords: string[];
+}
+
+function matchesSpecialty(article: ArticleItem, specialty: SpecialtyFilter): boolean {
+  const haystack = `${article.category} ${article.title} ${article.summary} ${(article.tags || []).join(' ')}`.toLowerCase();
+  return specialty.keywords.some((keyword) => haystack.includes(keyword.toLowerCase()));
+}
+
 interface SaintLouisCommunityHubProps {
   theme: 'dark' | 'light';
   onExplorePodcasts?: () => void;
@@ -18,7 +28,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('ทั้งหมด');
-  const [activeSpecialty, setActiveSpecialty] = useState<{ name: string; keywords: string[] } | null>(null);
+  const [activeSpecialty, setActiveSpecialty] = useState<SpecialtyFilter | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedArticleModal, setSelectedArticleModal] = useState<ArticleItem | null>(null);
 
@@ -59,8 +69,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
       if (activeSpecialty) {
         // จับคู่แบบใช้คำสำคัญ (keyword) กับ หมวดหมู่/ชื่อเรื่อง/สรุป/แท็ก แทนการเทียบชื่อหมวดหมู่ตรงตัว
         // เพราะชื่อหมวดหมู่จริงจากเว็บต้นทางอาจไม่ตรงกับชื่อศูนย์เฉพาะทางที่เรากำหนดเอง
-        const haystack = `${article.category} ${article.title} ${article.summary} ${(article.tags || []).join(' ')}`.toLowerCase();
-        matchCat = activeSpecialty.keywords.some((kw) => haystack.includes(kw.toLowerCase()));
+        matchCat = matchesSpecialty(article, activeSpecialty);
       } else {
         matchCat = selectedCategory === 'ทั้งหมด' || article.category === selectedCategory;
       }
@@ -73,6 +82,12 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
       return matchCat && matchSearch;
     });
   }, [articles, selectedCategory, activeSpecialty, searchQuery]);
+  const showFeatured =
+    !isLoading &&
+    featured &&
+    !searchQuery.trim() &&
+    selectedCategory === 'ทั้งหมด' &&
+    (!activeSpecialty || matchesSpecialty(featured, activeSpecialty));
 
   return (
     <div
@@ -242,7 +257,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
       )}
 
       {/* 🌟 3. Featured Article Highlight */}
-      {!isLoading && featured && !searchQuery && selectedCategory === 'ทั้งหมด' && (
+      {showFeatured && featured && (
         <div
           className={`relative rounded-3xl overflow-hidden border transition-all ${
             isDark
