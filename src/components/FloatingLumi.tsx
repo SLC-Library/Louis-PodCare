@@ -40,7 +40,7 @@ export const FloatingLumi: React.FC = () => {
       rel="noopener noreferrer"
       aria-label="ไปยังเว็บไซต์หลัก SLC Library (เปิดแท็บใหม่)"
       title="ไปยังเว็บไซต์หลัก SLC Library"
-      className="fixed bottom-5 right-4 z-40 flex h-[76px] w-[76px] items-center justify-center rounded-full border border-blue-200/80 bg-white/95 shadow-lg shadow-slate-900/20 transition-transform hover:scale-110 focus-visible:outline-blue-500 sm:bottom-6 sm:right-6 sm:h-[88px] sm:w-[88px]"
+      className="fixed bottom-5 right-4 z-40 flex h-[76px] w-[76px] items-center justify-center rounded-full border border-blue-300 bg-gradient-to-br from-blue-100 to-indigo-200 shadow-lg shadow-slate-900/25 transition-transform hover:scale-110 focus-visible:outline-blue-500 sm:bottom-6 sm:right-6 sm:h-[88px] sm:w-[88px]"
     >
       <img
         key={expression.image}
