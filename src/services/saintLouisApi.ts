@@ -181,16 +181,19 @@ export interface FetchArticlesResult {
 }
 
 export async function fetchSaintLouisArticles(forceRefresh = false): Promise<FetchArticlesResult> {
-  // 1. Check client-side cache
-  if (!forceRefresh && typeof window !== 'undefined') {
+  let cachedData: FetchArticlesResult | null = null;
+  if (typeof window !== 'undefined') {
     try {
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
         const parsed = JSON.parse(cached);
         const age = Date.now() - (parsed.timestamp || 0);
-        if (age < CACHE_DURATION_MS && parsed.data?.articles?.length > 0) {
+        if (parsed.data?.articles?.length > 0) {
+          cachedData = parsed.data;
+        }
+        if (!forceRefresh && age < CACHE_DURATION_MS && cachedData) {
           return {
-            ...parsed.data,
+            ...cachedData,
             source: 'cache',
           };
         }
@@ -278,14 +281,36 @@ export async function fetchSaintLouisArticles(forceRefresh = false): Promise<Fet
       featuredItem = FEATURED_ARTICLE;
     }
 
-    // Transform article list (skip the featured one if duplicate)
-    const articlesList: ArticleItem[] = rawItems
-      .filter((item) => !featuredItem || item.id.toString() !== featuredItem.id.replace('slh-live-', ''))
+    // Keep current recommendations and content, then append cached articles not seen in this refresh.
+    const currentRawArticles = [...rawItems, ...rawRecommend]
+      .filter((item, index, items) =>
+        item.id.toString() !== featuredItem.id.replace('slh-live-', '') &&
+        items.findIndex((candidate) => candidate.id === item.id) === index
+      )
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .map((item) => transformRawToArticle(item, false));
+    const previousArticles = cachedData
+      ? [
+          ...(cachedData.featured?.id.startsWith('slh-live-') ? [cachedData.featured] : []),
+          ...cachedData.articles.filter((article) => article.id.startsWith('slh-live-')),
+        ]
+      : [];
+    const seenArticleIds = new Set(currentRawArticles.map((article) => article.id));
+    const articlesList = [
+      ...currentRawArticles,
+      ...previousArticles.filter((article) => {
+        if (seenArticleIds.has(article.id)) return false;
+        seenArticleIds.add(article.id);
+        return true;
+      }),
+    ];
 
     const result: FetchArticlesResult = {
       featured: featuredItem,
-      articles: articlesList.length > 0 ? articlesList : SAINT_LOUIS_ARTICLES,
+      articles:
+        articlesList.length > 0
+          ? articlesList
+          : cachedData?.articles || SAINT_LOUIS_ARTICLES,
       categories: categoriesList.length > 1 ? categoriesList : ['ทั้งหมด', 'สาระสุขภาพ', 'นวัตกรรมทางการแพทย์', 'ศูนย์เฉพาะทาง', 'โภชนาการและไลฟ์สไตล์', 'เวชศาสตร์เชิงป้องกัน'],
       lastUpdated: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
       source: 'live',
@@ -309,6 +334,12 @@ export async function fetchSaintLouisArticles(forceRefresh = false): Promise<Fet
     return result;
   } catch (error) {
     console.error('Error fetching live Saint Louis Hospital contents:', error);
+    if (cachedData) {
+      return {
+        ...cachedData,
+        source: 'cache',
+      };
+    }
     // Fallback to local curated data
     return {
       featured: FEATURED_ARTICLE,
