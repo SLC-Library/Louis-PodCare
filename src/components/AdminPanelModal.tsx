@@ -4,7 +4,7 @@ import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from
 import { PodcastItem } from '../types';
 import { CATEGORIES, createPodcast, extractSpotifyInfo, extractYoutubeId, getCategoryIcon, isAudioOnlyPodcast } from '../data/podcasts';
 import { auth } from '../lib/firebase';
-import { ALLOWED_ADMIN_EMAILS, isAdminEmail } from '../lib/adminAccess';
+import { isAdminEmail } from '../lib/adminAccess';
 import { initializeFirestorePodcastsIfEmpty } from '../services/podcastService';
 
 interface AdminPanelModalProps {
@@ -382,12 +382,6 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                 <p className="text-xs text-slate-400 mb-5 leading-relaxed max-w-xs">
                   ใช้บัญชี Google ที่ได้รับอนุญาตเพื่อจัดการรายการพอดแคสต์
                 </p>
-                <div className="w-full text-left mb-5">
-                  <p className="text-xs font-semibold text-slate-300 mb-2">บัญชีที่ได้รับอนุญาต</p>
-                  {ALLOWED_ADMIN_EMAILS.map((email) => (
-                    <p key={email} className="text-xs text-slate-400">{email}</p>
-                  ))}
-                </div>
                 {authError && (
                   <p role="alert" className="w-full mb-4 p-3 rounded-xl bg-rose-950/80 border border-rose-500/40 text-rose-300 text-xs">
                     {authError}
@@ -1034,22 +1028,14 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                           <span className="material-symbols-outlined text-[22px]">verified_user</span>
                         </div>
                         <div>
-                          <h3 className="text-base font-bold text-white">บัญชีผู้ดูแลที่อนุญาต</h3>
+                          <h3 className="text-base font-bold text-white">การควบคุมสิทธิ์ผู้ดูแล</h3>
                           <p className="text-xs text-slate-400">
-                            Firestore อนุญาตให้เขียนข้อมูลเฉพาะบัญชีที่ยืนยันอีเมลแล้วในรายการนี้
+                            ระบบตรวจสอบบัญชีผู้ดูแลและการยืนยันตัวตนก่อนอนุญาตให้จัดการข้อมูล
                           </p>
                         </div>
                       </div>
-                      <div className="flex flex-col gap-2">
-                        {ALLOWED_ADMIN_EMAILS.map((email) => (
-                          <div key={email} className="px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-200">
-                            {email}
-                          </div>
-                        ))}
-                      </div>
                       <p className="mt-4 text-xs leading-relaxed text-slate-400">
-                        เพิ่มหรือลบบัญชีโดยแก้รายการอีเมลทั้งใน src/lib/adminAccess.ts และ firestore.rules
-                        จากนั้น deploy Firestore Rules ใหม่
+                        การเปลี่ยนแปลงข้อมูลจำกัดเฉพาะผู้ดูแลที่ผ่านการยืนยันสิทธิ์
                       </p>
                     </div>
                   </div>
