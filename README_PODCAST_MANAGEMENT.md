@@ -1,5 +1,5 @@
 # ⚡ คู่มือการจัดการวิดีโอและเวลา (Quick & Minimal Guide)
-### สำหรับ Louis PodCare Discovery
+### สำหรับ Lumi PodCare
 
 ## 🔐 ตั้งค่าการเข้าถึง Admin และ Firestore
 

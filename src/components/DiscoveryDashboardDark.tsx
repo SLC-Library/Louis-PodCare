@@ -125,17 +125,17 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
             id="dark-brand-logo-container"
             className="flex items-center gap-2 sm:gap-3 cursor-pointer group"
             onClick={() => onTabChange('Browse')}
-            title="Louis PodCare Discovery • โดย SLC Library วิทยาลัยเซนต์หลุยส์"
+            title="Lumi PodCare • โดย SLC Library วิทยาลัยเซนต์หลุยส์"
           >
             <img
-              alt="Louis PodCare Logo"
+              alt="Lumi PodCare mascot"
               className="h-9 w-9 sm:h-10 sm:w-10 object-contain rounded-full ring-2 ring-blue-500/20 group-hover:ring-blue-500/60 transition-all"
               src={LOGO_DARK}
             />
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <span className="text-[18px] sm:text-[20px] lg:text-[22px] leading-tight font-bold text-[#3b82f6] tracking-tight group-hover:text-blue-400 transition-colors">
-                  Louis PodCare
+                  Lumi PodCare
                 </span>
                 <span className="hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/30">
                   SLC Library

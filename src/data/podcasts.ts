@@ -1,4 +1,5 @@
 import { PodcastItem } from '../types';
+import lumiWavingImage from '../assets/lumi-waving.png';
 
 /**
  * Utility helper to extract YouTube Video ID from standard YouTube URLs or direct IDs
@@ -255,8 +256,12 @@ export const CATEGORIES = [
   'Oncology',
 ];
 
-export const LOGO_DARK =
+export const LOGO_DARK = lumiWavingImage;
+
+export const LOGO_LIGHT = lumiWavingImage;
+
+export const LIBRARY_LOGO_DARK =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuDBw-CRwoIgv7KsGLNjnVGRkpg-mNLqJ1EQgrkaC24oShondd0K-mrUdqOJ8inFZmstjbHO5TZ96IlLu143u2xeCGwqiryuSTBtocpVfuTKEqQMNNJkbbH7G1XsG3fN0Tx1iSupRrh1etmjDzrE31AufUT09o18--C-5QKCSD-SqmNS5vGGaKvFx3jSfwNgvJR1UjAxkYlYTyjyqdfJtr7OQT4vfVoA3WsDTpkpsJBcPMFuhey0b0pji1qV78raXP4E5w';
 
-export const LOGO_LIGHT =
+export const LIBRARY_LOGO_LIGHT =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuAHcVAMeV1LWL7VHS1bSVDa3ZhZmATsAQ0UvC7cgeo6Qrlz08fdZ66Yz1rjtHu6A_zDC2OwxvTLFjY40rITno2LMGmQdb8HU2Rtu9OkhBc78WODqvwAHB3PfrTRCm8He6gqYhB2rS6K1jRsNxwSxf8ynx1IISlEowItVa-XyrC1tMIog6gCceGfc-pow_jzNjmHa24_yIB499_-3pBmui3qoLPmHpsv3MceLmejbbkYqM4O8T14trkBL9cIcIYypyd6Pg';
