@@ -4,6 +4,7 @@ import { DiscoveryDashboardDark } from './components/DiscoveryDashboardDark';
 import { DiscoveryDashboardHealthMed } from './components/DiscoveryDashboardHealthMed';
 import { AudioPlayer } from './components/AudioPlayer';
 import { AdminPanelModal } from './components/AdminPanelModal';
+import { FloatingLumi } from './components/FloatingLumi';
 import { MediaMode, PodcastItem, ScreenId, TabId, TransitionType } from './types';
 import {
   subscribeToPodcasts,
@@ -203,6 +204,8 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <FloatingLumi />
 
       {/* Admin Panel Modal */}
       <AdminPanelModal
