@@ -34,20 +34,30 @@ export const FloatingLumi: React.FC = () => {
   const expression = expressions[expressionIndex];
 
   return (
-    <a
-      href={LIBRARY_URL}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="ไปยังเว็บไซต์หลัก SLC Library (เปิดแท็บใหม่)"
-      title="ไปยังเว็บไซต์หลัก SLC Library"
-      className="fixed bottom-5 right-4 z-40 flex h-[76px] w-[76px] items-center justify-center rounded-full border border-blue-300 bg-gradient-to-br from-blue-100 to-indigo-200 shadow-lg shadow-slate-900/25 transition-transform hover:scale-110 focus-visible:outline-blue-500 sm:bottom-6 sm:right-6 sm:h-[88px] sm:w-[88px]"
-    >
-      <img
-        key={expression.image}
-        src={expression.image}
-        alt={expression.alt}
-        className="h-full w-full object-contain"
-      />
-    </a>
+    <div className="fixed bottom-5 right-4 z-40 flex items-center gap-2 sm:bottom-6 sm:right-6 sm:gap-3">
+      <span
+        aria-hidden="true"
+        className="rounded-2xl border border-blue-200 bg-white px-3 py-2 text-right text-xs font-semibold leading-relaxed text-slate-800 shadow-lg shadow-slate-900/15 sm:text-sm"
+      >
+        กลับสู่เว็บไซต์ห้องสมุด
+        <br />
+        คลิก Lumi
+      </span>
+      <a
+        href={LIBRARY_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="กลับสู่เว็บไซต์ห้องสมุด คลิก Lumi (เปิดแท็บใหม่)"
+        title="กลับสู่เว็บไซต์ห้องสมุด คลิก Lumi"
+        className="flex h-[76px] w-[76px] shrink-0 items-center justify-center rounded-full border border-blue-300 bg-gradient-to-br from-blue-100 to-indigo-200 shadow-lg shadow-slate-900/25 transition-transform hover:scale-110 focus-visible:outline-blue-500 sm:h-[88px] sm:w-[88px]"
+      >
+        <img
+          key={expression.image}
+          src={expression.image}
+          alt={expression.alt}
+          className="h-full w-full object-contain"
+        />
+      </a>
+    </div>
   );
 };
