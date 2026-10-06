@@ -205,7 +205,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
               <button
                 onClick={handleRefresh}
                 disabled={isRefreshing || isLoading}
-                title="กดเพื่อดึงบทความล่าสุดจากเว็บ รพ.เซนต์หลุยส์"
+                title="ดึงบทความใหม่จากเว็บ รพ. โดยเก็บบทความเดิมไว้"
                 className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white text-[11px] sm:text-xs transition-all border border-white/20 disabled:opacity-50"
               >
                 <span className={`material-symbols-outlined text-[14px] ${isRefreshing ? 'animate-spin' : ''}`}>
