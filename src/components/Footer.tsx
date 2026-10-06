@@ -1,5 +1,5 @@
 import React from 'react';
-import { LOGO_DARK, LOGO_LIGHT } from '../data/podcasts';
+import { LIBRARY_LOGO_DARK, LIBRARY_LOGO_LIGHT } from '../data/podcasts';
 
 interface FooterProps {
   theme: 'dark' | 'light';
@@ -23,9 +23,9 @@ export const Footer: React.FC<FooterProps> = ({ theme }) => {
           {/* Logo matching the top-left navbar logo style and standard size */}
           <div className="relative shrink-0">
             <img
-              alt="SLC Library & Louis PodCare Logo"
+              alt="SLC Library logo"
               className="h-12 w-12 sm:h-14 sm:w-14 object-contain rounded-full ring-2 ring-blue-500/30 shadow-md bg-white p-0.5 transition-transform hover:scale-105"
-              src={isDark ? LOGO_DARK : LOGO_LIGHT}
+              src={isDark ? LIBRARY_LOGO_DARK : LIBRARY_LOGO_LIGHT}
             />
           </div>
 
@@ -63,7 +63,7 @@ export const Footer: React.FC<FooterProps> = ({ theme }) => {
                 isDark ? 'text-slate-300' : 'text-slate-700'
               }`}
             >
-              Louis PodCare Discovery Platform
+              Lumi PodCare | Health & Podcast Library
             </span>
             <span className="text-[11px] text-slate-500">
               Saint Louis College & Saint Louis Hospital Community Network
