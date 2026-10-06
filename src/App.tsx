@@ -11,7 +11,6 @@ import {
   deletePodcastFromFirestore,
   setFeaturedPodcastInFirestore,
   resetPodcastsToDefaultInFirestore,
-  initializeFirestorePodcastsIfEmpty,
 } from './services/podcastService';
 import { ALL_PODCASTS } from './data/podcasts';
 
@@ -31,8 +30,6 @@ export default function App() {
 
   // Subscribe to real-time updates from Firebase Firestore
   useEffect(() => {
-    initializeFirestorePodcastsIfEmpty();
-
     const unsubscribe = subscribeToPodcasts(
       (items) => {
         if (items && items.length > 0) {

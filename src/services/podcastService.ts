@@ -43,37 +43,31 @@ function cleanForFirestore<T extends Record<string, any>>(obj: T): T {
  * Seed initial podcasts from local static list if Firestore collection is empty
  */
 export async function initializeFirestorePodcastsIfEmpty(): Promise<void> {
-  try {
-    const colRef = collection(db, PODCASTS_COLLECTION);
-    const snap = await getDocs(colRef);
+  const colRef = collection(db, PODCASTS_COLLECTION);
+  const snap = await getDocs(colRef);
 
-    if (snap.empty) {
-      console.log('Seeding initial podcast data to Firestore...');
-      const batch = writeBatch(db);
-      const allInitial: PodcastItem[] = [
-        FEATURED_PODCAST,
-        ...PODCAST_CARDS,
-        ...MORE_PODCAST_CARDS,
-      ];
+  if (snap.empty) {
+    const batch = writeBatch(db);
+    const allInitial: PodcastItem[] = [
+      FEATURED_PODCAST,
+      ...PODCAST_CARDS,
+      ...MORE_PODCAST_CARDS,
+    ];
 
-      allInitial.forEach((item, index) => {
-        const normalized = createPodcast(item);
-        const itemDocRef = doc(db, PODCASTS_COLLECTION, normalized.id);
-        batch.set(
-          itemDocRef,
-          cleanForFirestore({
-            ...normalized,
-            order: index,
-            createdAt: new Date().toISOString(),
-          })
-        );
-      });
+    allInitial.forEach((item, index) => {
+      const normalized = createPodcast(item);
+      const itemDocRef = doc(db, PODCASTS_COLLECTION, normalized.id);
+      batch.set(
+        itemDocRef,
+        cleanForFirestore({
+          ...normalized,
+          order: index,
+          createdAt: new Date().toISOString(),
+        })
+      );
+    });
 
-      await batch.commit();
-      console.log('Firestore podcasts seeded successfully.');
-    }
-  } catch (error) {
-    console.error('Error seeding Firestore podcasts:', error);
+    await batch.commit();
   }
 }
 
@@ -91,9 +85,8 @@ export function subscribeToPodcasts(
     q,
     (snapshot) => {
       if (snapshot.empty) {
-        // If empty in Firestore, return local fallback and trigger initial seed
+        // Keep local defaults visible; only an authenticated admin can seed Firestore.
         callback([FEATURED_PODCAST, ...PODCAST_CARDS, ...MORE_PODCAST_CARDS]);
-        initializeFirestorePodcastsIfEmpty();
         return;
       }
 
