@@ -158,11 +158,11 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
   return (
     <div
       id="saint-louis-community-hub"
-      className="flex flex-col gap-8 animate-fadeIn"
+      className="flex flex-col gap-6 sm:gap-8 animate-fadeIn"
     >
       {/* 🌟 1. Official Header & Portal Banner */}
       <div
-        className={`relative overflow-hidden p-6 md:p-8 rounded-3xl border transition-all ${
+        className={`relative overflow-hidden p-5 sm:p-6 md:p-8 rounded-3xl border transition-all ${
           isDark
             ? 'bg-gradient-to-br from-[#0a1226] via-[#0f1d3a] to-[#060e20] border-[#1e293b] text-white shadow-xl'
             : 'bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-950 border-blue-200 text-white shadow-lg'
@@ -191,11 +191,11 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
               </span>
             </div>
 
-            <h1 className="text-xl sm:text-2xl md:text-[26px] lg:text-[28px] font-bold tracking-tight text-white leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white leading-tight">
               คลังบทความและสาระสุขภาพ
             </h1>
 
-            <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed">
+            <p className="text-sm sm:text-base text-blue-100/90 leading-relaxed">
               รวบรวมสาระความรู้ทางการแพทย์ การดูแลสุขภาพเชิงป้องกัน และนวัตกรรมการรักษา
               <br className="hidden sm:inline" />{' '}
               จากคณะแพทย์และศูนย์การรักษาเฉพาะทาง โรงพยาบาลเซนต์หลุยส์ (saintlouis.or.th)
@@ -203,7 +203,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
 
             {/* Live Sync Status Pill */}
             <div className="flex items-center gap-3 pt-1">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-950/60 border border-blue-400/30 text-[11px] sm:text-xs text-blue-200">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-950/60 border border-blue-400/30 text-xs sm:text-sm text-blue-200">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <span>
                   {dataState?.source === 'live'
@@ -235,7 +235,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
               href={SAINT_LOUIS_CONTACT.contentsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] border border-blue-400/30"
+              className="inline-flex items-center justify-center gap-2.5 px-5 sm:px-6 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm sm:text-base shadow-lg shadow-blue-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] border border-blue-400/30"
             >
               <span className="material-symbols-outlined text-[18px]">public</span>
               <span>เข้าสู่หน้า saintlouis.or.th/contents</span>
@@ -448,7 +448,7 @@ export const SaintLouisCommunityHub: React.FC<SaintLouisCommunityHubProps> = ({
 
       {/* 🌟 4. Articles Grid & Sidebar Layout */}
       {!isLoading && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Left 2 Columns: Article Cards */}
           <div className="lg:col-span-2 flex flex-col gap-6">
             <div className="flex items-center justify-between">
