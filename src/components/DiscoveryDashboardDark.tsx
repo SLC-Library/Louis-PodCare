@@ -119,22 +119,22 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
     <div id="discovery-dashboard-dark" className="min-h-screen bg-[#0f172a] text-[#f8fafc] font-sans antialiased selection:bg-blue-500 selection:text-white">
       {/* TopNavBar */}
       <nav id="dark-navbar" className="sticky top-0 z-40 bg-[#060e20] border-b border-[#334155] shadow-md w-full backdrop-blur-md bg-opacity-95">
-        <div className="flex justify-between items-center w-full px-6 max-w-[1280px] mx-auto h-16">
+        <div className="flex flex-wrap md:flex-nowrap justify-between items-center w-full px-4 sm:px-6 max-w-[1280px] mx-auto min-h-16 py-2 md:py-0">
           {/* Brand */}
           <div
             id="dark-brand-logo-container"
-            className="flex items-center gap-3 cursor-pointer group"
+            className="flex items-center gap-2 sm:gap-3 cursor-pointer group"
             onClick={() => onTabChange('Browse')}
             title="Louis PodCare Discovery • โดย SLC Library วิทยาลัยเซนต์หลุยส์"
           >
             <img
               alt="Louis PodCare Logo"
-              className="h-10 w-10 object-contain rounded-full ring-2 ring-blue-500/20 group-hover:ring-blue-500/60 transition-all"
+              className="h-9 w-9 sm:h-10 sm:w-10 object-contain rounded-full ring-2 ring-blue-500/20 group-hover:ring-blue-500/60 transition-all"
               src={LOGO_DARK}
             />
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-[20px] sm:text-[22px] leading-tight font-bold text-[#3b82f6] tracking-tight group-hover:text-blue-400 transition-colors">
+                <span className="text-[18px] sm:text-[20px] lg:text-[22px] leading-tight font-bold text-[#3b82f6] tracking-tight group-hover:text-blue-400 transition-colors">
                   Louis PodCare
                 </span>
                 <span className="hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/30">
@@ -148,7 +148,7 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
           </div>
 
           {/* Navigation Links (Centered) */}
-          <div id="dark-nav-links" className="hidden md:flex items-center gap-8 h-full">
+          <div id="dark-nav-links" className="hidden md:flex items-center gap-4 lg:gap-8 h-full">
             <a
               id="dark-nav-browse"
               aria-current={activeTab === 'Browse' ? 'page' : undefined}
@@ -212,7 +212,8 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
               </span>
               <input
                 id="dark-search-input"
-                className="pl-10 pr-4 h-10 bg-[#131b2e] border border-[#334155] rounded-full text-[14px] text-[#f8fafc] placeholder:text-[#64748b] focus:ring-2 focus:ring-[#3b82f6] focus:border-transparent w-48 lg:w-64 transition-all outline-none"
+                aria-label="ค้นหา"
+                className="pl-10 pr-4 h-10 bg-[#131b2e] border border-[#334155] rounded-full text-sm text-[#f8fafc] placeholder:text-[#94a3b8] focus:ring-2 focus:ring-[#3b82f6] focus:border-transparent w-40 lg:w-64 transition-all outline-none"
                 placeholder={activeTab === 'Library' ? "ค้นหาใน Library..." : "ค้นหาตอน, หัวข้อ, ช่อง..."}
                 type="text"
                 value={searchQuery}
@@ -220,6 +221,8 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
               />
               {searchQuery && (
                 <button
+                  type="button"
+                  aria-label="ล้างคำค้นหา"
                   onClick={() => onSearchQueryChange('')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
                 >
@@ -231,12 +234,13 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
             {/* Admin Panel Button */}
             <button
               id="dark-admin-btn"
+              aria-label="เปิดแผงควบคุม Admin"
               onClick={onOpenAdmin}
-              className="h-10 px-3.5 rounded-full bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/40 font-semibold text-xs flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 shadow-sm"
+              className="h-10 px-2.5 sm:px-3.5 rounded-full bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/40 font-semibold text-xs flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 shadow-sm"
               title="เปิดแผงควบคุม Admin จัดการตอนพอดแคสต์"
             >
               <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
-              <span className="font-bold">Admin</span>
+              <span className="hidden sm:inline font-bold">Admin</span>
             </button>
 
             {/* Toggle to Light Mode */}
@@ -252,11 +256,61 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
               </span>
             </button>
           </div>
+
+          <div className="grid grid-cols-3 gap-1 w-full pt-2 mt-2 border-t border-slate-700 md:hidden">
+            {([
+              ['Browse', 'explore', 'Browse'],
+              ['Library', 'bookmark', 'Library'],
+              ['Community', 'article', 'Health Articles'],
+            ] as const).map(([tab, icon, label]) => (
+              <button
+                key={tab}
+                type="button"
+                aria-current={activeTab === tab ? 'page' : undefined}
+                onClick={() => onTabChange(tab)}
+                className={`min-h-11 px-1 rounded-xl flex items-center justify-center gap-1 text-xs font-semibold transition-colors ${
+                  activeTab === tab
+                    ? 'bg-blue-500/15 text-blue-300'
+                    : 'text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[18px]">{icon}</span>
+                <span>{label}</span>
+                {tab === 'Library' && bookmarkedItems.length > 0 && (
+                  <span className="text-[10px] font-bold">{bookmarkedItems.length}</span>
+                )}
+              </button>
+            ))}
+            <div className="relative col-span-3 sm:hidden">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">
+                search
+              </span>
+              <input
+                id="dark-mobile-search-input"
+                aria-label="ค้นหา"
+                className="w-full h-11 pl-10 pr-10 bg-[#131b2e] border border-[#334155] rounded-xl text-sm text-[#f8fafc] placeholder:text-[#94a3b8] focus:ring-2 focus:ring-[#3b82f6] focus:border-transparent outline-none"
+                placeholder={activeTab === 'Library' ? 'ค้นหาใน Library...' : 'ค้นหาตอน หัวข้อ หรือช่อง...'}
+                type="search"
+                value={searchQuery}
+                onChange={(e) => onSearchQueryChange(e.target.value)}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  aria-label="ล้างคำค้นหา"
+                  onClick={() => onSearchQueryChange('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                >
+                  <span className="material-symbols-outlined text-[18px]">close</span>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-[1280px] mx-auto px-4 sm:px-6 py-8 flex flex-col gap-8 pb-24">
+      <main className="max-w-[1280px] mx-auto px-3 sm:px-6 py-5 sm:py-8 flex flex-col gap-6 sm:gap-8 pb-24">
         {/* ================= LIBRARY VIEW (DARK) ================= */}
         {activeTab === 'Library' && (
           <div id="dark-library-view" className="flex flex-col gap-6">
@@ -282,7 +336,7 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => onTabChange('Browse')}
-                  className="px-4 py-2 rounded-full border border-blue-500 text-blue-400 hover:bg-blue-500/10 font-medium text-[13px] flex items-center gap-1.5 transition-colors"
+                  className="px-4 py-2 rounded-full border border-blue-500 text-blue-400 hover:bg-blue-500/10 font-medium text-sm flex items-center gap-1.5 transition-colors"
                 >
                   <span className="material-symbols-outlined text-[18px]">explore</span>
                   <span>Explore More</span>
@@ -309,7 +363,7 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                       key={cat}
                       id={`dark-library-filter-${cat.toLowerCase().replace(/\s+/g, '-')}`}
                       onClick={() => onCategoryChange(cat)}
-                      className={`snap-start flex-shrink-0 px-4 py-1.5 rounded-full text-[13px] font-medium transition-all ${
+                      className={`snap-start flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                         isActive
                           ? 'bg-[#3b82f6] text-white shadow-md shadow-blue-500/20 font-semibold'
                           : 'bg-[#1e293b] hover:bg-[#334155] text-[#cbd5e1] hover:text-[#3b82f6] border border-[#334155]'
@@ -445,11 +499,11 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                         </div>
 
                         <div className="flex items-center justify-between pt-3 border-t border-[#334155]/60 mt-auto">
-                          <div className="flex items-center gap-2 text-[#94a3b8] text-[13px] font-medium">
+                          <div className="flex items-center gap-2 text-[#94a3b8] text-sm font-medium">
                             <span className="material-symbols-outlined text-[16px] text-blue-400">
                               {card.institutionIcon}
                             </span>
-                            <span className="text-slate-300 font-medium text-xs">{card.category}</span>
+                            <span className="text-slate-300 font-medium text-sm">{card.category}</span>
                           </div>
                           <button
                             aria-label={`Remove ${card.title} from library`}
@@ -557,7 +611,7 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                 </p>
 
                 <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#334155]">
-                  <div className="flex items-center gap-4 text-[#94a3b8] text-[13px] font-medium">
+                  <div className="flex items-center gap-4 text-[#94a3b8] text-sm font-medium">
                     <div className="flex items-center gap-1.5">
                       <span className="material-symbols-outlined text-[16px]">schedule</span>
                       <span>{featuredEpisode.duration}</span>
@@ -764,11 +818,11 @@ export const DiscoveryDashboardDark: React.FC<DiscoveryDashboardDarkProps> = ({
                         </div>
 
                         <div className="flex items-center justify-between pt-3 border-t border-[#334155]/60 mt-auto">
-                          <div className="flex items-center gap-2 text-[#94a3b8] text-[13px] font-medium">
+                          <div className="flex items-center gap-2 text-[#94a3b8] text-sm font-medium">
                             <span className="material-symbols-outlined text-[16px] text-blue-400">
                               {card.institutionIcon}
                             </span>
-                            <span className="text-slate-300 font-medium text-xs">{card.category}</span>
+                            <span className="text-slate-300 font-medium text-sm">{card.category}</span>
                           </div>
                           <button
                             aria-label={`Bookmark ${card.title}`}
