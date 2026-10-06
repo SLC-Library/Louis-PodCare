@@ -1,0 +1,8 @@
+{
+  "firestore": [
+    {
+      "database": "ai-studio-louispodcare-bb6dcbb9-adc5-412c-917c-12f8083a4713",
+      "rules": "firestore.rules"
+    }
+  ]
+}

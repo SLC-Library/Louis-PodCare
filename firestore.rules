@@ -3,15 +3,22 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Allow public read access to all podcasts, allow write for authenticated or admin operations
-    match /podcasts/{podcastId} {
-      allow read: if true;
-      allow write: if true;
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in [
+          'library@slc.ac.th',
+          'akira@slc.ac.th'
+        ];
     }
 
-    // Default catch-all
+    match /podcasts/{podcastId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

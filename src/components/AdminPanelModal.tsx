@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 import { PodcastItem } from '../types';
 import { CATEGORIES, createPodcast, extractSpotifyInfo, extractYoutubeId, getCategoryIcon, isAudioOnlyPodcast } from '../data/podcasts';
+import { auth } from '../lib/firebase';
+import { ALLOWED_ADMIN_EMAILS, isAdminEmail } from '../lib/adminAccess';
+import { initializeFirestorePodcastsIfEmpty } from '../services/podcastService';
 
 interface AdminPanelModalProps {
   isOpen: boolean;
@@ -16,16 +20,6 @@ interface AdminPanelModalProps {
 
 type PlatformType = 'youtube' | 'spotify';
 
-const DEFAULT_ADMIN_PASSCODE = 'Lib@2026';
-
-const getStoredPasscode = (): string => {
-  try {
-    return localStorage.getItem('slc_admin_passcode') || DEFAULT_ADMIN_PASSCODE;
-  } catch {
-    return DEFAULT_ADMIN_PASSCODE;
-  }
-};
-
 export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   isOpen,
   onClose,
@@ -37,21 +31,14 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   isDark = true,
 }) => {
   // Authentication State
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [inputPasscode, setInputPasscode] = useState('');
-  const [passcodeError, setPasscodeError] = useState<string | null>(null);
-  const [showPasscode, setShowPasscode] = useState(false);
-  const [shakeTrigger, setShakeTrigger] = useState(0);
+  const [adminEmail, setAdminEmail] = useState<string | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const isAuthenticated = isAdminEmail(adminEmail);
 
   // Tab State
   const [activeTab, setActiveTab] = useState<'create' | 'list' | 'security'>('create');
-
-  // Change Password State
-  const [oldPass, setOldPass] = useState('');
-  const [newPass, setNewPass] = useState('');
-  const [confirmPass, setConfirmPass] = useState('');
-  const [showNewPass, setShowNewPass] = useState(false);
-  const [changePassMsg, setChangePassMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   
   // Form State
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -72,82 +59,65 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
   const [searchManageQuery, setSearchManageQuery] = useState('');
 
-  // Reset authentication error when modal re-opens
   useEffect(() => {
-    if (isOpen) {
-      setPasscodeError(null);
-      setInputPasscode('');
+    try {
+      localStorage.removeItem('slc_admin_passcode');
+    } catch (error) {
+      console.warn('Failed to remove the retired local admin passcode:', error);
     }
-  }, [isOpen]);
+  }, []);
 
-  // Handle Passcode Unlock
-  const handleUnlock = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const currentCorrectPasscode = getStoredPasscode();
-    
-    if (inputPasscode.trim() === currentCorrectPasscode.trim()) {
-      setIsAuthenticated(true);
-      setPasscodeError(null);
-      setInputPasscode('');
-    } else {
-      setPasscodeError('รหัสผ่านไม่ถูกต้อง! กรุณาตรวจสอบและลองใหม่อีกครั้ง');
-      setShakeTrigger((prev) => prev + 1);
+  useEffect(() => {
+    return onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        setAdminEmail(null);
+        setIsAuthLoading(false);
+        return;
+      }
+      if (!isAdminEmail(user.email)) {
+        setAdminEmail(null);
+        setAuthError(`บัญชี ${user.email || ''} ไม่มีสิทธิ์ผู้ดูแลระบบ`);
+        void signOut(auth).catch((error: Error) => {
+          setAuthError(`บัญชีนี้ไม่มีสิทธิ์ และออกจากระบบไม่สำเร็จ: ${error.message}`);
+        });
+        setIsAuthLoading(false);
+        return;
+      }
+      setAdminEmail(user.email);
+      setAuthError(null);
+      setIsAuthLoading(false);
+      void initializeFirestorePodcastsIfEmpty().catch((error: Error) => {
+        console.error('Failed to initialize Firestore podcasts:', error);
+        setAuthError(`เข้าสู่ระบบแล้ว แต่เริ่มต้นข้อมูลพอดแคสต์ไม่สำเร็จ: ${error.message}`);
+      });
+    });
+  }, []);
+
+  const handleGoogleSignIn = async () => {
+    setAuthError(null);
+    setIsSigningIn(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
+      setAuthError(`เข้าสู่ระบบด้วย Google ไม่สำเร็จ: ${message}`);
+    } finally {
+      setIsSigningIn(false);
     }
   };
 
   // Handle Logout / Lock
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setInputPasscode('');
-    setPasscodeError(null);
-    setActiveTab('create');
-    resetForm();
-  };
-
-  // Handle Change Passcode
-  const handleChangePasscode = (e: React.FormEvent) => {
-    e.preventDefault();
-    setChangePassMsg(null);
-
-    const currentPasscode = getStoredPasscode();
-    if (oldPass.trim() !== currentPasscode.trim()) {
-      setChangePassMsg({ type: 'error', text: 'รหัสผ่านปัจจุบันไม่ถูกต้อง' });
-      return;
-    }
-
-    if (!newPass.trim() || newPass.trim().length < 4) {
-      setChangePassMsg({ type: 'error', text: 'รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 4 ตัวอักษร' });
-      return;
-    }
-
-    if (newPass.trim() !== confirmPass.trim()) {
-      setChangePassMsg({ type: 'error', text: 'รหัสผ่านใหม่และการยืนยันรหัสผ่านไม่ตรงกัน' });
-      return;
-    }
-
+  const handleLogout = async () => {
+    setAuthError(null);
     try {
-      localStorage.setItem('slc_admin_passcode', newPass.trim());
-      setChangePassMsg({ type: 'success', text: '✅ เปลี่ยนรหัสผ่าน Admin สำเร็จเรียบร้อยแล้ว!' });
-      setOldPass('');
-      setNewPass('');
-      setConfirmPass('');
-    } catch {
-      setChangePassMsg({ type: 'error', text: 'ไม่สามารถบันทึกรหัสผ่านได้' });
-    }
-  };
-
-  // Reset to default passcode
-  const handleResetPasscodeDefault = () => {
-    if (window.confirm('คุณต้องการรีเซ็ตรหัสผ่านกลับเป็นค่าเริ่มต้น (Lib@2026) ใช่หรือไม่?')) {
-      try {
-        localStorage.setItem('slc_admin_passcode', DEFAULT_ADMIN_PASSCODE);
-        setChangePassMsg({ type: 'success', text: `🔄 รีเซ็ตรหัสผ่านกลับเป็น '${DEFAULT_ADMIN_PASSCODE}' แล้ว` });
-        setOldPass('');
-        setNewPass('');
-        setConfirmPass('');
-      } catch {
-        setChangePassMsg({ type: 'error', text: 'ไม่สามารถรีเซ็ตรหัสผ่านได้' });
-      }
+      await signOut(auth);
+      setActiveTab('create');
+      resetForm();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
+      setAuthError(`ออกจากระบบไม่สำเร็จ: ${message}`);
     }
   };
 
@@ -360,13 +330,19 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                     }`}
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-                    <span>{isAuthenticated ? 'สิทธิ์ผู้ดูแลระบบ (Unlocked)' : 'ต้องใส่รหัสผ่าน (Locked)'}</span>
+                    <span>
+                      {isAuthenticated
+                        ? 'สิทธิ์ผู้ดูแลระบบ'
+                        : isAuthLoading
+                        ? 'กำลังตรวจสอบบัญชี'
+                        : 'ต้องเข้าสู่ระบบ'}
+                    </span>
                   </span>
                 </h2>
                 <p className="text-xs text-slate-400">
                   {isAuthenticated
-                    ? 'จัดการ เพิ่ม ลบ แก้ไข ตอนพอดแคสต์ทั้ง YouTube และ Spotify พร้อมบันทึกข้อมูลถาวร'
-                    : 'กรุณากรอกรหัสผ่านผู้ดูแลระบบเพื่อเข้าถึงและจัดการข้อมูล'}
+                    ? `เข้าสู่ระบบเป็น ${adminEmail} และจัดการรายการพอดแคสต์ได้`
+                    : 'เข้าสู่ระบบด้วยบัญชี Google ที่ได้รับอนุญาตเพื่อจัดการข้อมูล'}
                 </p>
               </div>
             </div>
@@ -393,93 +369,41 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
             </div>
           </div>
 
-          {/* If NOT Authenticated: Show Secure PIN / Passcode Screen */}
+          {/* Require Firebase Authentication before showing admin controls */}
           {!isAuthenticated ? (
             <div className="p-6 sm:p-12 flex flex-col items-center justify-center text-center my-auto">
-              <motion.div
-                key={shakeTrigger}
-                animate={shakeTrigger > 0 ? { x: [-12, 12, -8, 8, -4, 4, 0] } : {}}
-                transition={{ duration: 0.4 }}
-                className="w-full max-w-md bg-[#070e22] border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center"
-              >
-                {/* Security Icon Badge */}
-                <div className="relative mb-4">
-                  <div className="w-16 h-16 rounded-3xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 shadow-lg shadow-blue-500/10">
-                    <span className="material-symbols-outlined text-[36px]">security</span>
-                  </div>
-                  <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-amber-500/20 border border-amber-500/50 text-amber-400 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-[14px]">key</span>
-                  </span>
+              <div className="w-full max-w-md bg-[#070e22] border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center">
+                <div className="w-16 h-16 rounded-3xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 shadow-lg shadow-blue-500/10 mb-4">
+                  <span className="material-symbols-outlined text-[36px]">admin_panel_settings</span>
                 </div>
-
                 <h3 className="text-xl font-bold text-white mb-2 tracking-tight">
-                  ยืนยันสิทธิ์ผู้ดูแลระบบ (Admin Access)
+                  เข้าสู่ระบบผู้ดูแล (Admin)
                 </h3>
-                <p className="text-xs text-slate-400 mb-6 leading-relaxed max-w-xs">
-                  ระบบได้รับการป้องกันเพื่อความปลอดภัย กรุณาป้อนรหัสผ่าน Admin เพื่อแก้ไขหรือจัดการรายการพอดแคสต์
+                <p className="text-xs text-slate-400 mb-5 leading-relaxed max-w-xs">
+                  ใช้บัญชี Google ที่ได้รับอนุญาตเพื่อจัดการรายการพอดแคสต์
                 </p>
-
-                {/* Password Form */}
-                <form onSubmit={handleUnlock} className="w-full flex flex-col gap-4">
-                  <div className="text-left">
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      รหัสผ่านผู้ดูแลระบบ (Admin Password)
-                    </label>
-                    <div className="relative">
-                      <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">
-                        lock
-                      </span>
-                      <input
-                        id="admin-passcode-input"
-                        type={showPasscode ? 'text' : 'password'}
-                        value={inputPasscode}
-                        onChange={(e) => {
-                          setInputPasscode(e.target.value);
-                          if (passcodeError) setPasscodeError(null);
-                        }}
-                        placeholder="กรอกรหัสผ่าน Admin..."
-                        autoFocus
-                        className={`w-full h-12 pl-11 pr-12 rounded-2xl bg-slate-900 border text-white text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 transition-all ${
-                          passcodeError
-                            ? 'border-rose-500/80 focus:ring-rose-500/50 bg-rose-950/20'
-                            : 'border-slate-700 focus:ring-blue-500 focus:border-transparent'
-                        }`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPasscode((prev) => !prev)}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors p-1"
-                        title={showPasscode ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
-                      >
-                        <span className="material-symbols-outlined text-[20px]">
-                          {showPasscode ? 'visibility_off' : 'visibility'}
-                        </span>
-                      </button>
-                    </div>
-
-                    {passcodeError && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex items-center gap-1.5 text-rose-400 text-xs font-medium mt-2"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">error</span>
-                        <span>{passcodeError}</span>
-                      </motion.div>
-                    )}
-                  </div>
-
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    id="admin-unlock-btn"
-                    className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/30 hover:scale-102 active:scale-98 mt-1"
-                  >
-                    <span className="material-symbols-outlined text-[20px]">lock_open</span>
-                    <span>ปลดล็อคเข้าสู่ระบบ Admin</span>
-                  </button>
-                </form>
-              </motion.div>
+                <div className="w-full text-left mb-5">
+                  <p className="text-xs font-semibold text-slate-300 mb-2">บัญชีที่ได้รับอนุญาต</p>
+                  {ALLOWED_ADMIN_EMAILS.map((email) => (
+                    <p key={email} className="text-xs text-slate-400">{email}</p>
+                  ))}
+                </div>
+                {authError && (
+                  <p role="alert" className="w-full mb-4 p-3 rounded-xl bg-rose-950/80 border border-rose-500/40 text-rose-300 text-xs">
+                    {authError}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  id="admin-google-sign-in-btn"
+                  onClick={handleGoogleSignIn}
+                  disabled={isAuthLoading || isSigningIn}
+                  className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/30"
+                >
+                  <span className="material-symbols-outlined text-[20px]">login</span>
+                  <span>{isAuthLoading || isSigningIn ? 'กำลังตรวจสอบ...' : 'เข้าสู่ระบบด้วย Google'}</span>
+                </button>
+              </div>
             </div>
           ) : (
             /* If Authenticated: Show Full Admin Panel Tabs & Editors */
@@ -525,7 +449,6 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                   <button
                     onClick={() => {
                       setActiveTab('security');
-                      setChangePassMsg(null);
                     }}
                     className={`py-3 px-4 text-sm font-semibold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
                       activeTab === 'security'
@@ -534,7 +457,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                     }`}
                   >
                     <span className="material-symbols-outlined text-[18px]">key</span>
-                    <span>ตั้งค่ารหัสผ่าน (Security)</span>
+                    <span>สิทธิ์ผู้ดูแล (Security)</span>
                   </button>
                 </div>
 
@@ -558,6 +481,11 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
 
               {/* Modal Body */}
               <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
+                {authError && (
+                  <p role="alert" className="mb-5 p-3 rounded-xl bg-rose-950/80 border border-rose-500/40 text-rose-300 text-xs">
+                    {authError}
+                  </p>
+                )}
                 {saveSuccessMessage && (
                   <motion.div
                     initial={{ opacity: 0, y: -8 }}
@@ -1097,111 +1025,32 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                   </div>
                 )}
 
-                {/* TAB 3: SECURITY & PASSWORD SETTINGS */}
+                {/* TAB 3: ADMIN ACCESS */}
                 {activeTab === 'security' && (
                   <div className="max-w-lg mx-auto flex flex-col gap-6 py-4">
                     <div className="bg-[#070e22] border border-slate-800 rounded-3xl p-6 sm:p-8">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="w-10 h-10 rounded-2xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
-                          <span className="material-symbols-outlined text-[22px]">lock_reset</span>
+                          <span className="material-symbols-outlined text-[22px]">verified_user</span>
                         </div>
                         <div>
-                          <h3 className="text-base font-bold text-white">เปลี่ยนรหัสผ่าน Admin (Change Password)</h3>
-                          <p className="text-xs text-slate-400">กำหนดรหัสผ่านใหม่เพื่อป้องกันไม่ให้ผู้อื่นแก้ไขข้อมูล</p>
+                          <h3 className="text-base font-bold text-white">บัญชีผู้ดูแลที่อนุญาต</h3>
+                          <p className="text-xs text-slate-400">
+                            Firestore อนุญาตให้เขียนข้อมูลเฉพาะบัญชีที่ยืนยันอีเมลแล้วในรายการนี้
+                          </p>
                         </div>
                       </div>
-
-                      {changePassMsg && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -4 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className={`mb-4 p-3 rounded-xl text-xs font-medium flex items-center gap-2 ${
-                            changePassMsg.type === 'success'
-                              ? 'bg-emerald-950/80 border border-emerald-500/40 text-emerald-300'
-                              : 'bg-rose-950/80 border border-rose-500/40 text-rose-300'
-                          }`}
-                        >
-                          <span className="material-symbols-outlined text-[18px]">
-                            {changePassMsg.type === 'success' ? 'check_circle' : 'error'}
-                          </span>
-                          <span>{changePassMsg.text}</span>
-                        </motion.div>
-                      )}
-
-                      <form onSubmit={handleChangePasscode} className="flex flex-col gap-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                            รหัสผ่านปัจจุบัน (Current Password)
-                          </label>
-                          <input
-                            type={showNewPass ? 'text' : 'password'}
-                            required
-                            placeholder="กรอกรหัสผ่านเดิม..."
-                            value={oldPass}
-                            onChange={(e) => setOldPass(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                            รหัสผ่านใหม่ (New Password)
-                          </label>
-                          <input
-                            type={showNewPass ? 'text' : 'password'}
-                            required
-                            placeholder="อย่างน้อย 4 ตัวอักษร..."
-                            value={newPass}
-                            onChange={(e) => setNewPass(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                            ยืนยันรหัสผ่านใหม่ (Confirm New Password)
-                          </label>
-                          <input
-                            type={showNewPass ? 'text' : 'password'}
-                            required
-                            placeholder="กรอกรหัสผ่านใหม่อีกครั้ง..."
-                            value={confirmPass}
-                            onChange={(e) => setConfirmPass(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        </div>
-
-                        <div className="flex items-center justify-between text-xs text-slate-400">
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={showNewPass}
-                              onChange={(e) => setShowNewPass(e.target.checked)}
-                              className="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-blue-500"
-                            />
-                            <span>แสดงรหัสผ่านทั้งหมด</span>
-                          </label>
-                        </div>
-
-                        <div className="flex items-center gap-3 pt-2">
-                          <button
-                            type="submit"
-                            className="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-blue-600/20"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">key</span>
-                            <span>บันทึกรหัสผ่านใหม่</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={handleResetPasscodeDefault}
-                            className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-rose-600/20 text-slate-300 hover:text-rose-300 text-xs font-semibold border border-slate-700 transition-colors"
-                            title="คืนค่ารหัสผ่านกลับเป็นค่าเริ่มต้นของระบบ"
-                          >
-                            คืนค่ารหัสผ่านเริ่มต้น
-                          </button>
-                        </div>
-                      </form>
+                      <div className="flex flex-col gap-2">
+                        {ALLOWED_ADMIN_EMAILS.map((email) => (
+                          <div key={email} className="px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-200">
+                            {email}
+                          </div>
+                        ))}
+                      </div>
+                      <p className="mt-4 text-xs leading-relaxed text-slate-400">
+                        เพิ่มหรือลบบัญชีโดยแก้รายการอีเมลทั้งใน src/lib/adminAccess.ts และ firestore.rules
+                        จากนั้น deploy Firestore Rules ใหม่
+                      </p>
                     </div>
                   </div>
                 )}

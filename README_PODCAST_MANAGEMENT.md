@@ -1,6 +1,19 @@
 # ⚡ คู่มือการจัดการวิดีโอและเวลา (Quick & Minimal Guide)
 ### สำหรับ Louis PodCare Discovery
 
+## 🔐 ตั้งค่าการเข้าถึง Admin และ Firestore
+
+การจัดการพอดแคสต์ใช้ Google Sign-In ผ่าน Firebase Authentication โดยอนุญาตเฉพาะอีเมลใน `src/lib/adminAccess.ts` เท่านั้น Firestore Rules ตรวจสิทธิ์ซ้ำฝั่งฐานข้อมูล ดังนั้นการซ่อนหน้า Admin เพียงอย่างเดียวไม่ถือเป็นการป้องกันข้อมูล
+
+ก่อนใช้งาน Admin หลัง deploy โค้ด:
+
+1. ใน Firebase Console ของโปรเจกต์ที่กำหนดใน `firebase-applet-config.json` เปิด Authentication และเปิดใช้ Google เป็น Sign-in provider
+2. เพิ่มโดเมนของเว็บแอปใน Authentication > Settings > Authorized domains
+3. ตรวจให้รายชื่ออีเมลใน `src/lib/adminAccess.ts` ตรงกับ allowlist ใน `firestore.rules`
+4. deploy กฎด้วย Firebase CLI: `firebase deploy --only firestore:rules --project gen-lang-client-0227239865` (กำหนดฐานข้อมูลตาม `firebase.json`)
+
+การอ่านพอดแคสต์ยังเปิดเป็นสาธารณะ แต่การเขียนอนุญาตเฉพาะบัญชี allowlist ที่ยืนยันอีเมลแล้ว ส่วน collection อื่นถูกปฏิเสธทั้งหมดโดยกฎเริ่มต้น
+
 📍 **ไฟล์แก้ไขข้อมูลหลัก:** `/src/data/podcasts.ts`
 
 ---
